@@ -595,6 +595,19 @@ async def create_demo_user(current_user = Depends(admin_required)):
     
     return {"message": "Demo user created successfully", "username": "demo", "password": "demo123"}
 
+@app.post("/api/admin/set-admin-role/{user_id}")
+async def set_admin_role(user_id: str):
+    """Endpoint untuk mengubah role user menjadi admin - hanya untuk development"""
+    result = await db.users.update_one(
+        {"_id": user_id},
+        {"$set": {"role": UserRole.ADMIN}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return {"message": "User role updated to admin"}
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
