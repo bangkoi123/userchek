@@ -377,6 +377,224 @@ async def get_dashboard_stats(current_user = Depends(get_current_user)):
         "recent_jobs": recent_jobs
     }
 
+# Bulk Validation Routes
+@app.post("/api/validation/bulk-check")
+async def bulk_check(file: UploadFile = File(...), current_user = Depends(get_current_user)):
+    if not file.filename.endswith(('.csv', '.xlsx', '.xls')):
+        raise HTTPException(status_code=400, detail="Format file tidak didukung. Gunakan CSV, XLS, atau XLSX")
+    
+    if file.size > 10 * 1024 * 1024:  # 10MB
+        raise HTTPException(status_code=400, detail="File terlalu besar. Maksimal 10MB")
+    
+    try:
+        # Read file content
+        content = await file.read()
+        
+        # Parse based on file type
+        if file.filename.endswith('.csv'):
+            df = pd.read_csv(io.BytesIO(content))
+        else:
+            df = pd.read_excel(io.BytesIO(content))
+        
+        if 'phone_number' not in df.columns:
+            raise HTTPException(status_code=400, detail="File harus memiliki kolom 'phone_number'")
+        
+        # Clean and normalize phone numbers
+        phone_numbers = df['phone_number'].dropna().astype(str).tolist()
+        phone_numbers = [normalize_phone_number(phone) for phone in phone_numbers]
+        
+        # Remove duplicates
+        unique_numbers = list(set(phone_numbers))
+        
+        if len(unique_numbers) > 1000:
+            raise HTTPException(status_code=400, detail="Maksimal 1000 nomor per file")
+        
+        # Check credits
+        required_credits = len(unique_numbers) * 2
+        if current_user.get("credits", 0) < required_credits:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Kredit tidak mencukupi. Dibutuhkan {required_credits} kredit, tersisa {current_user.get('credits', 0)}"
+            )
+        
+        # Create job
+        job_doc = {
+            "_id": str(uuid.uuid4()),
+            "user_id": current_user["_id"],
+            "tenant_id": current_user["tenant_id"],
+            "filename": file.filename,
+            "status": JobStatus.PENDING,
+            "total_numbers": len(unique_numbers),
+            "processed_numbers": 0,
+            "phone_numbers": unique_numbers,
+            "results": None,
+            "credits_used": required_credits,
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow(),
+            "error_message": None
+        }
+        
+        await db.jobs.insert_one(job_doc)
+        
+        # Start background processing (simplified - in production use Celery)
+        # For now, we'll just simulate processing
+        # background_tasks.add_task(process_bulk_validation, job_doc["_id"])
+        
+        return {
+            "message": "File berhasil diupload",
+            "job_id": job_doc["_id"],
+            "total_numbers": len(unique_numbers),
+            "estimated_credits": required_credits
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error processing file: {str(e)}")
+
+@app.get("/api/jobs")
+async def get_jobs(current_user = Depends(get_current_user)):
+    jobs = await db.jobs.find(
+        {"user_id": current_user["_id"]},
+        sort=[("created_at", DESCENDING)]
+    ).to_list(50)
+    
+    return jobs
+
+@app.get("/api/jobs/{job_id}")
+async def get_job(job_id: str, current_user = Depends(get_current_user)):
+    job = await db.jobs.find_one({"_id": job_id, "user_id": current_user["_id"]})
+    if not job:
+        raise HTTPException(status_code=404, detail="Job tidak ditemukan")
+    
+    return job
+
+@app.delete("/api/jobs/{job_id}")
+async def delete_job(job_id: str, current_user = Depends(get_current_user)):
+    result = await db.jobs.delete_one({"_id": job_id, "user_id": current_user["_id"]})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Job tidak ditemukan")
+    
+    return {"message": "Job berhasil dihapus"}
+
+@app.get("/api/jobs/{job_id}/download")
+async def download_job_result(job_id: str, current_user = Depends(get_current_user)):
+    job = await db.jobs.find_one({"_id": job_id, "user_id": current_user["_id"]})
+    if not job:
+        raise HTTPException(status_code=404, detail="Job tidak ditemukan")
+    
+    if job["status"] != "completed":
+        raise HTTPException(status_code=400, detail="Job belum selesai")
+    
+    # In production, generate and return actual file
+    # For now, return mock response
+    return {"message": "Download akan tersedia segera"}
+
+# Admin Routes
+async def admin_required(current_user = Depends(get_current_user)):
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return current_user
+
+@app.get("/api/admin/stats")
+async def get_admin_stats(current_user = Depends(admin_required)):
+    # Get system stats
+    total_users = await db.users.count_documents({})
+    total_validations = await db.usage_logs.count_documents({})
+    active_jobs = await db.jobs.count_documents({"status": {"$in": ["pending", "processing"]}})
+    
+    # Get credits used
+    credits_used = await db.usage_logs.aggregate([
+        {"$group": {"_id": None, "total": {"$sum": "$credits_used"}}}
+    ]).to_list(1)
+    
+    return {
+        "total_users": total_users,
+        "total_validations": total_validations,
+        "active_jobs": active_jobs,
+        "credits_used": credits_used[0]["total"] if credits_used else 0,
+        "recent_activities": []  # To be implemented
+    }
+
+@app.get("/api/admin/telegram-accounts")
+async def get_telegram_accounts(current_user = Depends(admin_required)):
+    accounts = await db.telegram_accounts.find({}).to_list(100)
+    return accounts
+
+@app.post("/api/admin/telegram-accounts")
+async def create_telegram_account(account: TelegramAccount, current_user = Depends(admin_required)):
+    account_doc = {
+        "_id": str(uuid.uuid4()),
+        **account.dict(),
+        "created_at": datetime.utcnow(),
+        "created_by": current_user["_id"]
+    }
+    
+    await db.telegram_accounts.insert_one(account_doc)
+    return {"message": "Telegram account created successfully", "id": account_doc["_id"]}
+
+@app.get("/api/admin/whatsapp-providers")
+async def get_whatsapp_providers(current_user = Depends(admin_required)):
+    providers = await db.whatsapp_providers.find({}).to_list(100)
+    return providers
+
+@app.post("/api/admin/whatsapp-providers")
+async def create_whatsapp_provider(provider: WhatsAppProvider, current_user = Depends(admin_required)):
+    provider_doc = {
+        "_id": str(uuid.uuid4()),
+        **provider.dict(),
+        "created_at": datetime.utcnow(),
+        "created_by": current_user["_id"]
+    }
+    
+    await db.whatsapp_providers.insert_one(provider_doc)
+    return {"message": "WhatsApp provider created successfully", "id": provider_doc["_id"]}
+
+@app.get("/api/admin/jobs")
+async def get_admin_jobs(current_user = Depends(admin_required)):
+    jobs = await db.jobs.find({}, sort=[("created_at", DESCENDING)]).limit(100).to_list(100)
+    return jobs
+
+@app.post("/api/admin/create-demo-user")
+async def create_demo_user(current_user = Depends(admin_required)):
+    # Check if demo user already exists
+    existing_demo = await db.users.find_one({"username": "demo"})
+    if existing_demo:
+        return {"message": "Demo user already exists"}
+    
+    # Create demo tenant
+    tenant_id = str(uuid.uuid4())
+    
+    # Create demo user
+    user_doc = {
+        "_id": str(uuid.uuid4()),
+        "username": "demo",
+        "email": "demo@example.com",
+        "password": hash_password("demo123"),
+        "role": UserRole.USER,
+        "tenant_id": tenant_id,
+        "company_name": "Demo Company",
+        "credits": 5000,  # Give more credits for demo
+        "created_at": datetime.utcnow(),
+        "is_active": True
+    }
+    
+    await db.users.insert_one(user_doc)
+    
+    # Create tenant document
+    tenant_doc = {
+        "_id": tenant_id,
+        "name": "Demo Company",
+        "owner_id": user_doc["_id"],
+        "created_at": datetime.utcnow(),
+        "settings": {
+            "rate_limit": 1000,
+            "max_bulk_size": 5000
+        }
+    }
+    
+    await db.tenants.insert_one(tenant_doc)
+    
+    return {"message": "Demo user created successfully", "username": "demo", "password": "demo123"}
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
