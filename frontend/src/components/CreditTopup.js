@@ -379,7 +379,10 @@ const CreditTopup = () => {
           
           {transactions.length > 5 && (
             <div className="text-center mt-4">
-              <button className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 text-sm font-medium">
+              <button
+                onClick={() => window.location.href = '/dashboard'}
+                className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 text-sm font-medium"
+              >
                 View All Transactions
               </button>
             </div>
