@@ -852,8 +852,67 @@ async def get_profile(current_user = Depends(get_current_user)):
         "role": current_user["role"],
         "credits": current_user.get("credits", 0),
         "company_name": current_user.get("company_name"),
-        "created_at": current_user["created_at"]
+        "created_at": current_user["created_at"],
+        "is_active": current_user.get("is_active", True),
+        "last_login": current_user.get("last_login"),
+        "total_validations": 0  # Will be calculated
     }
+
+@app.put("/api/user/profile")
+async def update_profile(profile_data: UserProfileUpdate, current_user = Depends(get_current_user)):
+    """Update user profile"""
+    
+    update_data = {}
+    
+    # Only update fields that are provided
+    if profile_data.username is not None:
+        # Check if username is already taken
+        existing_user = await db.users.find_one({
+            "username": profile_data.username,
+            "_id": {"$ne": current_user["_id"]}
+        })
+        if existing_user:
+            raise HTTPException(status_code=400, detail="Username is already taken")
+        update_data["username"] = profile_data.username
+    
+    if profile_data.email is not None:
+        # Check if email is already taken
+        existing_user = await db.users.find_one({
+            "email": profile_data.email,
+            "_id": {"$ne": current_user["_id"]}
+        })
+        if existing_user:
+            raise HTTPException(status_code=400, detail="Email is already taken")
+        update_data["email"] = profile_data.email
+    
+    if profile_data.company_name is not None:
+        update_data["company_name"] = profile_data.company_name
+    
+    if update_data:
+        update_data["updated_at"] = datetime.utcnow()
+        
+        await db.users.update_one(
+            {"_id": current_user["_id"]},
+            {"$set": update_data}
+        )
+        
+        # Get updated user data
+        updated_user = await db.users.find_one({"_id": current_user["_id"]})
+        
+        return {
+            "message": "Profile updated successfully",
+            "user": {
+                "id": updated_user["_id"],
+                "username": updated_user["username"],
+                "email": updated_user["email"],
+                "role": updated_user["role"],
+                "credits": updated_user.get("credits", 0),
+                "company_name": updated_user.get("company_name"),
+                "updated_at": updated_user.get("updated_at")
+            }
+        }
+    
+    return {"message": "No changes made"}
 
 # API Key management endpoints
 @app.get("/api/user/api-keys")
