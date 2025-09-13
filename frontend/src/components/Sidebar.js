@@ -11,7 +11,8 @@ import {
   Shield,
   CreditCard,
   User,
-  Users
+  Users,
+  X
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen }) => {
