@@ -217,7 +217,6 @@ const AdminPanel = () => {
     { id: 'telegram', name: 'Telegram Accounts', icon: MessageSquare },
     { id: 'whatsapp', name: 'WhatsApp Providers', icon: Bot },
     { id: 'jobs', name: 'Job Monitoring', icon: Activity },
-    { id: 'users', name: 'User Management', icon: Users },
     { id: 'settings', name: 'System Settings', icon: Settings }
   ];
 
