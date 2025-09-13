@@ -583,6 +583,17 @@ async def process_bulk_validation(job_id: str):
             }}
         )
         
+        # Emit final progress notification
+        await emit_job_progress(job_id, {
+            "job_id": job_id,
+            "status": "completed",
+            "processed_numbers": len(phone_numbers),
+            "total_numbers": len(phone_numbers),
+            "progress_percentage": 100,
+            "results": results,
+            "completed_at": datetime.utcnow().isoformat()
+        })
+        
         # Get user info for email notification
         user = await db.users.find_one({"_id": job["user_id"]})
         if user and user.get("email"):
