@@ -71,6 +71,12 @@ const Sidebar = ({ isOpen }) => {
         path: '/admin/users',
         icon: Users,
         description: 'Kelola pengguna'
+      },
+      {
+        name: 'Admin Settings',
+        path: '/admin/settings',
+        icon: Settings,
+        description: 'Pengaturan sistem'
       }
     );
   }
