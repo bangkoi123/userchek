@@ -18,65 +18,74 @@ const Sidebar = ({ isOpen }) => {
   const location = useLocation();
   const { user } = useAuth();
 
-  const menuItems = [
-    {
-      name: 'Dashboard',
-      path: '/dashboard',
-      icon: Home,
-      description: 'Ringkasan aktivitas'
-    },
-    {
-      name: 'Quick Check',
-      path: '/quick-check',
-      icon: Zap,
-      description: 'Validasi cepat satu nomor'
-    },
-    {
-      name: 'Bulk Check',
-      path: '/bulk-check',
-      icon: Upload,
-      description: 'Validasi massal dari file'
-    },
-    {
-      name: 'Job History',
-      path: '/job-history',
-      icon: History,
-      description: 'Riwayat pekerjaan'
-    },
-    {
-      name: 'Credit Top-up',
-      path: '/credit-topup',
-      icon: CreditCard,
-      description: 'Beli kredit validasi'
-    },
-    {
-      name: 'Profile',
-      path: '/profile',
-      icon: User,
-      description: 'Pengaturan profil'
-    }
-  ];
+  const menuItems = [];
 
-  // Add admin menu for admin users
+  // Admin gets different navigation (monitoring & management focused)
   if (user?.role === 'admin') {
     menuItems.push(
       {
-        name: 'Admin Panel',
+        name: 'Dashboard Admin',
         path: '/admin',
-        icon: Shield,
-        description: 'Panel administrasi'
+        icon: Home,
+        description: 'Monitoring & analytics sistem'
       },
       {
         name: 'User Management',
         path: '/admin/users',
         icon: Users,
-        description: 'Kelola pengguna'
+        description: 'Kelola pengguna & tambah user'
+      },
+      {
+        name: 'Payment Management',
+        path: '/admin/payments',
+        icon: CreditCard,
+        description: 'Kelola sistem pembayaran'
       },
       {
         name: 'Admin Settings',
         path: '/admin/settings',
         icon: Settings,
-        description: 'Pengaturan sistem'
+        description: 'Pengaturan platform'
+      }
+    );
+  } else {
+    // Regular users get validation tools
+    menuItems.push(
+      {
+        name: 'Dashboard',
+        path: '/dashboard',
+        icon: Home,
+        description: 'Ringkasan aktivitas'
+      },
+      {
+        name: 'Quick Check',
+        path: '/quick-check',
+        icon: Zap,
+        description: 'Validasi cepat satu nomor'
+      },
+      {
+        name: 'Bulk Check',
+        path: '/bulk-check',
+        icon: Upload,
+        description: 'Validasi massal dari file'
+      },
+      {
+        name: 'Job History',
+        path: '/job-history',
+        icon: History,
+        description: 'Riwayat pekerjaan'
+      },
+      {
+        name: 'Credit Top-up',
+        path: '/credit-topup',
+        icon: CreditCard,
+        description: 'Beli kredit validasi'
+      },
+      {
+        name: 'Profile',
+        path: '/profile',
+        icon: User,
+        description: 'Pengaturan profil'
       }
     );
   }
