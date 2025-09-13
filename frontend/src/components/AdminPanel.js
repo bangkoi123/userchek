@@ -551,6 +551,13 @@ const OverviewTab = ({ stats }) => {
     return new Intl.NumberFormat('id-ID').format(num || 0);
   };
 
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount || 0);
+  };
+
   return (
     <div className="space-y-6">
       {/* Stats Cards */}
@@ -559,7 +566,10 @@ const OverviewTab = ({ stats }) => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-blue-100 text-sm">Total Users</p>
-              <p className="text-2xl font-bold">{formatNumber(stats?.total_users)}</p>
+              <p className="text-2xl font-bold">{formatNumber(stats?.user_stats?.total_users)}</p>
+              <p className="text-blue-200 text-xs mt-1">
+                {formatNumber(stats?.user_stats?.active_users)} aktif
+              </p>
             </div>
             <Users className="h-8 w-8 text-blue-200" />
           </div>
@@ -569,7 +579,10 @@ const OverviewTab = ({ stats }) => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-green-100 text-sm">Total Validations</p>
-              <p className="text-2xl font-bold">{formatNumber(stats?.total_validations)}</p>
+              <p className="text-2xl font-bold">{formatNumber(stats?.validation_stats?.total_validations)}</p>
+              <p className="text-green-200 text-xs mt-1">
+                {formatNumber(stats?.validation_stats?.completed_validations)} berhasil
+              </p>
             </div>
             <TrendingUp className="h-8 w-8 text-green-200" />
           </div>
@@ -579,7 +592,10 @@ const OverviewTab = ({ stats }) => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-purple-100 text-sm">Active Jobs</p>
-              <p className="text-2xl font-bold">{formatNumber(stats?.active_jobs)}</p>
+              <p className="text-2xl font-bold">{formatNumber(stats?.validation_stats?.active_jobs)}</p>
+              <p className="text-purple-200 text-xs mt-1">
+                {formatNumber(stats?.validation_stats?.failed_validations)} gagal
+              </p>
             </div>
             <Activity className="h-8 w-8 text-purple-200" />
           </div>
@@ -588,8 +604,11 @@ const OverviewTab = ({ stats }) => {
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-orange-100 text-sm">Credits Used</p>
-              <p className="text-2xl font-bold">{formatNumber(stats?.credits_used)}</p>
+              <p className="text-orange-100 text-sm">Total Revenue</p>
+              <p className="text-2xl font-bold">{formatCurrency(stats?.payment_stats?.total_revenue)}</p>
+              <p className="text-orange-200 text-xs mt-1">
+                {formatNumber(stats?.payment_stats?.total_transactions)} transaksi
+              </p>
             </div>
             <Database className="h-8 w-8 text-orange-200" />
           </div>
