@@ -951,7 +951,7 @@ async def bulk_check(background_tasks: BackgroundTasks, file: UploadFile = File(
         
         # Create job
         job_doc = {
-            "_id": str(uuid.uuid4()),
+            "_id": generate_id(),
             "user_id": current_user["_id"],
             "tenant_id": current_user["tenant_id"],
             "filename": file.filename,
