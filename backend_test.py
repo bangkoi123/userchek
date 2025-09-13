@@ -422,7 +422,7 @@ class WebtoolsAPITester:
             200,
             data={
                 "package_id": "starter",
-                "origin_url": "https://phoneproof.preview.emergentagent.com"
+                "origin_url": "https://validhub.preview.emergentagent.com"
             },
             token=self.demo_token,
             description="Create Stripe checkout session for credit purchase"
