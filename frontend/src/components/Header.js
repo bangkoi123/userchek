@@ -17,10 +17,16 @@ import {
 const Header = ({ sidebarOpen, setSidebarOpen }) => {
   const { user, logout } = useAuth();
   const { darkMode, toggleDarkMode } = useTheme();
+  const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
+    setDropdownOpen(false);
+  };
+
+  const handleNavigate = (path) => {
+    navigate(path);
     setDropdownOpen(false);
   };
 
