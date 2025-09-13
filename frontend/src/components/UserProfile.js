@@ -20,6 +20,7 @@ import toast from 'react-hot-toast';
 
 const UserProfile = () => {
   const { user, updateUser } = useAuth();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
