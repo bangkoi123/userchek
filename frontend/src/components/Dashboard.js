@@ -255,7 +255,7 @@ const Dashboard = () => {
               Upload file CSV untuk validasi massal
             </p>
             <button 
-              onClick={() => window.location.href = '/bulk-check'}
+              onClick={() => navigate('/bulk-check')}
               className="btn-primary"
             >
               Mulai Bulk Check
