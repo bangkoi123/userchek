@@ -819,8 +819,8 @@ async def process_bulk_validation(job_id: str):
         await emit_job_progress(job_id, {
             "job_id": job_id,
             "status": "completed",
-            "processed_numbers": len(phone_numbers),
-            "total_numbers": len(phone_numbers),
+            "processed_numbers": len(phone_data_list),
+            "total_numbers": len(phone_data_list),
             "progress_percentage": 100,
             "results": results,
             "completed_at": datetime.utcnow().isoformat()
