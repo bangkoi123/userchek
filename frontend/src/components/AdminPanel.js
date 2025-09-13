@@ -438,14 +438,17 @@ const OverviewTab = ({ stats }) => {
 };
 
 // Telegram Tab Component
-const TelegramTab = ({ accounts, onRefresh }) => {
+const TelegramTab = ({ accounts, onRefresh, openModal, onDelete }) => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
           Telegram Accounts
         </h3>
-        <button className="btn-primary flex items-center">
+        <button 
+          onClick={() => openModal()}
+          className="btn-primary flex items-center hover:bg-primary-700"
+        >
           <Plus className="h-4 w-4 mr-2" />
           Tambah Akun
         </button>
@@ -469,6 +472,9 @@ const TelegramTab = ({ accounts, onRefresh }) => {
                   <p className="text-sm text-gray-600 dark:text-gray-400">
                     {account.phone_number}
                   </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    API ID: {account.api_id} • Bot Token: {account.bot_token ? 'Set' : 'Not Set'}
+                  </p>
                 </div>
                 <div className="flex items-center space-x-2">
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -478,10 +484,18 @@ const TelegramTab = ({ accounts, onRefresh }) => {
                   }`}>
                     {account.is_active ? 'Aktif' : 'Tidak Aktif'}
                   </span>
-                  <button className="p-1 text-blue-600 hover:text-blue-700">
+                  <button 
+                    onClick={() => openModal(account)}
+                    className="p-1 text-blue-600 hover:text-blue-700 hover:bg-blue-100 dark:hover:bg-blue-900 rounded transition-colors"
+                    title="Edit akun"
+                  >
                     <Edit2 className="h-4 w-4" />
                   </button>
-                  <button className="p-1 text-red-600 hover:text-red-700">
+                  <button 
+                    onClick={() => onDelete(account._id, account.name)}
+                    className="p-1 text-red-600 hover:text-red-700 hover:bg-red-100 dark:hover:bg-red-900 rounded transition-colors"
+                    title="Hapus akun"
+                  >
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
@@ -492,7 +506,14 @@ const TelegramTab = ({ accounts, onRefresh }) => {
       ) : (
         <div className="text-center py-12">
           <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600 dark:text-gray-400">Belum ada akun Telegram</p>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">Belum ada akun Telegram</p>
+          <button 
+            onClick={() => openModal()}
+            className="btn-primary"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Tambah Akun Pertama
+          </button>
         </div>
       )}
     </div>
@@ -500,14 +521,17 @@ const TelegramTab = ({ accounts, onRefresh }) => {
 };
 
 // WhatsApp Tab Component
-const WhatsAppTab = ({ providers, onRefresh }) => {
+const WhatsAppTab = ({ providers, onRefresh, openModal, onDelete }) => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
           WhatsApp Providers
         </h3>
-        <button className="btn-primary flex items-center">
+        <button 
+          onClick={() => openModal()}
+          className="btn-primary flex items-center hover:bg-primary-700"
+        >
           <Plus className="h-4 w-4 mr-2" />
           Tambah Provider
         </button>
@@ -531,6 +555,9 @@ const WhatsAppTab = ({ providers, onRefresh }) => {
                   <p className="text-sm text-gray-600 dark:text-gray-400">
                     {provider.provider_type} • {provider.api_endpoint}
                   </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    API Key: {provider.api_key ? `${provider.api_key.substring(0, 8)}...` : 'Not Set'}
+                  </p>
                 </div>
                 <div className="flex items-center space-x-2">
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -540,10 +567,18 @@ const WhatsAppTab = ({ providers, onRefresh }) => {
                   }`}>
                     {provider.is_active ? 'Aktif' : 'Tidak Aktif'}
                   </span>
-                  <button className="p-1 text-blue-600 hover:text-blue-700">
+                  <button 
+                    onClick={() => openModal(provider)}
+                    className="p-1 text-blue-600 hover:text-blue-700 hover:bg-blue-100 dark:hover:bg-blue-900 rounded transition-colors"
+                    title="Edit provider"
+                  >
                     <Edit2 className="h-4 w-4" />
                   </button>
-                  <button className="p-1 text-red-600 hover:text-red-700">
+                  <button 
+                    onClick={() => onDelete(provider._id, provider.name)}
+                    className="p-1 text-red-600 hover:text-red-700 hover:bg-red-100 dark:hover:bg-red-900 rounded transition-colors"
+                    title="Hapus provider"
+                  >
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
@@ -554,7 +589,14 @@ const WhatsAppTab = ({ providers, onRefresh }) => {
       ) : (
         <div className="text-center py-12">
           <Bot className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600 dark:text-gray-400">Belum ada provider WhatsApp</p>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">Belum ada provider WhatsApp</p>
+          <button 
+            onClick={() => openModal()}
+            className="btn-primary"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Tambah Provider Pertama
+          </button>
         </div>
       )}
     </div>
