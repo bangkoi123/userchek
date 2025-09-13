@@ -242,7 +242,7 @@ const UserManagement = () => {
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                ${analytics.payment_stats?.reduce((acc, stat) => acc + stat.revenue, 0)?.toFixed(2) || '0.00'}
+                ${(analytics?.payment_stats?.total_revenue || 0).toFixed(2)}
               </p>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Revenue (30d)
