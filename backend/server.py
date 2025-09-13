@@ -1115,7 +1115,7 @@ async def get_whatsapp_providers(current_user = Depends(admin_required)):
 @app.post("/api/admin/whatsapp-providers")
 async def create_whatsapp_provider(provider: WhatsAppProvider, current_user = Depends(admin_required)):
     provider_doc = {
-        "_id": str(uuid.uuid4()),
+        "_id": generate_id(),
         **provider.dict(),
         "created_at": datetime.utcnow(),
         "created_by": current_user["_id"]
