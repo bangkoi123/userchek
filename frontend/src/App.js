@@ -89,6 +89,7 @@ function AppContent() {
                 <>
                   <Route path="/admin" element={<AdminPanel />} />
                   <Route path="/admin/users" element={<UserManagement />} />
+                  <Route path="/admin/payments" element={<PaymentManagement />} />
                   <Route path="/admin/settings" element={<AdminSettings />} />
                 </>
               )}
