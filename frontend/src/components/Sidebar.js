@@ -15,7 +15,7 @@ import {
   X
 } from 'lucide-react';
 
-const Sidebar = ({ isOpen }) => {
+const Sidebar = ({ isOpen, setSidebarOpen }) => {
   const location = useLocation();
   const { user } = useAuth();
 
