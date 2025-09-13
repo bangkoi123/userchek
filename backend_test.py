@@ -379,6 +379,270 @@ class WebtoolsAPITester:
             
         return success
 
+    def test_credit_packages(self):
+        """Test getting available credit packages"""
+        success, response = self.run_test(
+            "Credit Packages",
+            "GET",
+            "api/credit-packages",
+            200,
+            description="Get available credit packages for purchase"
+        )
+        
+        if success:
+            if isinstance(response, dict):
+                packages = list(response.keys())
+                print(f"   ✅ Found {len(packages)} credit packages: {packages}")
+                # Check if packages have required fields
+                for package_id, package_data in response.items():
+                    required_fields = ['credits', 'price', 'name']
+                    missing_fields = [field for field in required_fields if field not in package_data]
+                    if missing_fields:
+                        print(f"   ⚠️  Package {package_id} missing fields: {missing_fields}")
+                    else:
+                        print(f"   ✅ Package {package_id}: {package_data['credits']} credits for ${package_data['price']}")
+            else:
+                print(f"   ⚠️  Unexpected response format: {type(response)}")
+                
+        return success
+
+    def test_create_checkout_session(self):
+        """Test creating Stripe checkout session"""
+        if not self.demo_token:
+            print("❌ Skipping checkout session test - no demo token")
+            return False
+            
+        success, response = self.run_test(
+            "Create Checkout Session",
+            "POST",
+            "api/payments/create-checkout",
+            200,
+            data={
+                "package_id": "starter",
+                "origin_url": "https://phoneproof.preview.emergentagent.com"
+            },
+            token=self.demo_token,
+            description="Create Stripe checkout session for credit purchase"
+        )
+        
+        if success:
+            required_fields = ['url', 'session_id', 'package', 'transaction_id']
+            missing_fields = [field for field in required_fields if field not in response]
+            if missing_fields:
+                print(f"   ⚠️  Missing response fields: {missing_fields}")
+            else:
+                print(f"   ✅ Checkout session created with ID: {response.get('session_id', 'N/A')}")
+                self.checkout_session_id = response.get('session_id')
+                
+        return success
+
+    def test_payment_status(self):
+        """Test getting payment status"""
+        if not self.demo_token or not hasattr(self, 'checkout_session_id'):
+            print("❌ Skipping payment status test - no demo token or session ID")
+            return False
+            
+        success, response = self.run_test(
+            "Payment Status",
+            "GET",
+            f"api/payments/status/{self.checkout_session_id}",
+            200,
+            token=self.demo_token,
+            description="Check payment status for checkout session"
+        )
+        
+        if success:
+            expected_fields = ['status', 'payment_status', 'credits_amount']
+            missing_fields = [field for field in expected_fields if field not in response]
+            if missing_fields:
+                print(f"   ⚠️  Missing response fields: {missing_fields}")
+            else:
+                print(f"   ✅ Payment status: {response.get('payment_status', 'N/A')}")
+                
+        return success
+
+    def test_payment_transactions(self):
+        """Test getting payment transaction history"""
+        if not self.demo_token:
+            print("❌ Skipping payment transactions test - no demo token")
+            return False
+            
+        success, response = self.run_test(
+            "Payment Transactions",
+            "GET",
+            "api/payments/transactions",
+            200,
+            token=self.demo_token,
+            description="Get user's payment transaction history"
+        )
+        
+        if success:
+            if isinstance(response, list):
+                print(f"   ✅ Found {len(response)} payment transactions")
+                if response:
+                    # Check structure of first transaction
+                    first_transaction = response[0]
+                    expected_fields = ['user_id', 'package_id', 'amount', 'payment_status', 'created_at']
+                    missing_fields = [field for field in expected_fields if field not in first_transaction]
+                    if missing_fields:
+                        print(f"   ⚠️  Transaction missing fields: {missing_fields}")
+                    else:
+                        print(f"   ✅ Transaction structure is correct")
+            else:
+                print(f"   ⚠️  Expected list, got {type(response)}")
+                
+        return success
+
+    def test_update_user_profile(self):
+        """Test updating user profile"""
+        if not self.demo_token:
+            print("❌ Skipping profile update test - no demo token")
+            return False
+            
+        success, response = self.run_test(
+            "Update User Profile",
+            "PUT",
+            "api/user/profile",
+            200,
+            data={
+                "company_name": "Updated Test Company"
+            },
+            token=self.demo_token,
+            description="Update user profile information"
+        )
+        
+        if success:
+            if 'message' in response and 'user' in response:
+                print(f"   ✅ Profile updated: {response.get('message', 'N/A')}")
+                updated_user = response.get('user', {})
+                if 'company_name' in updated_user:
+                    print(f"   ✅ Company name updated to: {updated_user['company_name']}")
+            else:
+                print(f"   ⚠️  Unexpected response structure")
+                
+        return success
+
+    def test_admin_users_list(self):
+        """Test getting users list (admin only)"""
+        if not self.admin_token:
+            print("❌ Skipping admin users list test - no admin token")
+            return False
+            
+        success, response = self.run_test(
+            "Admin Users List",
+            "GET",
+            "api/admin/users",
+            200,
+            token=self.admin_token,
+            description="Get users list with pagination (admin only)"
+        )
+        
+        if success:
+            if 'users' in response and 'pagination' in response:
+                users = response['users']
+                pagination = response['pagination']
+                print(f"   ✅ Found {len(users)} users on page {pagination.get('current_page', 1)}")
+                print(f"   ✅ Total users: {pagination.get('total_count', 0)}")
+                
+                # Check user structure
+                if users:
+                    first_user = users[0]
+                    expected_fields = ['_id', 'username', 'email', 'role', 'created_at']
+                    missing_fields = [field for field in expected_fields if field not in first_user]
+                    if missing_fields:
+                        print(f"   ⚠️  User object missing fields: {missing_fields}")
+                    else:
+                        print(f"   ✅ User structure is correct")
+            else:
+                print(f"   ⚠️  Expected 'users' and 'pagination' fields in response")
+                
+        return success
+
+    def test_admin_user_details(self):
+        """Test getting detailed user information (admin only)"""
+        if not self.admin_token or not self.demo_user_id:
+            print("❌ Skipping admin user details test - no admin token or demo user ID")
+            return False
+            
+        success, response = self.run_test(
+            "Admin User Details",
+            "GET",
+            f"api/admin/users/{self.demo_user_id}",
+            200,
+            token=self.admin_token,
+            description="Get detailed user information (admin only)"
+        )
+        
+        if success:
+            expected_sections = ['user', 'recent_activities', 'payment_transactions', 'recent_jobs', 'usage_stats']
+            missing_sections = [section for section in expected_sections if section not in response]
+            if missing_sections:
+                print(f"   ⚠️  Missing response sections: {missing_sections}")
+            else:
+                print(f"   ✅ User details structure is complete")
+                user_data = response.get('user', {})
+                if 'username' in user_data:
+                    print(f"   ✅ User details for: {user_data['username']}")
+                
+        return success
+
+    def test_admin_update_user(self):
+        """Test updating user settings (admin only)"""
+        if not self.admin_token or not self.demo_user_id:
+            print("❌ Skipping admin user update test - no admin token or demo user ID")
+            return False
+            
+        success, response = self.run_test(
+            "Admin Update User",
+            "PUT",
+            f"api/admin/users/{self.demo_user_id}",
+            200,
+            data={
+                "credits": 2000
+            },
+            token=self.admin_token,
+            description="Update user settings (admin only)"
+        )
+        
+        if success:
+            if 'message' in response:
+                print(f"   ✅ User updated: {response.get('message', 'N/A')}")
+            else:
+                print(f"   ⚠️  Expected 'message' field in response")
+                
+        return success
+
+    def test_admin_analytics(self):
+        """Test getting system analytics (admin only)"""
+        if not self.admin_token:
+            print("❌ Skipping admin analytics test - no admin token")
+            return False
+            
+        success, response = self.run_test(
+            "Admin Analytics",
+            "GET",
+            "api/admin/analytics",
+            200,
+            token=self.admin_token,
+            description="Get system analytics (admin only)"
+        )
+        
+        if success:
+            # Check if response has analytics data
+            if isinstance(response, dict) and response:
+                print(f"   ✅ Analytics data received with {len(response)} metrics")
+                # Look for common analytics fields
+                common_fields = ['total_users', 'total_validations', 'active_jobs', 'credits_used']
+                found_fields = [field for field in common_fields if field in response]
+                if found_fields:
+                    print(f"   ✅ Found analytics fields: {found_fields}")
+                else:
+                    print(f"   ⚠️  No common analytics fields found")
+            else:
+                print(f"   ⚠️  Expected analytics object, got {type(response)}")
+                
+        return success
+
 def main():
     print("🚀 Starting Webtools Validation API Tests")
     print("=" * 50)
