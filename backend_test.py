@@ -633,60 +633,86 @@ class WebtoolsAPITester:
         if success:
             # Check if response has analytics data
             if isinstance(response, dict) and response:
-                print(f"   ✅ Analytics data received with {len(response)} top-level metrics")
+                print(f"   ✅ Analytics data received with {len(response)} top-level sections")
                 
-                # Check for user statistics
-                user_stats_fields = ['total_users', 'active_users', 'admin_users', 'new_users_this_month']
-                found_user_stats = [field for field in user_stats_fields if field in response]
-                if found_user_stats:
-                    print(f"   ✅ User statistics found: {found_user_stats}")
-                    for field in found_user_stats:
-                        print(f"      {field}: {response[field]}")
+                # Check for user statistics section
+                if 'user_stats' in response:
+                    user_stats = response['user_stats']
+                    user_stats_fields = ['total_users', 'active_users', 'admin_users', 'new_users_this_month']
+                    found_user_stats = [field for field in user_stats_fields if field in user_stats]
+                    if len(found_user_stats) == len(user_stats_fields):
+                        print(f"   ✅ User statistics complete: {found_user_stats}")
+                        for field in found_user_stats:
+                            print(f"      {field}: {user_stats[field]}")
+                    else:
+                        missing = [field for field in user_stats_fields if field not in user_stats]
+                        print(f"   ⚠️  User statistics missing: {missing}")
                 else:
-                    print(f"   ⚠️  Missing user statistics fields")
+                    print(f"   ❌ Missing user_stats section")
                 
-                # Check for validation statistics
-                validation_stats_fields = ['total_validations', 'completed_validations', 'failed_validations', 
-                                         'active_jobs', 'whatsapp_validations', 'telegram_validations']
-                found_validation_stats = [field for field in validation_stats_fields if field in response]
-                if found_validation_stats:
-                    print(f"   ✅ Validation statistics found: {found_validation_stats}")
-                    for field in found_validation_stats:
-                        print(f"      {field}: {response[field]}")
+                # Check for validation statistics section
+                if 'validation_stats' in response:
+                    validation_stats = response['validation_stats']
+                    validation_stats_fields = ['total_validations', 'completed_validations', 'failed_validations', 
+                                             'active_jobs', 'whatsapp_validations', 'telegram_validations']
+                    found_validation_stats = [field for field in validation_stats_fields if field in validation_stats]
+                    if len(found_validation_stats) == len(validation_stats_fields):
+                        print(f"   ✅ Validation statistics complete: {found_validation_stats}")
+                        for field in found_validation_stats:
+                            print(f"      {field}: {validation_stats[field]}")
+                    else:
+                        missing = [field for field in validation_stats_fields if field not in validation_stats]
+                        print(f"   ⚠️  Validation statistics missing: {missing}")
                 else:
-                    print(f"   ⚠️  Missing validation statistics fields")
+                    print(f"   ❌ Missing validation_stats section")
                 
-                # Check for credit statistics
-                credit_stats_fields = ['total_credits_in_system', 'total_credits_used', 'total_usage_transactions']
-                found_credit_stats = [field for field in credit_stats_fields if field in response]
-                if found_credit_stats:
-                    print(f"   ✅ Credit statistics found: {found_credit_stats}")
-                    for field in found_credit_stats:
-                        print(f"      {field}: {response[field]}")
+                # Check for credit statistics section
+                if 'credit_stats' in response:
+                    credit_stats = response['credit_stats']
+                    credit_stats_fields = ['total_credits_in_system', 'total_credits_used', 'total_usage_transactions']
+                    found_credit_stats = [field for field in credit_stats_fields if field in credit_stats]
+                    if len(found_credit_stats) == len(credit_stats_fields):
+                        print(f"   ✅ Credit statistics complete: {found_credit_stats}")
+                        for field in found_credit_stats:
+                            print(f"      {field}: {credit_stats[field]}")
+                    else:
+                        missing = [field for field in credit_stats_fields if field not in credit_stats]
+                        print(f"   ⚠️  Credit statistics missing: {missing}")
                 else:
-                    print(f"   ⚠️  Missing credit statistics fields")
+                    print(f"   ❌ Missing credit_stats section")
                 
-                # Check for payment statistics
-                payment_stats_fields = ['total_revenue', 'total_transactions', 'total_credits_sold']
-                found_payment_stats = [field for field in payment_stats_fields if field in response]
-                if found_payment_stats:
-                    print(f"   ✅ Payment statistics found: {found_payment_stats}")
-                    for field in found_payment_stats:
-                        print(f"      {field}: {response[field]}")
+                # Check for payment statistics section
+                if 'payment_stats' in response:
+                    payment_stats = response['payment_stats']
+                    payment_stats_fields = ['total_revenue', 'total_transactions', 'total_credits_sold']
+                    found_payment_stats = [field for field in payment_stats_fields if field in payment_stats]
+                    if len(found_payment_stats) == len(payment_stats_fields):
+                        print(f"   ✅ Payment statistics complete: {found_payment_stats}")
+                        for field in found_payment_stats:
+                            print(f"      {field}: {payment_stats[field]}")
+                    else:
+                        missing = [field for field in payment_stats_fields if field not in payment_stats]
+                        print(f"   ⚠️  Payment statistics missing: {missing}")
                 else:
-                    print(f"   ⚠️  Missing payment statistics fields")
+                    print(f"   ❌ Missing payment_stats section")
                 
                 # Check for daily stats
                 if 'daily_stats' in response:
                     daily_stats = response['daily_stats']
-                    if isinstance(daily_stats, list):
+                    if isinstance(daily_stats, list) and len(daily_stats) == 7:
                         print(f"   ✅ Daily stats found: {len(daily_stats)} days of data")
                         if daily_stats:
-                            print(f"      Sample day: {daily_stats[0]}")
+                            sample_day = daily_stats[0]
+                            required_day_fields = ['date', 'new_users', 'validations', 'payments']
+                            if all(field in sample_day for field in required_day_fields):
+                                print(f"      ✅ Daily stats structure correct: {sample_day}")
+                            else:
+                                missing = [field for field in required_day_fields if field not in sample_day]
+                                print(f"      ⚠️  Daily stats missing fields: {missing}")
                     else:
-                        print(f"   ⚠️  Daily stats should be a list, got {type(daily_stats)}")
+                        print(f"   ⚠️  Daily stats should be a list of 7 days, got {type(daily_stats)} with {len(daily_stats) if isinstance(daily_stats, list) else 'N/A'} items")
                 else:
-                    print(f"   ⚠️  Missing daily_stats field")
+                    print(f"   ❌ Missing daily_stats field")
                 
                 # Check for top users
                 if 'top_users' in response:
@@ -694,36 +720,57 @@ class WebtoolsAPITester:
                     if isinstance(top_users, list):
                         print(f"   ✅ Top users found: {len(top_users)} users")
                         if top_users:
-                            print(f"      Top user: {top_users[0]}")
+                            sample_user = top_users[0]
+                            required_user_fields = ['id', 'username', 'email', 'credits', 'role']
+                            if all(field in sample_user for field in required_user_fields):
+                                print(f"      ✅ Top user structure correct: {sample_user['username']} ({sample_user['credits']} credits)")
+                            else:
+                                missing = [field for field in required_user_fields if field not in sample_user]
+                                print(f"      ⚠️  Top user missing fields: {missing}")
                     else:
                         print(f"   ⚠️  Top users should be a list, got {type(top_users)}")
                 else:
-                    print(f"   ⚠️  Missing top_users field")
+                    print(f"   ❌ Missing top_users field")
                 
                 # Check for recent activities
-                activity_fields = ['recent_users', 'recent_jobs', 'recent_payments']
-                found_activities = [field for field in activity_fields if field in response]
-                if found_activities:
-                    print(f"   ✅ Recent activities found: {found_activities}")
-                    for field in found_activities:
-                        activities = response[field]
-                        if isinstance(activities, list):
-                            print(f"      {field}: {len(activities)} items")
+                if 'recent_activities' in response:
+                    recent_activities = response['recent_activities']
+                    if isinstance(recent_activities, dict):
+                        activity_sections = ['users', 'jobs', 'payments']
+                        found_sections = [section for section in activity_sections if section in recent_activities]
+                        if len(found_sections) == len(activity_sections):
+                            print(f"   ✅ Recent activities complete: {found_sections}")
+                            for section in found_sections:
+                                activities = recent_activities[section]
+                                if isinstance(activities, list):
+                                    print(f"      {section}: {len(activities)} items")
+                                else:
+                                    print(f"      ⚠️  {section}: expected list, got {type(activities)}")
                         else:
-                            print(f"      {field}: {type(activities)} (expected list)")
+                            missing = [section for section in activity_sections if section not in recent_activities]
+                            print(f"   ⚠️  Recent activities missing sections: {missing}")
+                    else:
+                        print(f"   ⚠️  Recent activities should be a dict, got {type(recent_activities)}")
                 else:
-                    print(f"   ⚠️  Missing recent activities fields")
+                    print(f"   ❌ Missing recent_activities field")
                 
                 # Calculate completeness score
-                all_expected_fields = (user_stats_fields + validation_stats_fields + 
-                                     credit_stats_fields + payment_stats_fields + 
-                                     ['daily_stats', 'top_users'] + activity_fields)
-                found_fields = [field for field in all_expected_fields if field in response]
-                completeness = (len(found_fields) / len(all_expected_fields)) * 100
-                print(f"   📊 Analytics completeness: {completeness:.1f}% ({len(found_fields)}/{len(all_expected_fields)} fields)")
+                expected_sections = ['user_stats', 'validation_stats', 'credit_stats', 'payment_stats', 
+                                   'daily_stats', 'top_users', 'recent_activities']
+                found_sections = [section for section in expected_sections if section in response]
+                completeness = (len(found_sections) / len(expected_sections)) * 100
+                print(f"   📊 Analytics completeness: {completeness:.1f}% ({len(found_sections)}/{len(expected_sections)} sections)")
+                
+                # Overall assessment
+                if completeness == 100:
+                    print(f"   🎉 All required analytics sections present and structured correctly!")
+                elif completeness >= 80:
+                    print(f"   ✅ Analytics endpoint mostly complete")
+                else:
+                    print(f"   ⚠️  Analytics endpoint missing critical sections")
                 
             else:
-                print(f"   ⚠️  Expected analytics object, got {type(response)}")
+                print(f"   ❌ Expected analytics object, got {type(response)}")
                 
         return success
 
