@@ -254,9 +254,9 @@ const AdminPanel = () => {
             <Shield className="h-6 w-6" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold">Panel Admin</h1>
+            <h1 className="text-2xl font-bold">Dashboard Admin</h1>
             <p className="text-red-100">
-              Kelola sistem, akun, dan monitoring pekerjaan
+              Monitoring sistem, provider, dan konfigurasi platform
             </p>
           </div>
         </div>
