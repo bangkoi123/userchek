@@ -42,17 +42,37 @@ const Sidebar = ({ isOpen }) => {
       path: '/job-history',
       icon: History,
       description: 'Riwayat pekerjaan'
+    },
+    {
+      name: 'Credit Top-up',
+      path: '/credit-topup',
+      icon: CreditCard,
+      description: 'Beli kredit validasi'
+    },
+    {
+      name: 'Profile',
+      path: '/profile',
+      icon: User,
+      description: 'Pengaturan profil'
     }
   ];
 
   // Add admin menu for admin users
   if (user?.role === 'admin') {
-    menuItems.push({
-      name: 'Admin Panel',
-      path: '/admin',
-      icon: Shield,
-      description: 'Panel administrasi'
-    });
+    menuItems.push(
+      {
+        name: 'Admin Panel',
+        path: '/admin',
+        icon: Shield,
+        description: 'Panel administrasi'
+      },
+      {
+        name: 'User Management',
+        path: '/admin/users',
+        icon: Users,
+        description: 'Kelola pengguna'
+      }
+    );
   }
 
   return (
