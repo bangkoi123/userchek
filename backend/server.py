@@ -555,7 +555,7 @@ async def health_check():
     return {"status": "healthy", "timestamp": datetime.utcnow()}
 
 @app.post("/api/auth/register")
-async def register(user_data: UserCreate):
+async def register(user_data: UserCreate, background_tasks: BackgroundTasks):
     # Check if user exists
     existing_user = await db.users.find_one({"$or": [{"username": user_data.username}, {"email": user_data.email}]})
     if existing_user:
