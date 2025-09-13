@@ -680,6 +680,90 @@ const OverviewTab = ({ stats }) => {
           </div>
         </div>
       </div>
+
+      {/* Platform Statistics */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Platform Usage
+          </h3>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                <span className="text-gray-600 dark:text-gray-400">WhatsApp</span>
+              </div>
+              <span className="font-medium text-gray-900 dark:text-white">
+                {formatNumber(stats?.validation_stats?.whatsapp_validations)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                <span className="text-gray-600 dark:text-gray-400">Telegram</span>
+              </div>
+              <span className="font-medium text-gray-900 dark:text-white">
+                {formatNumber(stats?.validation_stats?.telegram_validations)}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Credit Statistics
+          </h3>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-gray-600 dark:text-gray-400">Total in System</span>
+              <span className="font-medium text-gray-900 dark:text-white">
+                {formatNumber(stats?.credit_stats?.total_credits_in_system)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-gray-600 dark:text-gray-400">Credits Used</span>
+              <span className="font-medium text-gray-900 dark:text-white">
+                {formatNumber(stats?.credit_stats?.total_credits_used)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-gray-600 dark:text-gray-400">Credits Sold</span>
+              <span className="font-medium text-gray-900 dark:text-white">
+                {formatNumber(stats?.payment_stats?.total_credits_sold)}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            System Health
+          </h3>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-gray-600 dark:text-gray-400">Database</span>
+              <div className="flex items-center">
+                <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+                <span className="text-sm font-medium text-green-600 dark:text-green-400">Healthy</span>
+              </div>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-gray-600 dark:text-gray-400">API Services</span>
+              <div className="flex items-center">
+                <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+                <span className="text-sm font-medium text-green-600 dark:text-green-400">Running</span>
+              </div>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-gray-600 dark:text-gray-400">Job Queue</span>
+              <div className="flex items-center">
+                <AlertCircle className="h-5 w-5 text-yellow-500 mr-2" />
+                <span className="text-sm font-medium text-yellow-600 dark:text-yellow-400">Monitoring</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
