@@ -1,7 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { apiCall } from '../utils/api';
-import { CreditCard, Shield } from 'lucide-react';
+import { 
+  CreditCard, 
+  Shield, 
+  Plus, 
+  Edit2, 
+  Trash2, 
+  Bank, 
+  Search, 
+  Download, 
+  Settings 
+} from 'lucide-react';
 
 const PaymentManagement = () => {
   const { user } = useAuth();
