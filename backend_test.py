@@ -667,16 +667,29 @@ def main():
     print("\n👤 USER FUNCTIONALITY TESTS")
     print("-" * 30)
     tester.test_user_profile()
+    tester.test_update_user_profile()
     tester.test_dashboard_stats()
     tester.test_quick_check_validation()
     tester.test_quick_check_insufficient_credits()
     tester.test_jobs_list()
+    
+    # Credit Top-up System Tests
+    print("\n💳 CREDIT TOP-UP SYSTEM TESTS")
+    print("-" * 30)
+    tester.test_credit_packages()
+    tester.test_create_checkout_session()
+    tester.test_payment_status()
+    tester.test_payment_transactions()
     
     # Admin functionality tests
     print("\n👑 ADMIN FUNCTIONALITY TESTS")
     print("-" * 30)
     tester.test_seed_sample_data()  # Seed data first
     tester.test_admin_stats()
+    tester.test_admin_users_list()
+    tester.test_admin_user_details()
+    tester.test_admin_update_user()
+    tester.test_admin_analytics()
     tester.test_admin_telegram_accounts()
     tester.test_admin_whatsapp_providers()
     tester.test_admin_jobs()
