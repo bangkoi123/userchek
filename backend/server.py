@@ -1067,7 +1067,7 @@ async def create_credit_checkout(request: CreditTopupRequest, current_user = Dep
         )
         
         # Create checkout session
-        session: CheckoutSessionResponse = await stripe_checkout.create_checkout_session(checkout_request)
+        session: CheckoutStatusResponse = await stripe_checkout.create_checkout_session(checkout_request)
         
         # Create payment transaction record
         transaction_doc = {
