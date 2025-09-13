@@ -1,7 +1,8 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useAuth } from '../context/AuthContext';
 import { uploadFile } from '../utils/api';
+import { useJobProgress } from '../hooks/useSocket';
 import { 
   Upload, 
   File, 
@@ -12,7 +13,9 @@ import {
   FileSpreadsheet,
   FileText,
   Loader2,
-  Info
+  Info,
+  Wifi,
+  WifiOff
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
