@@ -1395,42 +1395,49 @@ async def quick_check(request: QuickCheckRequest, current_user = Depends(get_cur
     if current_user.get("credits", 0) < 2:
         raise HTTPException(status_code=400, detail="Insufficient credits")
     
+    # Parse input to get identifier and phone number
+    parsed_input = parse_phone_input(request.phone_input)
+    identifier = parsed_input["identifier"]
+    phone_number = parsed_input["phone_number"]
+    
+    if not phone_number:
+        raise HTTPException(status_code=400, detail="Phone number is required")
+    
     # Normalize phone number
-    normalized_phone = normalize_phone_number(request.phone_number)
+    normalized_phone = normalize_phone_number(phone_number)
     
     # Check cache first
     cached_result = await db.validation_cache.find_one({"phone_number": normalized_phone})
     if cached_result and (datetime.utcnow() - cached_result["cached_at"]).days < 7:
-        # Get active providers for cached results too
-        whatsapp_provider = await db.whatsapp_providers.find_one({"is_active": True})
-        telegram_account = await db.telegram_accounts.find_one({"is_active": True})
+        # Add identifier to cached result
+        cached_result["whatsapp"]["identifier"] = identifier
+        cached_result["telegram"]["identifier"] = identifier
         
         return {
+            "identifier": identifier,
             "phone_number": normalized_phone,
             "whatsapp": cached_result["whatsapp"],
             "telegram": cached_result["telegram"],
             "cached": True,
             "checked_at": cached_result["cached_at"],
             "providers_used": {
-                "whatsapp": whatsapp_provider.get("name", "Mock Provider") if whatsapp_provider else "Mock Provider",
-                "telegram": telegram_account.get("name", "Mock Provider") if telegram_account else "Mock Provider"
+                "whatsapp": "WhatsApp Web API (Cached)",
+                "telegram": "Mock Provider (Cached)"
             }
         }
     
-    # Get active providers
-    whatsapp_provider = await db.whatsapp_providers.find_one({"is_active": True})
-    telegram_account = await db.telegram_accounts.find_one({"is_active": True})
-    
-    # Validate with both platforms (use real providers if available)
-    if whatsapp_provider:
-        whatsapp_result = await validate_whatsapp_number_real(normalized_phone, whatsapp_provider)
-    else:
-        whatsapp_result = await validate_whatsapp_number(normalized_phone)
+    # NEW: Use WhatsApp Web API (FREE!)
+    whatsapp_result = await validate_whatsapp_web_api(normalized_phone, identifier)
         
+    # Keep Telegram validation as before (existing method)
+    telegram_account = await db.telegram_accounts.find_one({"is_active": True})
     if telegram_account: 
         telegram_result = await validate_telegram_number_real(normalized_phone, telegram_account)
     else:
         telegram_result = await validate_telegram_number(normalized_phone)
+    
+    # Add identifier to telegram result
+    telegram_result["identifier"] = identifier
     
     # Cache results
     cache_doc = {
@@ -1459,10 +1466,11 @@ async def quick_check(request: QuickCheckRequest, current_user = Depends(get_cur
         "tenant_id": current_user["tenant_id"],
         "type": "quick_check",
         "phone_number": normalized_phone,
+        "identifier": identifier,  # NEW: Log identifier
         "credits_used": 2,
         "timestamp": datetime.utcnow(),
         "providers_used": {
-            "whatsapp": whatsapp_provider.get("name", "mock") if whatsapp_provider else "mock",
+            "whatsapp": "WhatsApp Web API (FREE)",
             "telegram": telegram_account.get("name", "mock") if telegram_account else "mock"
         }
     }
@@ -1470,13 +1478,14 @@ async def quick_check(request: QuickCheckRequest, current_user = Depends(get_cur
     await db.usage_logs.insert_one(usage_doc)
     
     return {
+        "identifier": identifier,
         "phone_number": normalized_phone,
         "whatsapp": whatsapp_result,
         "telegram": telegram_result,
         "cached": False,
         "checked_at": datetime.utcnow(),
         "providers_used": {
-            "whatsapp": whatsapp_provider.get("name", "Mock Provider") if whatsapp_provider else "Mock Provider",
+            "whatsapp": "WhatsApp Web API (FREE)",
             "telegram": telegram_account.get("name", "Mock Provider") if telegram_account else "Mock Provider"
         }
     }
