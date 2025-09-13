@@ -258,7 +258,7 @@ const UserManagement = () => {
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                {analytics.payment_stats?.reduce((acc, stat) => acc + stat.credits_sold, 0)?.toLocaleString() || '0'}
+                {(analytics?.payment_stats?.total_credits_sold || 0).toLocaleString()}
               </p>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Credits Sold (30d)
