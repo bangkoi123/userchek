@@ -231,7 +231,7 @@ const PaymentManagement = () => {
     }
   };
 
-  const filteredTransactions = transactions.filter(transaction => {
+  const filteredTransactions = (transactions || []).filter(transaction => {
     const matchesSearch = transaction.package_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          transaction._id?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || transaction.payment_status === statusFilter;
