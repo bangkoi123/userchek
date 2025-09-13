@@ -246,7 +246,9 @@ class UserLogin(BaseModel):
     password: str
 
 class QuickCheckRequest(BaseModel):
-    phone_input: str  # Changed from phone_number to support "nama 08123456789" format
+    phone_inputs: List[str]  # Changed to support multiple phone inputs
+    validate_whatsapp: bool = True
+    validate_telegram: bool = True
 
 class TelegramAccount(BaseModel):
     name: str
