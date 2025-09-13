@@ -993,10 +993,55 @@ async def create_whatsapp_provider(provider: WhatsAppProvider, current_user = De
     await db.whatsapp_providers.insert_one(provider_doc)
     return {"message": "WhatsApp provider created successfully", "id": provider_doc["_id"]}
 
-@app.get("/api/admin/jobs")
-async def get_admin_jobs(current_user = Depends(admin_required)):
-    jobs = await db.jobs.find({}, sort=[("created_at", DESCENDING)]).limit(100).to_list(100)
-    return jobs
+@app.put("/api/admin/telegram-accounts/{account_id}")
+async def update_telegram_account(account_id: str, account: TelegramAccount, current_user = Depends(admin_required)):
+    result = await db.telegram_accounts.update_one(
+        {"_id": account_id},
+        {"$set": {
+            **account.dict(),
+            "updated_at": datetime.utcnow(),
+            "updated_by": current_user["_id"]
+        }}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Telegram account not found")
+    
+    return {"message": "Telegram account updated successfully"}
+
+@app.delete("/api/admin/telegram-accounts/{account_id}")
+async def delete_telegram_account(account_id: str, current_user = Depends(admin_required)):
+    result = await db.telegram_accounts.delete_one({"_id": account_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Telegram account not found")
+    
+    return {"message": "Telegram account deleted successfully"}
+
+@app.put("/api/admin/whatsapp-providers/{provider_id}")
+async def update_whatsapp_provider(provider_id: str, provider: WhatsAppProvider, current_user = Depends(admin_required)):
+    result = await db.whatsapp_providers.update_one(
+        {"_id": provider_id},
+        {"$set": {
+            **provider.dict(),
+            "updated_at": datetime.utcnow(),
+            "updated_by": current_user["_id"]
+        }}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="WhatsApp provider not found")
+    
+    return {"message": "WhatsApp provider updated successfully"}
+
+@app.delete("/api/admin/whatsapp-providers/{provider_id}")
+async def delete_whatsapp_provider(provider_id: str, current_user = Depends(admin_required)):
+    result = await db.whatsapp_providers.delete_one({"_id": provider_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="WhatsApp provider not found")
+    
+    return {"message": "WhatsApp provider deleted successfully"}
 
 @app.post("/api/admin/create-demo-user")
 async def create_demo_user(current_user = Depends(admin_required)):
