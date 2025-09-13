@@ -210,7 +210,7 @@ const UserManagement = () => {
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                {analytics.user_stats?.reduce((acc, stat) => acc + stat.new_users, 0) || 0}
+                {analytics?.user_stats?.new_users_this_month || 0}
               </p>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 New Users (30d)
