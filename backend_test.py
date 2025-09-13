@@ -616,7 +616,7 @@ class WebtoolsAPITester:
         return success
 
     def test_admin_analytics(self):
-        """Test getting system analytics (admin only)"""
+        """Test getting comprehensive system analytics (admin only)"""
         if not self.admin_token:
             print("❌ Skipping admin analytics test - no admin token")
             return False
@@ -627,23 +627,124 @@ class WebtoolsAPITester:
             "api/admin/analytics",
             200,
             token=self.admin_token,
-            description="Get system analytics (admin only)"
+            description="Get comprehensive system analytics (admin only)"
         )
         
         if success:
             # Check if response has analytics data
             if isinstance(response, dict) and response:
-                print(f"   ✅ Analytics data received with {len(response)} metrics")
-                # Look for common analytics fields
-                common_fields = ['total_users', 'total_validations', 'active_jobs', 'credits_used']
-                found_fields = [field for field in common_fields if field in response]
-                if found_fields:
-                    print(f"   ✅ Found analytics fields: {found_fields}")
+                print(f"   ✅ Analytics data received with {len(response)} top-level metrics")
+                
+                # Check for user statistics
+                user_stats_fields = ['total_users', 'active_users', 'admin_users', 'new_users_this_month']
+                found_user_stats = [field for field in user_stats_fields if field in response]
+                if found_user_stats:
+                    print(f"   ✅ User statistics found: {found_user_stats}")
+                    for field in found_user_stats:
+                        print(f"      {field}: {response[field]}")
                 else:
-                    print(f"   ⚠️  No common analytics fields found")
+                    print(f"   ⚠️  Missing user statistics fields")
+                
+                # Check for validation statistics
+                validation_stats_fields = ['total_validations', 'completed_validations', 'failed_validations', 
+                                         'active_jobs', 'whatsapp_validations', 'telegram_validations']
+                found_validation_stats = [field for field in validation_stats_fields if field in response]
+                if found_validation_stats:
+                    print(f"   ✅ Validation statistics found: {found_validation_stats}")
+                    for field in found_validation_stats:
+                        print(f"      {field}: {response[field]}")
+                else:
+                    print(f"   ⚠️  Missing validation statistics fields")
+                
+                # Check for credit statistics
+                credit_stats_fields = ['total_credits_in_system', 'total_credits_used', 'total_usage_transactions']
+                found_credit_stats = [field for field in credit_stats_fields if field in response]
+                if found_credit_stats:
+                    print(f"   ✅ Credit statistics found: {found_credit_stats}")
+                    for field in found_credit_stats:
+                        print(f"      {field}: {response[field]}")
+                else:
+                    print(f"   ⚠️  Missing credit statistics fields")
+                
+                # Check for payment statistics
+                payment_stats_fields = ['total_revenue', 'total_transactions', 'total_credits_sold']
+                found_payment_stats = [field for field in payment_stats_fields if field in response]
+                if found_payment_stats:
+                    print(f"   ✅ Payment statistics found: {found_payment_stats}")
+                    for field in found_payment_stats:
+                        print(f"      {field}: {response[field]}")
+                else:
+                    print(f"   ⚠️  Missing payment statistics fields")
+                
+                # Check for daily stats
+                if 'daily_stats' in response:
+                    daily_stats = response['daily_stats']
+                    if isinstance(daily_stats, list):
+                        print(f"   ✅ Daily stats found: {len(daily_stats)} days of data")
+                        if daily_stats:
+                            print(f"      Sample day: {daily_stats[0]}")
+                    else:
+                        print(f"   ⚠️  Daily stats should be a list, got {type(daily_stats)}")
+                else:
+                    print(f"   ⚠️  Missing daily_stats field")
+                
+                # Check for top users
+                if 'top_users' in response:
+                    top_users = response['top_users']
+                    if isinstance(top_users, list):
+                        print(f"   ✅ Top users found: {len(top_users)} users")
+                        if top_users:
+                            print(f"      Top user: {top_users[0]}")
+                    else:
+                        print(f"   ⚠️  Top users should be a list, got {type(top_users)}")
+                else:
+                    print(f"   ⚠️  Missing top_users field")
+                
+                # Check for recent activities
+                activity_fields = ['recent_users', 'recent_jobs', 'recent_payments']
+                found_activities = [field for field in activity_fields if field in response]
+                if found_activities:
+                    print(f"   ✅ Recent activities found: {found_activities}")
+                    for field in found_activities:
+                        activities = response[field]
+                        if isinstance(activities, list):
+                            print(f"      {field}: {len(activities)} items")
+                        else:
+                            print(f"      {field}: {type(activities)} (expected list)")
+                else:
+                    print(f"   ⚠️  Missing recent activities fields")
+                
+                # Calculate completeness score
+                all_expected_fields = (user_stats_fields + validation_stats_fields + 
+                                     credit_stats_fields + payment_stats_fields + 
+                                     ['daily_stats', 'top_users'] + activity_fields)
+                found_fields = [field for field in all_expected_fields if field in response]
+                completeness = (len(found_fields) / len(all_expected_fields)) * 100
+                print(f"   📊 Analytics completeness: {completeness:.1f}% ({len(found_fields)}/{len(all_expected_fields)} fields)")
+                
             else:
                 print(f"   ⚠️  Expected analytics object, got {type(response)}")
                 
+        return success
+
+    def test_admin_analytics_access_control(self):
+        """Test admin analytics access control (non-admin should get 403)"""
+        if not self.demo_token:
+            print("❌ Skipping admin analytics access control test - no demo token")
+            return False
+            
+        success, response = self.run_test(
+            "Admin Analytics Access Control",
+            "GET",
+            "api/admin/analytics",
+            403,
+            token=self.demo_token,
+            description="Non-admin user should get 403 when accessing admin analytics"
+        )
+        
+        if success:
+            print(f"   ✅ Access control working correctly - non-admin users blocked")
+        
         return success
 
 def main():
