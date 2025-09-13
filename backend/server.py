@@ -26,6 +26,39 @@ import socketio
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+def generate_api_key() -> str:
+    """Generate a secure API key"""
+    return f"wt_{secrets.token_urlsafe(32)}"
+
+def hash_api_key(api_key: str) -> str:
+    """Hash API key for secure storage"""
+    return hashlib.sha256(api_key.encode()).hexdigest()
+
+async def verify_api_key(api_key: str) -> dict:
+    """Verify API key and return user info"""
+    hashed_key = hash_api_key(api_key)
+    
+    api_key_doc = await db.api_keys.find_one({
+        "key_hash": hashed_key,
+        "is_active": True
+    })
+    
+    if not api_key_doc:
+        return None
+    
+    # Update last used timestamp
+    await db.api_keys.update_one(
+        {"_id": api_key_doc["_id"]},
+        {"$set": {"last_used": datetime.utcnow()}}
+    )
+    
+    # Get user info
+    user = await db.users.find_one({"_id": api_key_doc["user_id"]})
+    if user:
+        user["api_key_permissions"] = api_key_doc.get("permissions", [])
+    
+    return user
+
 # Helper function to generate unique IDs using secrets
 def generate_id() -> str:
     """Generate a unique ID using secrets module"""
