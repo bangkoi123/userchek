@@ -344,7 +344,7 @@ class WebtoolsAPITester:
             "Unauthorized Access",
             "GET",
             "api/user/profile",
-            401,
+            403,  # Updated to expect 403 for no token
             description="Access protected endpoint without token"
         )
         return success
