@@ -594,6 +594,14 @@ async def register(user_data: UserCreate, background_tasks: BackgroundTasks):
     
     await db.tenants.insert_one(tenant_doc)
     
+    # Send welcome email (background task)
+    background_tasks.add_task(
+        email_service.send_welcome_email,
+        user_data.email,
+        user_data.username,
+        user_doc["credits"]
+    )
+    
     # Generate token
     token = create_jwt_token(user_doc)
     
