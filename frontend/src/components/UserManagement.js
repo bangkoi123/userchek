@@ -29,7 +29,15 @@ const UserManagement = () => {
   const [pagination, setPagination] = useState({});
   const [selectedUser, setSelectedUser] = useState(null);
   const [showUserModal, setShowUserModal] = useState(false);
-  const [analytics, setAnalytics] = useState(null);
+  const [showAddUserModal, setShowAddUserModal] = useState(false);
+  const [newUserForm, setNewUserForm] = useState({
+    username: '',
+    email: '',
+    password: '',
+    role: 'user',
+    credits: 100,
+    company_name: ''
+  });
 
   useEffect(() => {
     fetchUsers();
