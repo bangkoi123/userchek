@@ -654,12 +654,20 @@ async def quick_check(request: QuickCheckRequest, current_user = Depends(get_cur
     # Check cache first
     cached_result = await db.validation_cache.find_one({"phone_number": normalized_phone})
     if cached_result and (datetime.utcnow() - cached_result["cached_at"]).days < 7:
+        # Get active providers for cached results too
+        whatsapp_provider = await db.whatsapp_providers.find_one({"is_active": True})
+        telegram_account = await db.telegram_accounts.find_one({"is_active": True})
+        
         return {
             "phone_number": normalized_phone,
             "whatsapp": cached_result["whatsapp"],
             "telegram": cached_result["telegram"],
             "cached": True,
-            "checked_at": cached_result["cached_at"]
+            "checked_at": cached_result["cached_at"],
+            "providers_used": {
+                "whatsapp": whatsapp_provider.get("name", "Mock Provider") if whatsapp_provider else "Mock Provider",
+                "telegram": telegram_account.get("name", "Mock Provider") if telegram_account else "Mock Provider"
+            }
         }
     
     # Get active providers
