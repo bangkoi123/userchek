@@ -64,7 +64,7 @@ const AdminPanel = () => {
     setLoading(true);
     try {
       const [statsData, telegramData, whatsappData, jobsData] = await Promise.all([
-        apiCall('/api/admin/stats').catch(() => ({})),
+        apiCall('/api/admin/analytics').catch(() => ({})),
         apiCall('/api/admin/telegram-accounts').catch(() => []),
         apiCall('/api/admin/whatsapp-providers').catch(() => []),
         apiCall('/api/admin/jobs').catch(() => [])
