@@ -121,17 +121,26 @@ const Header = ({ sidebarOpen, setSidebarOpen }) => {
                       </p>
                     </div>
                     
-                    <button className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center">
+                    <button 
+                      onClick={() => handleNavigate('/profile')}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"
+                    >
                       <User className="h-4 w-4 mr-2" />
                       Profile
                     </button>
                     
-                    <button className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center">
+                    <button 
+                      onClick={() => handleNavigate('/credit-topup')}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"
+                    >
                       <CreditCard className="h-4 w-4 mr-2" />
                       Beli Kredit
                     </button>
                     
-                    <button className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center">
+                    <button 
+                      onClick={() => handleNavigate('/profile')}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"
+                    >
                       <Settings className="h-4 w-4 mr-2" />
                       Pengaturan
                     </button>
