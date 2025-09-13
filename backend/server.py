@@ -1587,12 +1587,303 @@ async def get_admin_stats(current_user = Depends(admin_required)):
         {"$group": {"_id": None, "total": {"$sum": "$credits_used"}}}
     ]).to_list(1)
     
+    # Get recent activities
+    recent_activities = await db.usage_logs.aggregate([
+        {"$lookup": {
+            "from": "users",
+            "localField": "user_id", 
+            "foreignField": "_id",
+            "as": "user"
+        }},
+        {"$unwind": "$user"},
+        {"$sort": {"timestamp": -1}},
+        {"$limit": 10},
+        {"$project": {
+            "message": {
+                "$concat": [
+                    "$user.username", 
+                    " performed ", 
+                    "$type",
+                    {"$cond": [
+                        {"$eq": ["$type", "credit_purchase"]},
+                        {
+                            "$concat": [
+                                " - Added ",
+                                {"$toString": "$credits_added"},
+                                " credits"
+                            ]
+                        },
+                        {
+                            "$concat": [
+                                " - Used ",
+                                {"$toString": "$credits_used"},
+                                " credits"
+                            ]
+                        }
+                    ]}
+                ]
+            },
+            "timestamp": {"$dateToString": {
+                "format": "%Y-%m-%d %H:%M:%S",
+                "date": "$timestamp"
+            }}
+        }}
+    ]).to_list(10)
+    
     return {
         "total_users": total_users,
         "total_validations": total_validations,
         "active_jobs": active_jobs,
         "credits_used": credits_used[0]["total"] if credits_used else 0,
-        "recent_activities": []  # To be implemented
+        "recent_activities": recent_activities
+    }
+
+@app.get("/api/admin/users")
+async def get_admin_users(
+    page: int = 1,
+    limit: int = 20,
+    search: str = None,
+    role: str = None,
+    current_user = Depends(admin_required)
+):
+    """Get users with pagination and filtering"""
+    
+    skip = (page - 1) * limit
+    query = {}
+    
+    # Add search filter
+    if search:
+        query["$or"] = [
+            {"username": {"$regex": search, "$options": "i"}},
+            {"email": {"$regex": search, "$options": "i"}},
+            {"company_name": {"$regex": search, "$options": "i"}}
+        ]
+    
+    # Add role filter
+    if role:
+        query["role"] = role
+    
+    # Get users with usage stats
+    users = await db.users.aggregate([
+        {"$match": query},
+        {"$lookup": {
+            "from": "usage_logs",
+            "localField": "_id",
+            "foreignField": "user_id",
+            "as": "usage"
+        }},
+        {"$addFields": {
+            "total_validations": {"$size": "$usage"},
+            "total_credits_used": {"$sum": "$usage.credits_used"}
+        }},
+        {"$project": {
+            "password": 0,  # Don't include password
+            "usage": 0  # Don't include full usage array
+        }},
+        {"$sort": {"created_at": -1}},
+        {"$skip": skip},
+        {"$limit": limit}
+    ]).to_list(limit)
+    
+    # Get total count
+    total_count = await db.users.count_documents(query)
+    
+    return {
+        "users": users,
+        "pagination": {
+            "current_page": page,
+            "total_pages": (total_count + limit - 1) // limit,
+            "total_count": total_count,
+            "limit": limit
+        }
+    }
+
+@app.get("/api/admin/users/{user_id}")
+async def get_admin_user_details(user_id: str, current_user = Depends(admin_required)):
+    """Get detailed user information"""
+    
+    # Get user details
+    user = await db.users.find_one({"_id": user_id}, {"password": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Get user's recent activities
+    recent_activities = await db.usage_logs.find(
+        {"user_id": user_id},
+        sort=[("timestamp", DESCENDING)]
+    ).limit(20).to_list(20)
+    
+    # Get user's payment transactions
+    payment_transactions = await db.payment_transactions.find(
+        {"user_id": user_id},
+        sort=[("created_at", DESCENDING)]
+    ).limit(10).to_list(10)
+    
+    # Get user's recent jobs
+    recent_jobs = await db.jobs.find(
+        {"user_id": user_id},
+        sort=[("created_at", DESCENDING)]
+    ).limit(10).to_list(10)
+    
+    # Calculate stats
+    usage_stats = await db.usage_logs.aggregate([
+        {"$match": {"user_id": user_id}},
+        {"$group": {
+            "_id": None,
+            "total_validations": {"$sum": 1},
+            "total_credits_used": {"$sum": "$credits_used"},
+            "credits_purchased": {"$sum": "$credits_added"}
+        }}
+    ]).to_list(1)
+    
+    stats = usage_stats[0] if usage_stats else {
+        "total_validations": 0,
+        "total_credits_used": 0,
+        "credits_purchased": 0
+    }
+    
+    return {
+        "user": user,
+        "stats": stats,
+        "recent_activities": recent_activities,
+        "payment_transactions": payment_transactions,
+        "recent_jobs": recent_jobs
+    }
+
+@app.put("/api/admin/users/{user_id}")
+async def update_admin_user(
+    user_id: str,
+    user_data: AdminUserUpdate,
+    current_user = Depends(admin_required)
+):
+    """Update user settings (admin only)"""
+    
+    user = await db.users.find_one({"_id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    update_data = {}
+    
+    if user_data.is_active is not None:
+        update_data["is_active"] = user_data.is_active
+    
+    if user_data.credits is not None:
+        update_data["credits"] = user_data.credits
+    
+    if user_data.role is not None:
+        update_data["role"] = user_data.role
+    
+    if update_data:
+        update_data["updated_at"] = datetime.utcnow()
+        update_data["updated_by"] = current_user["_id"]
+        
+        await db.users.update_one(
+            {"_id": user_id},
+            {"$set": update_data}
+        )
+        
+        # Log admin action
+        log_doc = {
+            "_id": generate_id(),
+            "admin_id": current_user["_id"],
+            "target_user_id": user_id,
+            "action": "user_update",
+            "changes": update_data,
+            "timestamp": datetime.utcnow()
+        }
+        
+        await db.admin_logs.insert_one(log_doc)
+    
+    return {"message": "User updated successfully"}
+
+@app.get("/api/admin/analytics")
+async def get_admin_analytics(
+    period: str = "30d",  # 7d, 30d, 90d
+    current_user = Depends(admin_required)
+):
+    """Get system analytics"""
+    
+    # Calculate date range
+    now = datetime.utcnow()
+    if period == "7d":
+        start_date = now - timedelta(days=7)
+    elif period == "30d":
+        start_date = now - timedelta(days=30)
+    elif period == "90d":
+        start_date = now - timedelta(days=90)
+    else:
+        start_date = now - timedelta(days=30)
+    
+    # Daily usage stats
+    daily_stats = await db.usage_logs.aggregate([
+        {"$match": {"timestamp": {"$gte": start_date}}},
+        {"$group": {
+            "_id": {
+                "date": {"$dateToString": {"format": "%Y-%m-%d", "date": "$timestamp"}},
+                "type": "$type"
+            },
+            "count": {"$sum": 1},
+            "credits_used": {"$sum": "$credits_used"}
+        }},
+        {"$sort": {"_id.date": 1}}
+    ]).to_list(1000)
+    
+    # User registration stats
+    user_stats = await db.users.aggregate([
+        {"$match": {"created_at": {"$gte": start_date}}},
+        {"$group": {
+            "_id": {"$dateToString": {"format": "%Y-%m-%d", "date": "$created_at"}},
+            "new_users": {"$sum": 1}
+        }},
+        {"$sort": {"_id": 1}}
+    ]).to_list(1000)
+    
+    # Payment stats
+    payment_stats = await db.payment_transactions.aggregate([
+        {"$match": {
+            "created_at": {"$gte": start_date},
+            "payment_status": "completed"
+        }},
+        {"$group": {
+            "_id": {"$dateToString": {"format": "%Y-%m-%d", "date": "$created_at"}},
+            "revenue": {"$sum": "$amount"},
+            "transactions": {"$sum": 1},
+            "credits_sold": {"$sum": "$credits_amount"}
+        }},
+        {"$sort": {"_id": 1}}
+    ]).to_list(1000)
+    
+    # Top users by usage
+    top_users = await db.usage_logs.aggregate([
+        {"$match": {"timestamp": {"$gte": start_date}}},
+        {"$group": {
+            "_id": "$user_id",
+            "total_validations": {"$sum": 1},
+            "total_credits_used": {"$sum": "$credits_used"}
+        }},
+        {"$lookup": {
+            "from": "users",
+            "localField": "_id",
+            "foreignField": "_id",
+            "as": "user"
+        }},
+        {"$unwind": "$user"},
+        {"$project": {
+            "username": "$user.username",
+            "email": "$user.email",
+            "total_validations": 1,
+            "total_credits_used": 1
+        }},
+        {"$sort": {"total_validations": -1}},
+        {"$limit": 10}
+    ]).to_list(10)
+    
+    return {
+        "period": period,
+        "daily_stats": daily_stats,
+        "user_stats": user_stats,
+        "payment_stats": payment_stats,
+        "top_users": top_users
     }
 
 @app.get("/api/admin/telegram-accounts")
