@@ -684,7 +684,7 @@ async def register(user_data: UserCreate, background_tasks: BackgroundTasks):
         raise HTTPException(status_code=400, detail="User already exists")
     
     # Create tenant
-    tenant_id = str(uuid.uuid4())
+    tenant_id = generate_id()
     
     # Create user
     user_doc = {
