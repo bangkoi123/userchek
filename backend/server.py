@@ -1709,16 +1709,20 @@ async def download_job_result(job_id: str, current_user = Depends(get_current_us
     if not job.get("results") or not job["results"].get("details"):
         raise HTTPException(status_code=400, detail="Tidak ada hasil untuk diunduh")
     
-    # Create CSV content
-    csv_content = "phone_number,whatsapp_status,telegram_status,whatsapp_details,telegram_details,processed_at\n"
+    # Create CSV content with identifier support
+    csv_content = "identifier,phone_number,original_phone,whatsapp_status,telegram_status,whatsapp_details,telegram_details,processed_at\n"
     
     for detail in job["results"]["details"]:
+        identifier = detail.get('identifier', '')
+        phone_number = detail.get('phone_number', '')
+        original_phone = detail.get('original_phone', phone_number)
+        
         if "error" in detail:
-            csv_content += f"{detail['phone_number']},ERROR,ERROR,{detail['error']},,{detail['processed_at']}\n"
+            csv_content += f"\"{identifier}\",{phone_number},{original_phone},ERROR,ERROR,{detail['error']},,{detail['processed_at']}\n"
         else:
             whatsapp_details = json.dumps(detail['whatsapp']['details']) if detail['whatsapp'].get('details') else ""
             telegram_details = json.dumps(detail['telegram']['details']) if detail['telegram'].get('details') else ""
-            csv_content += f"{detail['phone_number']},{detail['whatsapp']['status']},{detail['telegram']['status']},\"{whatsapp_details}\",\"{telegram_details}\",{detail['processed_at']}\n"
+            csv_content += f"\"{identifier}\",{phone_number},{original_phone},{detail['whatsapp']['status']},{detail['telegram']['status']},\"{whatsapp_details}\",\"{telegram_details}\",{detail['processed_at']}\n"
     
     # Return CSV as response
     from fastapi.responses import Response
