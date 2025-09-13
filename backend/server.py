@@ -510,7 +510,7 @@ async def get_dashboard_stats(current_user = Depends(get_current_user)):
 
 # Bulk Validation Routes
 @app.post("/api/validation/bulk-check")
-async def bulk_check(file: UploadFile = File(...), current_user = Depends(get_current_user)):
+async def bulk_check(background_tasks: BackgroundTasks, file: UploadFile = File(...), current_user = Depends(get_current_user)):
     if not file.filename.endswith(('.csv', '.xlsx', '.xls')):
         raise HTTPException(status_code=400, detail="Format file tidak didukung. Gunakan CSV, XLS, atau XLSX")
     
@@ -567,15 +567,15 @@ async def bulk_check(file: UploadFile = File(...), current_user = Depends(get_cu
         
         await db.jobs.insert_one(job_doc)
         
-        # Start background processing (simplified - in production use Celery)
-        # For now, we'll just simulate processing
-        # background_tasks.add_task(process_bulk_validation, job_doc["_id"])
+        # Start background processing
+        background_tasks.add_task(process_bulk_validation, job_doc["_id"])
         
         return {
-            "message": "File berhasil diupload",
+            "message": "File berhasil diupload dan sedang diproses",
             "job_id": job_doc["_id"],
             "total_numbers": len(unique_numbers),
-            "estimated_credits": required_credits
+            "estimated_credits": required_credits,
+            "status": "processing_started"
         }
         
     except Exception as e:
