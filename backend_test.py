@@ -362,6 +362,23 @@ class WebtoolsAPITester:
         )
         return success
 
+    def test_seed_sample_data(self):
+        """Test seeding sample data for providers and accounts"""
+        success, response = self.run_test(
+            "Seed Sample Data",
+            "POST",
+            "api/admin/seed-sample-data",
+            200,
+            description="Seed sample WhatsApp providers and Telegram accounts"
+        )
+        
+        if success:
+            whatsapp_count = response.get('whatsapp_providers', 0)
+            telegram_count = response.get('telegram_accounts', 0)
+            print(f"   ✅ Seeded {whatsapp_count} WhatsApp providers and {telegram_count} Telegram accounts")
+            
+        return success
+
 def main():
     print("🚀 Starting Webtools Validation API Tests")
     print("=" * 50)
