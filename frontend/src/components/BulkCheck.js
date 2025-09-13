@@ -417,6 +417,75 @@ const BulkCheck = () => {
                 </div>
               )}
 
+              {/* Real-time Progress */}
+              {realTimeProgress && (
+                <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-medium text-blue-900 dark:text-blue-100 flex items-center">
+                      <Wifi className="h-4 w-4 mr-2" />
+                      Live Progress - Job {realTimeProgress.job_id?.substring(0, 8)}...
+                    </h4>
+                    <span className="text-sm text-blue-700 dark:text-blue-300">
+                      {realTimeProgress.status === 'completed' ? '✅ Selesai' : '🔄 Memproses'}
+                    </span>
+                  </div>
+                  
+                  <div className="progress-bar mb-2">
+                    <div 
+                      className="progress-fill transition-all duration-500"
+                      style={{ width: `${realTimeProgress.progress_percentage || 0}%` }}
+                    />
+                  </div>
+                  
+                  <div className="flex justify-between text-sm text-blue-700 dark:text-blue-300">
+                    <span>
+                      {realTimeProgress.processed_numbers || 0} / {realTimeProgress.total_numbers || 0} nomor
+                    </span>
+                    <span>{realTimeProgress.progress_percentage || 0}%</span>
+                  </div>
+                  
+                  {realTimeProgress.current_phone && (
+                    <div className="mt-2 text-xs text-blue-600 dark:text-blue-400">
+                      📱 Sedang memproses: {realTimeProgress.current_phone}
+                      {realTimeProgress.last_result && (
+                        <span className="ml-2">
+                          (WA: {realTimeProgress.last_result.whatsapp}, TG: {realTimeProgress.last_result.telegram})
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  
+                  {realTimeProgress.status === 'completed' && realTimeProgress.results && (
+                    <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                      <div className="text-center p-2 bg-green-100 dark:bg-green-900 rounded">
+                        <div className="font-bold text-green-700 dark:text-green-300">
+                          {realTimeProgress.results.whatsapp_active || 0}
+                        </div>
+                        <div className="text-green-600 dark:text-green-400">WA Aktif</div>
+                      </div>
+                      <div className="text-center p-2 bg-blue-100 dark:bg-blue-900 rounded">
+                        <div className="font-bold text-blue-700 dark:text-blue-300">
+                          {realTimeProgress.results.telegram_active || 0}
+                        </div>
+                        <div className="text-blue-600 dark:text-blue-400">TG Aktif</div>
+                      </div>
+                      <div className="text-center p-2 bg-red-100 dark:bg-red-900 rounded">
+                        <div className="font-bold text-red-700 dark:text-red-300">
+                          {realTimeProgress.results.inactive || 0}
+                        </div>
+                        <div className="text-red-600 dark:text-red-400">Tidak Aktif</div>
+                      </div>
+                      <div className="text-center p-2 bg-yellow-100 dark:bg-yellow-900 rounded">
+                        <div className="font-bold text-yellow-700 dark:text-yellow-300">
+                          {realTimeProgress.results.errors || 0}
+                        </div>
+                        <div className="text-yellow-600 dark:text-yellow-400">Error</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Action Button */}
               <button
                 onClick={startValidation}
