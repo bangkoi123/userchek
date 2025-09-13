@@ -326,6 +326,226 @@ const AdminPanel = () => {
           )}
         </div>
       </div>
+
+      {/* Telegram Modal */}
+      {showTelegramModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                {editingTelegram ? 'Edit Akun Telegram' : 'Tambah Akun Telegram'}
+              </h3>
+              <button
+                onClick={closeTelegramModal}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Nama *
+                </label>
+                <input
+                  type="text"
+                  value={telegramForm.name}
+                  onChange={(e) => setTelegramForm({ ...telegramForm, name: e.target.value })}
+                  className="input-field"
+                  placeholder="Primary Telegram Bot"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Nomor Telepon *
+                </label>
+                <input
+                  type="text"
+                  value={telegramForm.phone_number}
+                  onChange={(e) => setTelegramForm({ ...telegramForm, phone_number: e.target.value })}
+                  className="input-field"
+                  placeholder="+628123456789"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  API ID *
+                </label>
+                <input
+                  type="text"
+                  value={telegramForm.api_id}
+                  onChange={(e) => setTelegramForm({ ...telegramForm, api_id: e.target.value })}
+                  className="input-field"
+                  placeholder="1234567"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  API Hash *
+                </label>
+                <input
+                  type="text"
+                  value={telegramForm.api_hash}
+                  onChange={(e) => setTelegramForm({ ...telegramForm, api_hash: e.target.value })}
+                  className="input-field"
+                  placeholder="abcdef1234567890abcdef1234567890"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Bot Token (Opsional)
+                </label>
+                <input
+                  type="text"
+                  value={telegramForm.bot_token}
+                  onChange={(e) => setTelegramForm({ ...telegramForm, bot_token: e.target.value })}
+                  className="input-field"
+                  placeholder="123456789:ABCdefGHIjklMNOpqrSTUvwxYZ"
+                />
+              </div>
+              
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="telegram-active"
+                  checked={telegramForm.is_active}
+                  onChange={(e) => setTelegramForm({ ...telegramForm, is_active: e.target.checked })}
+                  className="mr-2"
+                />
+                <label htmlFor="telegram-active" className="text-sm text-gray-700 dark:text-gray-300">
+                  Aktif
+                </label>
+              </div>
+            </div>
+            
+            <div className="flex space-x-4 mt-6">
+              <button
+                onClick={closeTelegramModal}
+                className="btn-secondary flex-1"
+              >
+                Batal
+              </button>
+              <button
+                onClick={saveTelegramAccount}
+                className="btn-primary flex-1 flex items-center justify-center"
+              >
+                <Save className="h-4 w-4 mr-2" />
+                Simpan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* WhatsApp Modal */}
+      {showWhatsAppModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                {editingWhatsApp ? 'Edit Provider WhatsApp' : 'Tambah Provider WhatsApp'}
+              </h3>
+              <button
+                onClick={closeWhatsAppModal}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Nama *
+                </label>
+                <input
+                  type="text"
+                  value={whatsAppForm.name}
+                  onChange={(e) => setWhatsAppForm({ ...whatsAppForm, name: e.target.value })}
+                  className="input-field"
+                  placeholder="Twilio WhatsApp Business"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Provider Type *
+                </label>
+                <select
+                  value={whatsAppForm.provider_type}
+                  onChange={(e) => setWhatsAppForm({ ...whatsAppForm, provider_type: e.target.value })}
+                  className="input-field"
+                >
+                  <option value="twilio">Twilio</option>
+                  <option value="vonage">Vonage</option>
+                  <option value="360dialog">360Dialog</option>
+                  <option value="custom">Custom</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  API Endpoint *
+                </label>
+                <input
+                  type="url"
+                  value={whatsAppForm.api_endpoint}
+                  onChange={(e) => setWhatsAppForm({ ...whatsAppForm, api_endpoint: e.target.value })}
+                  className="input-field"
+                  placeholder="https://api.twilio.com/..."
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  API Key *
+                </label>
+                <input
+                  type="text"
+                  value={whatsAppForm.api_key}
+                  onChange={(e) => setWhatsAppForm({ ...whatsAppForm, api_key: e.target.value })}
+                  className="input-field"
+                  placeholder="your-api-key-here"
+                />
+              </div>
+              
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="whatsapp-active"
+                  checked={whatsAppForm.is_active}
+                  onChange={(e) => setWhatsAppForm({ ...whatsAppForm, is_active: e.target.checked })}
+                  className="mr-2"
+                />
+                <label htmlFor="whatsapp-active" className="text-sm text-gray-700 dark:text-gray-300">
+                  Aktif
+                </label>
+              </div>
+            </div>
+            
+            <div className="flex space-x-4 mt-6">
+              <button
+                onClick={closeWhatsAppModal}
+                className="btn-secondary flex-1"
+              >
+                Batal
+              </button>
+              <button
+                onClick={saveWhatsAppProvider}
+                className="btn-primary flex-1 flex items-center justify-center"
+              >
+                <Save className="h-4 w-4 mr-2" />
+                Simpan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
