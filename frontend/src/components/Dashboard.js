@@ -275,7 +275,7 @@ const Dashboard = () => {
               Beli kredit untuk validasi lebih banyak
             </p>
             <button 
-              onClick={() => window.location.href = '/credit-topup'}
+              onClick={() => navigate('/credit-topup')}
               className="btn-primary"
             >
               Beli Kredit
