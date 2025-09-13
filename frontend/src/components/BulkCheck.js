@@ -24,6 +24,27 @@ const BulkCheck = () => {
   const [files, setFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [currentJobId, setCurrentJobId] = useState(null);
+  const [realTimeProgress, setRealTimeProgress] = useState(null);
+  
+  // Real-time job progress hook
+  const { progress, isListening, startListening, stopListening } = useJobProgress(currentJobId);
+
+  // Handle real-time progress updates
+  useEffect(() => {
+    if (progress) {
+      setRealTimeProgress(progress);
+      
+      if (progress.status === 'completed') {
+        toast.success(`🎉 Validasi selesai! ${progress.results?.whatsapp_active || 0} WhatsApp aktif, ${progress.results?.telegram_active || 0} Telegram aktif`);
+        setTimeout(() => {
+          setCurrentJobId(null);
+          setRealTimeProgress(null);
+          stopListening();
+        }, 5000); // Show completion for 5 seconds
+      }
+    }
+  }, [progress, stopListening]);
 
   // Sample CSV for download
   const sampleCSV = `phone_number
