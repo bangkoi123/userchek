@@ -40,7 +40,7 @@ const QuickCheck = () => {
 
     try {
       const data = await apiCall('/api/validation/quick-check', 'POST', {
-        phone_number: phoneNumber.trim()
+        phone_input: phoneNumber.trim()  // Changed from phone_number to phone_input
       });
 
       setResult(data);
