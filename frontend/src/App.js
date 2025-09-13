@@ -12,6 +12,9 @@ import QuickCheck from './components/QuickCheck';
 import BulkCheck from './components/BulkCheck';
 import JobHistory from './components/JobHistory';
 import AdminPanel from './components/AdminPanel';
+import CreditTopup from './components/CreditTopup';
+import UserManagement from './components/UserManagement';
+import UserProfile from './components/UserProfile';
 
 // Context
 import { AuthProvider, useAuth } from './context/AuthContext';
