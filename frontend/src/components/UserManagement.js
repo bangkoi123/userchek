@@ -98,6 +98,40 @@ const UserManagement = () => {
     }
   };
 
+  const addUser = async () => {
+    try {
+      if (!newUserForm.username || !newUserForm.email || !newUserForm.password) {
+        toast.error('Please fill all required fields');
+        return;
+      }
+
+      await apiCall('/api/auth/register', 'POST', {
+        username: newUserForm.username,
+        email: newUserForm.email,
+        password: newUserForm.password,
+        role: newUserForm.role,
+        initial_credits: newUserForm.credits,
+        company_name: newUserForm.company_name || undefined
+      });
+
+      toast.success('User added successfully');
+      setShowAddUserModal(false);
+      setNewUserForm({
+        username: '',
+        email: '',
+        password: '',
+        role: 'user',
+        credits: 100,
+        company_name: ''
+      });
+      fetchUsers();
+    } catch (error) {
+      console.error('Error adding user:', error);
+      const message = error.response?.data?.detail || 'Failed to add user';
+      toast.error(message);
+    }
+  };
+
   const handleSearch = (e) => {
     setSearch(e.target.value);
     setCurrentPage(1);
