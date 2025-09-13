@@ -820,6 +820,116 @@ async def get_profile(current_user = Depends(get_current_user)):
         "created_at": current_user["created_at"]
     }
 
+# API Key management endpoints
+@app.get("/api/user/api-keys")
+async def get_user_api_keys(current_user = Depends(get_current_user)):
+    """Get all API keys for current user"""
+    api_keys = await db.api_keys.find(
+        {"user_id": current_user["_id"]},
+        {"key_hash": 0}  # Don't return the actual hash
+    ).to_list(100)
+    
+    return [
+        APIKeyResponse(
+            id=key["_id"],
+            name=key["name"],
+            description=key.get("description"),
+            permissions=key.get("permissions", []),
+            key_preview=f"wt_{'*' * 8}...{key['_id'][-4:]}",
+            created_at=key["created_at"],
+            last_used=key.get("last_used"),
+            is_active=key.get("is_active", True)
+        ) for key in api_keys
+    ]
+
+@app.post("/api/user/api-keys")
+async def create_api_key(api_key_data: APIKeyCreate, current_user = Depends(get_current_user)):
+    """Create new API key for current user"""
+    
+    # Check if user already has maximum API keys (limit to 10)
+    existing_count = await db.api_keys.count_documents({"user_id": current_user["_id"]})
+    if existing_count >= 10:
+        raise HTTPException(status_code=400, detail="Maximum API keys limit reached (10)")
+    
+    # Generate new API key
+    api_key = generate_api_key()
+    key_hash = hash_api_key(api_key)
+    
+    # Create API key document
+    api_key_doc = {
+        "_id": generate_id(),
+        "user_id": current_user["_id"],
+        "tenant_id": current_user["tenant_id"],
+        "name": api_key_data.name,
+        "description": api_key_data.description,
+        "permissions": api_key_data.permissions,
+        "key_hash": key_hash,
+        "created_at": datetime.utcnow(),
+        "last_used": None,
+        "is_active": True
+    }
+    
+    await db.api_keys.insert_one(api_key_doc)
+    
+    return {
+        "message": "API key created successfully",
+        "api_key": api_key,  # Only show the actual key once
+        "id": api_key_doc["_id"],
+        "name": api_key_data.name,
+        "permissions": api_key_data.permissions
+    }
+
+@app.put("/api/user/api-keys/{key_id}")
+async def update_api_key(key_id: str, api_key_data: APIKeyCreate, current_user = Depends(get_current_user)):
+    """Update API key (name, description, permissions)"""
+    
+    result = await db.api_keys.update_one(
+        {"_id": key_id, "user_id": current_user["_id"]},
+        {"$set": {
+            "name": api_key_data.name,
+            "description": api_key_data.description,
+            "permissions": api_key_data.permissions,
+            "updated_at": datetime.utcnow()
+        }}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="API key not found")
+    
+    return {"message": "API key updated successfully"}
+
+@app.delete("/api/user/api-keys/{key_id}")
+async def delete_api_key(key_id: str, current_user = Depends(get_current_user)):
+    """Delete API key"""
+    
+    result = await db.api_keys.delete_one({"_id": key_id, "user_id": current_user["_id"]})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="API key not found")
+    
+    return {"message": "API key deleted successfully"}
+
+@app.post("/api/user/api-keys/{key_id}/toggle")
+async def toggle_api_key(key_id: str, current_user = Depends(get_current_user)):
+    """Toggle API key active status"""
+    
+    # Get current status
+    api_key = await db.api_keys.find_one({"_id": key_id, "user_id": current_user["_id"]})
+    if not api_key:
+        raise HTTPException(status_code=404, detail="API key not found")
+    
+    new_status = not api_key.get("is_active", True)
+    
+    await db.api_keys.update_one(
+        {"_id": key_id},
+        {"$set": {"is_active": new_status, "updated_at": datetime.utcnow()}}
+    )
+    
+    return {
+        "message": f"API key {'activated' if new_status else 'deactivated'} successfully",
+        "is_active": new_status
+    }
+
 @app.post("/api/validation/quick-check")
 async def quick_check(request: QuickCheckRequest, current_user = Depends(get_current_user)):
     if current_user.get("credits", 0) < 2:
