@@ -195,16 +195,28 @@ const QuickCheck = () => {
               </div>
 
               <div className="space-y-4">
-                {/* Phone Number */}
+                {/* Identifier & Phone Number */}
                 <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
                   <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Nomor Telepon
-                      </p>
-                      <p className="text-lg font-medium text-gray-900 dark:text-white">
-                        {result.phone_number}
-                      </p>
+                    <div className="flex items-center space-x-4">
+                      {result.identifier && (
+                        <div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Nama/ID
+                          </p>
+                          <p className="text-lg font-medium text-primary-600 dark:text-primary-400">
+                            📝 {result.identifier}
+                          </p>
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          Nomor Telepon
+                        </p>
+                        <p className="text-lg font-medium text-gray-900 dark:text-white">
+                          📞 {result.phone_number}
+                        </p>
+                      </div>
                     </div>
                     <button
                       onClick={() => copyToClipboard(result.phone_number)}
