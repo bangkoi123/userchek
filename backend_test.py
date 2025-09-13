@@ -411,6 +411,7 @@ def main():
     # Admin functionality tests
     print("\n👑 ADMIN FUNCTIONALITY TESTS")
     print("-" * 30)
+    tester.test_seed_sample_data()  # Seed data first
     tester.test_admin_stats()
     tester.test_admin_telegram_accounts()
     tester.test_admin_whatsapp_providers()
