@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import BulkCheckDemo from './BulkCheckDemo';
+import BulkCheckDemo from './BulkCheckDemo';
 
 const BulkCheck = () => {
   const { user } = useAuth();
