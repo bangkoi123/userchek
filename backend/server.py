@@ -102,6 +102,42 @@ class WhatsAppProvider(BaseModel):
     provider_type: str  # twilio, vonage, etc
     is_active: bool = True
 
+# Socket.IO Events
+@sio.event
+async def connect(sid, environ):
+    logger.info(f"Client {sid} connected")
+    await sio.emit('connected', {'data': 'Connected to Webtools server'}, room=sid)
+
+@sio.event
+async def disconnect(sid):
+    logger.info(f"Client {sid} disconnected")
+
+@sio.event
+async def join_job_room(sid, data):
+    """Join room for specific job to receive updates"""
+    job_id = data.get('job_id')
+    if job_id:
+        await sio.enter_room(sid, f"job_{job_id}")
+        await sio.emit('joined_job_room', {'job_id': job_id}, room=sid)
+        logger.info(f"Client {sid} joined room for job {job_id}")
+
+@sio.event
+async def leave_job_room(sid, data):
+    """Leave job room"""
+    job_id = data.get('job_id')
+    if job_id:
+        await sio.leave_room(sid, f"job_{job_id}")
+        await sio.emit('left_job_room', {'job_id': job_id}, room=sid)
+        logger.info(f"Client {sid} left room for job {job_id}")
+
+# Helper function to emit job progress
+async def emit_job_progress(job_id: str, progress_data: dict):
+    """Emit real-time job progress to connected clients"""
+    try:
+        await sio.emit('job_progress', progress_data, room=f"job_{job_id}")
+    except Exception as e:
+        logger.error(f"Failed to emit job progress: {e}")
+
 # Helper Functions
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
