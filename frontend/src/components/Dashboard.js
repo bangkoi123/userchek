@@ -235,7 +235,7 @@ const Dashboard = () => {
               Validasi satu nomor telepon secara instan
             </p>
             <button 
-              onClick={() => window.location.href = '/quick-check'}
+              onClick={() => navigate('/quick-check')}
               className="btn-primary"
             >
               Mulai Quick Check
