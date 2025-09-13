@@ -290,5 +290,70 @@ class EmailService:
         
         return self.send_email(user_email, subject, html_content)
 
+    def send_credit_purchase_email(self, user_email: str, username: str, credits_purchased: int, amount_paid: float, package_name: str) -> bool:
+        """Send email notification when user purchases credits"""
+        
+        subject = f"✅ Credit Purchase Successful - {credits_purchased:,} credits added!"
+        
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="background: linear-gradient(90deg, #10b981, #059669); padding: 25px; border-radius: 10px; text-align: center; margin-bottom: 25px;">
+                <h1 style="color: white; margin: 0; font-size: 24px;">✅ Purchase Successful!</h1>
+                <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">Credits Added to Your Account</p>
+            </div>
+            
+            <h2 style="color: #065f46;">Halo {username}!</h2>
+            <p style="color: #374151; line-height: 1.6;">
+                Thank you for purchasing the <strong>{package_name}</strong>! Your credits have been successfully added to your account.
+            </p>
+
+            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                <h3 style="color: #065f46; margin-top: 0;">📊 Purchase Details</h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr style="border-bottom: 1px solid #d1fae5;">
+                        <td style="padding: 8px 0; color: #047857;"><strong>Package:</strong></td>
+                        <td style="padding: 8px 0; text-align: right; color: #065f46; font-weight: bold;">{package_name}</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #d1fae5;">
+                        <td style="padding: 8px 0; color: #047857;"><strong>Credits Added:</strong></td>
+                        <td style="padding: 8px 0; text-align: right; color: #059669; font-weight: bold;">{credits_purchased:,}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #047857;"><strong>Amount Paid:</strong></td>
+                        <td style="padding: 8px 0; text-align: right; color: #065f46; font-weight: bold;">${amount_paid:.2f} USD</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div style="text-align: center; margin: 25px 0;">
+                <a href="https://phonehub-6.preview.emergentagent.com/dashboard" 
+                   style="background: #10b981; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+                    📊 View Dashboard
+                </a>
+            </div>
+
+            <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 15px; border-radius: 8px; margin-top: 25px;">
+                <p style="color: #1e40af; margin: 0; font-size: 14px;">
+                    💡 <strong>Next Steps:</strong> Your credits are now available and you can start validating phone numbers immediately. 
+                    Each validation uses 2 credits (1 for WhatsApp + 1 for Telegram).
+                </p>
+            </div>
+
+            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                <p style="color: #64748b; font-size: 14px; margin: 0;">
+                    Thank you for choosing Webtools Validation!
+                </p>
+                <p style="color: #64748b; font-size: 12px; margin: 10px 0 0 0;">
+                    Receipt and transaction details are available in your dashboard.
+                </p>
+            </div>
+        </body>
+        </html>
+        """
+        
+        return self.send_email(user_email, subject, html_content)
+
 # Create global email service instance
 email_service = EmailService()
