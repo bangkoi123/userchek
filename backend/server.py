@@ -523,11 +523,36 @@ async def process_bulk_validation(job_id: str):
             }}
         )
         
+        # Get user info for email notification
+        user = await db.users.find_one({"_id": job["user_id"]})
+        if user and user.get("email"):
+            # Send job completion email
+            try:
+                await email_service.send_job_completion_email(
+                    user["email"],
+                    user["username"],
+                    {**job, "results": results}
+                )
+            except Exception as e:
+                logger.error(f"Failed to send job completion email: {e}")
+        
         # Deduct credits from user
         await db.users.update_one(
             {"_id": job["user_id"]},
             {"$inc": {"credits": -job["credits_used"]}}
         )
+        
+        # Check if credits are low and send alert
+        updated_user = await db.users.find_one({"_id": job["user_id"]})
+        if updated_user and updated_user.get("credits", 0) <= 100 and updated_user.get("email"):
+            try:
+                await email_service.send_low_credit_alert(
+                    updated_user["email"],
+                    updated_user["username"],
+                    updated_user["credits"]
+                )
+            except Exception as e:
+                logger.error(f"Failed to send low credit alert: {e}")
         
         # Log usage
         usage_doc = {
