@@ -299,6 +299,8 @@ const AdminPanel = () => {
             <TelegramTab 
               accounts={telegramAccounts}
               onRefresh={fetchAdminData}
+              openModal={openTelegramModal}
+              onDelete={deleteTelegramAccount}
             />
           )}
           
@@ -306,6 +308,8 @@ const AdminPanel = () => {
             <WhatsAppTab 
               providers={whatsappProviders}
               onRefresh={fetchAdminData}
+              openModal={openWhatsAppModal}
+              onDelete={deleteWhatsAppProvider}
             />
           )}
           
