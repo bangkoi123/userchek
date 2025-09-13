@@ -381,7 +381,7 @@ const UserProfile = () => {
               </div>
               
               <button
-                onClick={() => window.location.href = '/credit-topup'}
+                onClick={() => navigate('/credit-topup')}
                 className="btn-primary w-full"
               >
                 Top Up Credits
