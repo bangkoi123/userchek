@@ -220,7 +220,7 @@ const Dashboard = () => {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="card p-6">
           <div className="text-center">
             <div className="p-3 bg-primary-100 dark:bg-primary-900 rounded-full inline-flex mb-4">
@@ -232,7 +232,10 @@ const Dashboard = () => {
             <p className="text-gray-600 dark:text-gray-400 mb-4">
               Validasi satu nomor telepon secara instan
             </p>
-            <button className="btn-primary">
+            <button 
+              onClick={() => window.location.href = '/quick-check'}
+              className="btn-primary"
+            >
               Mulai Quick Check
             </button>
           </div>
@@ -249,8 +252,31 @@ const Dashboard = () => {
             <p className="text-gray-600 dark:text-gray-400 mb-4">
               Upload file CSV untuk validasi massal
             </p>
-            <button className="btn-primary">
+            <button 
+              onClick={() => window.location.href = '/bulk-check'}
+              className="btn-primary"
+            >
               Mulai Bulk Check
+            </button>
+          </div>
+        </div>
+
+        <div className="card p-6">
+          <div className="text-center">
+            <div className="p-3 bg-purple-100 dark:bg-purple-900 rounded-full inline-flex mb-4">
+              <CreditCard className="h-8 w-8 text-purple-600 dark:text-purple-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              Top Up Credits
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              Beli kredit untuk validasi lebih banyak
+            </p>
+            <button 
+              onClick={() => window.location.href = '/credit-topup'}
+              className="btn-primary"
+            >
+              Beli Kredit
             </button>
           </div>
         </div>
