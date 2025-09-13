@@ -36,6 +36,24 @@ const AdminPanel = () => {
   const [editingTelegram, setEditingTelegram] = useState(null);
   const [editingWhatsApp, setEditingWhatsApp] = useState(null);
 
+  // Form states
+  const [telegramForm, setTelegramForm] = useState({
+    name: '',
+    phone_number: '',
+    api_id: '',
+    api_hash: '',
+    bot_token: '',
+    is_active: true
+  });
+
+  const [whatsAppForm, setWhatsAppForm] = useState({
+    name: '',
+    api_endpoint: '',
+    api_key: '',
+    provider_type: 'twilio',
+    is_active: true
+  });
+
   useEffect(() => {
     if (user?.role === 'admin') {
       fetchAdminData();
@@ -46,10 +64,10 @@ const AdminPanel = () => {
     setLoading(true);
     try {
       const [statsData, telegramData, whatsappData, jobsData] = await Promise.all([
-        apiCall('/api/admin/stats'),
-        apiCall('/api/admin/telegram-accounts'),
-        apiCall('/api/admin/whatsapp-providers'),
-        apiCall('/api/admin/jobs')
+        apiCall('/api/admin/stats').catch(() => ({})),
+        apiCall('/api/admin/telegram-accounts').catch(() => []),
+        apiCall('/api/admin/whatsapp-providers').catch(() => []),
+        apiCall('/api/admin/jobs').catch(() => [])
       ]);
       
       setSystemStats(statsData);
@@ -61,6 +79,136 @@ const AdminPanel = () => {
       toast.error('Gagal memuat data admin');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Telegram Account Functions
+  const openTelegramModal = (account = null) => {
+    if (account) {
+      setEditingTelegram(account);
+      setTelegramForm({
+        name: account.name || '',
+        phone_number: account.phone_number || '',
+        api_id: account.api_id || '',
+        api_hash: account.api_hash || '',
+        bot_token: account.bot_token || '',
+        is_active: account.is_active !== false
+      });
+    } else {
+      setEditingTelegram(null);
+      setTelegramForm({
+        name: '',
+        phone_number: '',
+        api_id: '',
+        api_hash: '',
+        bot_token: '',
+        is_active: true
+      });
+    }
+    setShowTelegramModal(true);
+  };
+
+  const closeTelegramModal = () => {
+    setShowTelegramModal(false);
+    setEditingTelegram(null);
+  };
+
+  const saveTelegramAccount = async () => {
+    try {
+      if (editingTelegram) {
+        // Update existing account
+        await apiCall(`/api/admin/telegram-accounts/${editingTelegram._id}`, 'PUT', telegramForm);
+        toast.success('Akun Telegram berhasil diupdate');
+      } else {
+        // Create new account
+        await apiCall('/api/admin/telegram-accounts', 'POST', telegramForm);
+        toast.success('Akun Telegram berhasil ditambahkan');
+      }
+      
+      closeTelegramModal();
+      fetchAdminData(); // Refresh data
+    } catch (error) {
+      const message = error.response?.data?.detail || 'Gagal menyimpan akun Telegram';
+      toast.error(message);
+    }
+  };
+
+  const deleteTelegramAccount = async (accountId, accountName) => {
+    if (!window.confirm(`Apakah Anda yakin ingin menghapus akun "${accountName}"?`)) {
+      return;
+    }
+
+    try {
+      await apiCall(`/api/admin/telegram-accounts/${accountId}`, 'DELETE');
+      toast.success('Akun Telegram berhasil dihapus');
+      fetchAdminData(); // Refresh data
+    } catch (error) {
+      const message = error.response?.data?.detail || 'Gagal menghapus akun Telegram';
+      toast.error(message);
+    }
+  };
+
+  // WhatsApp Provider Functions
+  const openWhatsAppModal = (provider = null) => {
+    if (provider) {
+      setEditingWhatsApp(provider);
+      setWhatsAppForm({
+        name: provider.name || '',
+        api_endpoint: provider.api_endpoint || '',
+        api_key: provider.api_key || '',
+        provider_type: provider.provider_type || 'twilio',
+        is_active: provider.is_active !== false
+      });
+    } else {
+      setEditingWhatsApp(null);
+      setWhatsAppForm({
+        name: '',
+        api_endpoint: '',
+        api_key: '',
+        provider_type: 'twilio',
+        is_active: true
+      });
+    }
+    setShowWhatsAppModal(true);
+  };
+
+  const closeWhatsAppModal = () => {
+    setShowWhatsAppModal(false);
+    setEditingWhatsApp(null);
+  };
+
+  const saveWhatsAppProvider = async () => {
+    try {
+      if (editingWhatsApp) {
+        // Update existing provider
+        await apiCall(`/api/admin/whatsapp-providers/${editingWhatsApp._id}`, 'PUT', whatsAppForm);
+        toast.success('Provider WhatsApp berhasil diupdate');
+      } else {
+        // Create new provider
+        await apiCall('/api/admin/whatsapp-providers', 'POST', whatsAppForm);
+        toast.success('Provider WhatsApp berhasil ditambahkan');
+      }
+      
+      closeWhatsAppModal();
+      fetchAdminData(); // Refresh data
+    } catch (error) {
+      const message = error.response?.data?.detail || 'Gagal menyimpan provider WhatsApp';
+      toast.error(message);
+    }
+  };
+
+  const deleteWhatsAppProvider = async (providerId, providerName) => {
+    if (!window.confirm(`Apakah Anda yakin ingin menghapus provider "${providerName}"?`)) {
+      return;
+    }
+
+    try {
+      await apiCall(`/api/admin/whatsapp-providers/${providerId}`, 'DELETE');
+      toast.success('Provider WhatsApp berhasil dihapus');
+      fetchAdminData(); // Refresh data
+    } catch (error) {
+      const message = error.response?.data?.detail || 'Gagal menghapus provider WhatsApp';
+      toast.error(message);
     }
   };
 
