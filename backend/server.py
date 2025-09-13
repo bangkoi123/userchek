@@ -9,6 +9,7 @@ import bcrypt
 import os
 import secrets
 import hashlib
+import uuid
 import pandas as pd
 import io
 import json
