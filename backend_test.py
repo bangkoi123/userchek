@@ -205,8 +205,8 @@ class WebtoolsAPITester:
             "Quick Check - Insufficient Credits Test",
             "POST",
             "api/validation/quick-check",
-            200,  # Expecting success since demo has 5000 credits
-            data={"phone_number": "+6281234567891"},
+            200,  # Expecting success since demo has enough credits
+            data={"phone_inputs": ["+6281234567891"], "validate_whatsapp": True, "validate_telegram": True},
             token=self.demo_token,
             description="Test validation (demo user should have enough credits)"
         )
