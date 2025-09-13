@@ -537,6 +537,8 @@ async def process_bulk_validation(job_id: str):
                 
                 # Update progress
                 processed_count = i + 1
+                progress_percentage = round((processed_count / len(phone_numbers)) * 100, 2)
+                
                 await db.jobs.update_one(
                     {"_id": job_id},
                     {"$set": {
@@ -544,6 +546,20 @@ async def process_bulk_validation(job_id: str):
                         "updated_at": datetime.utcnow()
                     }}
                 )
+                
+                # Emit real-time progress
+                await emit_job_progress(job_id, {
+                    "job_id": job_id,
+                    "status": "processing",
+                    "processed_numbers": processed_count,
+                    "total_numbers": len(phone_numbers),
+                    "progress_percentage": progress_percentage,
+                    "current_phone": phone,
+                    "last_result": {
+                        "whatsapp": whatsapp_result["status"],
+                        "telegram": telegram_result["status"]
+                    }
+                })
                 
                 # Small delay to prevent overwhelming
                 await asyncio.sleep(0.1)
