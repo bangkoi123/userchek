@@ -619,24 +619,27 @@ const OverviewTab = ({ stats }) => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white dark:bg-gray-800 rounded-lg p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Aktivitas Terbaru
+            User Terbaru
           </h3>
           <div className="space-y-3">
-            {stats?.recent_activities?.map((activity, index) => (
+            {stats?.recent_activities?.users?.length > 0 ? stats.recent_activities.users.slice(0, 5).map((user, index) => (
               <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                <div className="w-2 h-2 bg-primary-500 rounded-full"></div>
-                <div>
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                <div className="flex-1">
                   <p className="text-sm font-medium text-gray-900 dark:text-white">
-                    {activity.message}
+                    {user.username}
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {activity.timestamp}
+                    {user.email}
+                  </p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500">
+                    {new Date(user.created_at).toLocaleDateString('id-ID')}
                   </p>
                 </div>
               </div>
-            )) || (
+            )) : (
               <p className="text-gray-500 dark:text-gray-400 text-center py-4">
-                Tidak ada aktivitas terbaru
+                Tidak ada user terbaru
               </p>
             )}
           </div>
