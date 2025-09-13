@@ -8,7 +8,10 @@ import {
   History, 
   Settings, 
   Smartphone,
-  Shield
+  Shield,
+  CreditCard,
+  User,
+  Users
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen }) => {
