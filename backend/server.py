@@ -1413,102 +1413,259 @@ async def stripe_webhook(request: Request):
 
 @app.post("/api/validation/quick-check")
 async def quick_check(request: QuickCheckRequest, current_user = Depends(get_current_user)):
-    if current_user.get("credits", 0) < 2:
-        raise HTTPException(status_code=400, detail="Insufficient credits")
+    # Validate input
+    if not request.phone_inputs or len(request.phone_inputs) == 0:
+        raise HTTPException(status_code=400, detail="At least one phone number is required")
     
-    # Parse input to get identifier and phone number
-    parsed_input = parse_phone_input(request.phone_input)
-    identifier = parsed_input["identifier"]
-    phone_number = parsed_input["phone_number"]
+    if len(request.phone_inputs) > 20:
+        raise HTTPException(status_code=400, detail="Maximum 20 phone numbers allowed")
     
-    if not phone_number:
-        raise HTTPException(status_code=400, detail="Phone number is required")
+    if not request.validate_whatsapp and not request.validate_telegram:
+        raise HTTPException(status_code=400, detail="At least one platform must be selected")
     
-    # Normalize phone number
-    normalized_phone = normalize_phone_number(phone_number)
+    # Calculate credits needed
+    credits_per_number = 0
+    if request.validate_whatsapp:
+        credits_per_number += 1
+    if request.validate_telegram:
+        credits_per_number += 1
     
-    # Check cache first
-    cached_result = await db.validation_cache.find_one({"phone_number": normalized_phone})
-    if cached_result and (datetime.utcnow() - cached_result["cached_at"]).days < 7:
-        # Add identifier to cached result
-        cached_result["whatsapp"]["identifier"] = identifier
-        cached_result["telegram"]["identifier"] = identifier
-        
-        return {
-            "identifier": identifier,
-            "phone_number": normalized_phone,
-            "whatsapp": cached_result["whatsapp"],
-            "telegram": cached_result["telegram"],
-            "cached": True,
-            "checked_at": cached_result["cached_at"],
-            "providers_used": {
-                "whatsapp": "WhatsApp Web API (Cached)",
-                "telegram": "Mock Provider (Cached)"
-            }
-        }
+    # Parse and validate phone inputs
+    parsed_phones = []
+    for phone_input in request.phone_inputs:
+        if not phone_input.strip():
+            continue
+        parsed_input = parse_phone_input(phone_input.strip())
+        if parsed_input["phone_number"]:
+            parsed_input["phone_number"] = normalize_phone_number(parsed_input["phone_number"])
+            parsed_phones.append(parsed_input)
     
-    # NEW: Use WhatsApp Web API (FREE!)
-    whatsapp_result = await validate_whatsapp_web_api(normalized_phone, identifier)
-        
-    # Keep Telegram validation as before (existing method)
-    telegram_account = await db.telegram_accounts.find_one({"is_active": True})
-    if telegram_account: 
-        telegram_result = await validate_telegram_number_real(normalized_phone, telegram_account)
-    else:
-        telegram_result = await validate_telegram_number(normalized_phone)
+    if not parsed_phones:
+        raise HTTPException(status_code=400, detail="No valid phone numbers found")
     
-    # Add identifier to telegram result
-    telegram_result["identifier"] = identifier
+    # Remove duplicates
+    seen_phones = set()
+    unique_phones = []
+    for phone_data in parsed_phones:
+        if phone_data["phone_number"] not in seen_phones:
+            seen_phones.add(phone_data["phone_number"])
+            unique_phones.append(phone_data)
     
-    # Cache results
-    cache_doc = {
-        "phone_number": normalized_phone,
-        "whatsapp": whatsapp_result,
-        "telegram": telegram_result,
-        "cached_at": datetime.utcnow()
+    total_credits_needed = len(unique_phones) * credits_per_number
+    if current_user.get("credits", 0) < total_credits_needed:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Insufficient credits. Need {total_credits_needed}, have {current_user.get('credits', 0)}"
+        )
+    
+    # Check admin platform settings
+    admin_settings = await db.admin_settings.find_one({"setting_type": "platform_visibility"}) or {}
+    whatsapp_enabled = admin_settings.get("whatsapp_enabled", True)
+    telegram_enabled = admin_settings.get("telegram_enabled", True)
+    
+    if request.validate_whatsapp and not whatsapp_enabled:
+        raise HTTPException(status_code=400, detail="WhatsApp validation is currently disabled")
+    if request.validate_telegram and not telegram_enabled:
+        raise HTTPException(status_code=400, detail="Telegram validation is currently disabled")
+    
+    # Process validations
+    results = {
+        "whatsapp_active": 0,
+        "whatsapp_business": 0,
+        "whatsapp_personal": 0,
+        "whatsapp_inactive": 0,
+        "telegram_active": 0,
+        "telegram_inactive": 0,
+        "total_processed": len(unique_phones),
+        "duplicates_removed": len(parsed_phones) - len(unique_phones),
+        "details": []
     }
     
-    await db.validation_cache.update_one(
-        {"phone_number": normalized_phone},
-        {"$set": cache_doc},
-        upsert=True
-    )
+    telegram_account = await db.telegram_accounts.find_one({"is_active": True}) if request.validate_telegram else None
+    
+    for phone_data in unique_phones:
+        phone = phone_data["phone_number"]
+        identifier = phone_data["identifier"]
+        
+        # Check cache first
+        cached_result = await db.validation_cache.find_one({"phone_number": phone})
+        use_cache = cached_result and (datetime.utcnow() - cached_result["cached_at"]).days < 7
+        
+        if use_cache:
+            whatsapp_result = cached_result["whatsapp"] if request.validate_whatsapp else None
+            telegram_result = cached_result["telegram"] if request.validate_telegram else None
+        else:
+            # Perform validations
+            whatsapp_result = None
+            telegram_result = None
+            
+            if request.validate_whatsapp:
+                whatsapp_result = await validate_whatsapp_web_api(phone, identifier)
+            
+            if request.validate_telegram:
+                if telegram_account:
+                    telegram_result = await validate_telegram_number_real(phone, telegram_account)
+                else:
+                    telegram_result = await validate_telegram_number(phone)
+                telegram_result["identifier"] = identifier
+            
+            # Cache results if both were validated
+            if whatsapp_result and telegram_result:
+                cache_doc = {
+                    "phone_number": phone,
+                    "whatsapp": whatsapp_result,
+                    "telegram": telegram_result,
+                    "cached_at": datetime.utcnow()
+                }
+                await db.validation_cache.update_one(
+                    {"phone_number": phone},
+                    {"$set": cache_doc},
+                    upsert=True
+                )
+        
+        # Update statistics
+        if whatsapp_result:
+            if whatsapp_result["status"] == ValidationStatus.ACTIVE:
+                results["whatsapp_active"] += 1
+                wa_type = whatsapp_result.get("details", {}).get("type", "personal")
+                if wa_type == "business":
+                    results["whatsapp_business"] += 1
+                else:
+                    results["whatsapp_personal"] += 1
+            else:
+                results["whatsapp_inactive"] += 1
+        
+        if telegram_result:
+            if telegram_result["status"] == ValidationStatus.ACTIVE:
+                results["telegram_active"] += 1
+            else:
+                results["telegram_inactive"] += 1
+        
+        # Store detailed result
+        detail = {
+            "identifier": identifier,
+            "phone_number": phone,
+            "original_input": next((p for p in request.phone_inputs if phone in normalize_phone_number(p.split()[-1])), phone),
+            "cached": use_cache
+        }
+        
+        if whatsapp_result:
+            detail["whatsapp"] = whatsapp_result
+        if telegram_result:
+            detail["telegram"] = telegram_result
+            
+        results["details"].append(detail)
     
     # Deduct credits
     await db.users.update_one(
         {"_id": current_user["_id"]},
-        {"$inc": {"credits": -2}}
+        {"$inc": {"credits": -total_credits_needed}}
     )
+    
+    # Create job entry for history (grouped by date)
+    today = datetime.utcnow().date()
+    job_id = f"quick_{current_user['_id']}_{today.strftime('%Y%m%d')}"
+    
+    existing_job = await db.jobs.find_one({"_id": job_id})
+    if existing_job:
+        # Update existing job for today
+        await db.jobs.update_one(
+            {"_id": job_id},
+            {
+                "$push": {"results.quick_check_sessions": {
+                    "session_id": generate_id(),
+                    "timestamp": datetime.utcnow(),
+                    "numbers_processed": len(unique_phones),
+                    "credits_used": total_credits_needed,
+                    "platforms": {
+                        "whatsapp": request.validate_whatsapp,
+                        "telegram": request.validate_telegram
+                    },
+                    "summary": {
+                        "whatsapp_active": results["whatsapp_active"],
+                        "telegram_active": results["telegram_active"],
+                        "total_processed": results["total_processed"]
+                    },
+                    "details": results["details"]
+                }},
+                "$inc": {
+                    "total_numbers": len(unique_phones),
+                    "credits_used": total_credits_needed
+                },
+                "$set": {"updated_at": datetime.utcnow()}
+            }
+        )
+    else:
+        # Create new job for today
+        job_doc = {
+            "_id": job_id,
+            "user_id": current_user["_id"],
+            "tenant_id": current_user["tenant_id"],
+            "job_type": "quick_check_daily",
+            "date": today.isoformat(),
+            "status": "completed",
+            "total_numbers": len(unique_phones),
+            "credits_used": total_credits_needed,
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow(),
+            "results": {
+                "quick_check_sessions": [{
+                    "session_id": generate_id(),
+                    "timestamp": datetime.utcnow(),
+                    "numbers_processed": len(unique_phones),
+                    "credits_used": total_credits_needed,
+                    "platforms": {
+                        "whatsapp": request.validate_whatsapp,
+                        "telegram": request.validate_telegram
+                    },
+                    "summary": {
+                        "whatsapp_active": results["whatsapp_active"],
+                        "telegram_active": results["telegram_active"],
+                        "total_processed": results["total_processed"]
+                    },
+                    "details": results["details"]
+                }]
+            }
+        }
+        await db.jobs.insert_one(job_doc)
     
     # Log usage
     usage_doc = {
         "_id": generate_id(),
         "user_id": current_user["_id"],
         "tenant_id": current_user["tenant_id"],
-        "type": "quick_check",
-        "phone_number": normalized_phone,
-        "identifier": identifier,  # NEW: Log identifier
-        "credits_used": 2,
-        "timestamp": datetime.utcnow(),
-        "providers_used": {
-            "whatsapp": "WhatsApp Web API (FREE)",
-            "telegram": telegram_account.get("name", "mock") if telegram_account else "mock"
-        }
+        "type": "quick_check_multiple",
+        "numbers_processed": len(unique_phones),
+        "duplicates_removed": results["duplicates_removed"],
+        "credits_used": total_credits_needed,
+        "platforms": {
+            "whatsapp": request.validate_whatsapp,
+            "telegram": request.validate_telegram
+        },
+        "timestamp": datetime.utcnow()
     }
-    
     await db.usage_logs.insert_one(usage_doc)
     
     return {
-        "identifier": identifier,
-        "phone_number": normalized_phone,
-        "whatsapp": whatsapp_result,
-        "telegram": telegram_result,
-        "cached": False,
-        "checked_at": datetime.utcnow(),
-        "providers_used": {
-            "whatsapp": "WhatsApp Web API (FREE)",
-            "telegram": telegram_account.get("name", "Mock Provider") if telegram_account else "Mock Provider"
-        }
+        "success": True,
+        "summary": {
+            "total_processed": results["total_processed"],
+            "duplicates_removed": results["duplicates_removed"],
+            "credits_used": total_credits_needed,
+            "whatsapp_active": results["whatsapp_active"],
+            "whatsapp_business": results["whatsapp_business"],
+            "whatsapp_personal": results["whatsapp_personal"],
+            "whatsapp_inactive": results["whatsapp_inactive"],
+            "telegram_active": results["telegram_active"],
+            "telegram_inactive": results["telegram_inactive"]
+        },
+        "details": results["details"],
+        "platforms_validated": {
+            "whatsapp": request.validate_whatsapp,
+            "telegram": request.validate_telegram
+        },
+        "job_id": job_id,
+        "checked_at": datetime.utcnow()
     }
 
 @app.get("/api/dashboard/stats")
