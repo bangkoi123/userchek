@@ -174,6 +174,137 @@ async def validate_telegram_number(phone: str) -> Dict[str, Any]:
         }
     }
 
+# Background task for bulk validation
+async def process_bulk_validation(job_id: str):
+    """Process bulk validation in background"""
+    try:
+        # Update job status to processing
+        await db.jobs.update_one(
+            {"_id": job_id},
+            {"$set": {"status": JobStatus.PROCESSING, "updated_at": datetime.utcnow()}}
+        )
+        
+        # Get job details
+        job = await db.jobs.find_one({"_id": job_id})
+        if not job:
+            return
+            
+        phone_numbers = job["phone_numbers"]
+        results = {
+            "whatsapp_active": 0,
+            "telegram_active": 0,
+            "inactive": 0,
+            "errors": 0,
+            "details": []
+        }
+        
+        # Process each number
+        for i, phone in enumerate(phone_numbers):
+            try:
+                # Check cache first
+                cached_result = await db.validation_cache.find_one({"phone_number": phone})
+                if cached_result and (datetime.utcnow() - cached_result["cached_at"]).days < 7:
+                    whatsapp_result = cached_result["whatsapp"]
+                    telegram_result = cached_result["telegram"]
+                else:
+                    # Perform validation
+                    whatsapp_result = await validate_whatsapp_number(phone)
+                    telegram_result = await validate_telegram_number(phone)
+                    
+                    # Cache results
+                    cache_doc = {
+                        "phone_number": phone,
+                        "whatsapp": whatsapp_result,
+                        "telegram": telegram_result,
+                        "cached_at": datetime.utcnow()
+                    }
+                    
+                    await db.validation_cache.update_one(
+                        {"phone_number": phone},
+                        {"$set": cache_doc},
+                        upsert=True
+                    )
+                
+                # Count results
+                if whatsapp_result["status"] == ValidationStatus.ACTIVE:
+                    results["whatsapp_active"] += 1
+                if telegram_result["status"] == ValidationStatus.ACTIVE:
+                    results["telegram_active"] += 1
+                if (whatsapp_result["status"] == ValidationStatus.INACTIVE and 
+                    telegram_result["status"] == ValidationStatus.INACTIVE):
+                    results["inactive"] += 1
+                
+                # Store detailed result
+                results["details"].append({
+                    "phone_number": phone,
+                    "whatsapp": whatsapp_result,
+                    "telegram": telegram_result,
+                    "processed_at": datetime.utcnow()
+                })
+                
+                # Update progress
+                processed_count = i + 1
+                await db.jobs.update_one(
+                    {"_id": job_id},
+                    {"$set": {
+                        "processed_numbers": processed_count,
+                        "updated_at": datetime.utcnow()
+                    }}
+                )
+                
+                # Small delay to prevent overwhelming
+                await asyncio.sleep(0.1)
+                
+            except Exception as e:
+                results["errors"] += 1
+                results["details"].append({
+                    "phone_number": phone,
+                    "error": str(e),
+                    "processed_at": datetime.utcnow()
+                })
+        
+        # Update job as completed
+        await db.jobs.update_one(
+            {"_id": job_id},
+            {"$set": {
+                "status": JobStatus.COMPLETED,
+                "results": results,
+                "completed_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow()
+            }}
+        )
+        
+        # Deduct credits from user
+        await db.users.update_one(
+            {"_id": job["user_id"]},
+            {"$inc": {"credits": -job["credits_used"]}}
+        )
+        
+        # Log usage
+        usage_doc = {
+            "_id": str(uuid.uuid4()),
+            "user_id": job["user_id"],
+            "tenant_id": job["tenant_id"],
+            "type": "bulk_check",
+            "job_id": job_id,
+            "numbers_processed": len(phone_numbers),
+            "credits_used": job["credits_used"],
+            "timestamp": datetime.utcnow()
+        }
+        
+        await db.usage_logs.insert_one(usage_doc)
+        
+    except Exception as e:
+        # Mark job as failed
+        await db.jobs.update_one(
+            {"_id": job_id},
+            {"$set": {
+                "status": JobStatus.FAILED,
+                "error_message": str(e),
+                "updated_at": datetime.utcnow()
+            }}
+        )
+
 # Routes
 @app.get("/api/health")
 async def health_check():
