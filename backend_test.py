@@ -12,6 +12,7 @@ class WebtoolsAPITester:
         self.tests_passed = 0
         self.demo_user_id = None
         self.admin_user_id = None
+        self.checkout_session_id = None
 
     def run_test(self, name, method, endpoint, expected_status, data=None, token=None, description=""):
         """Run a single API test"""
