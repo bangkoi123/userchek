@@ -210,22 +210,35 @@ def create_jwt_token(user_data: dict) -> str:
     }
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
-async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+async def get_current_user_or_api_key(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    """Get current user from JWT token or API key"""
+    token = credentials.credentials
+    
+    # Try JWT first
     try:
-        payload = jwt.decode(credentials.credentials, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
         user_id = payload.get('user_id')
-        if user_id is None:
-            raise HTTPException(status_code=401, detail="Invalid token")
-        
-        user = await db.users.find_one({"_id": user_id})
-        if user is None:
-            raise HTTPException(status_code=401, detail="User not found")
-        
-        return user
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token expired")
-    except jwt.InvalidTokenError:
-        raise HTTPException(status_code=401, detail="Invalid token")
+        if user_id:
+            user = await db.users.find_one({"_id": user_id})
+            if user:
+                user["auth_method"] = "jwt"
+                return user
+    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+        pass
+    
+    # Try API key
+    if token.startswith('wt_'):
+        user = await verify_api_key(token)
+        if user:
+            user["auth_method"] = "api_key"
+            return user
+    
+    raise HTTPException(status_code=401, detail="Invalid authentication")
+
+# Keep the original function for backward compatibility
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    """Legacy function - redirects to new implementation"""
+    return await get_current_user_or_api_key(credentials)
 
 def normalize_phone_number(phone: str) -> str:
     """Normalize phone number format"""
