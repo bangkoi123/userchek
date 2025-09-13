@@ -794,6 +794,7 @@ def main():
     tester.test_admin_user_details()
     tester.test_admin_update_user()
     tester.test_admin_analytics()
+    tester.test_admin_analytics_access_control()
     tester.test_admin_telegram_accounts()
     tester.test_admin_whatsapp_providers()
     tester.test_admin_jobs()
