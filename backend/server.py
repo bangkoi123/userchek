@@ -95,6 +95,21 @@ class TelegramAccount(BaseModel):
     bot_token: Optional[str] = None
     is_active: bool = True
 
+class APIKeyCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    permissions: List[str] = ["validation"]  # permissions like "validation", "admin", etc.
+
+class APIKeyResponse(BaseModel):
+    id: str
+    name: str
+    description: Optional[str]
+    permissions: List[str]
+    key_preview: str  # Only show first 8 characters
+    created_at: datetime
+    last_used: Optional[datetime]
+    is_active: bool
+
 class WhatsAppProvider(BaseModel):
     name: str
     api_endpoint: str
