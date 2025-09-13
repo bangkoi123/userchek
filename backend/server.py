@@ -2234,6 +2234,205 @@ async def get_credit_management_stats(current_user = Depends(admin_required)):
         "recent_transactions": recent_transactions
     }
 
+@app.get("/api/admin/analytics")
+async def get_admin_analytics(current_user = Depends(admin_required)):
+    """Get comprehensive admin analytics data"""
+    
+    try:
+        # User statistics
+        total_users = await db.users.count_documents({})
+        active_users = await db.users.count_documents({"is_active": True})
+        admin_users = await db.users.count_documents({"role": "admin"})
+        new_users_this_month = await db.users.count_documents({
+            "created_at": {"$gte": datetime.utcnow().replace(day=1)}
+        })
+        
+        # Validation statistics
+        total_validations = await db.jobs.count_documents({})
+        completed_validations = await db.jobs.count_documents({"status": "completed"})
+        failed_validations = await db.jobs.count_documents({"status": "failed"}) 
+        active_jobs = await db.jobs.count_documents({"status": {"$in": ["running", "pending"]}})
+        
+        # Credit statistics
+        total_credits = await db.users.aggregate([
+            {"$group": {"_id": None, "total": {"$sum": "$credits"}}}
+        ]).to_list(1)
+        
+        credits_used_stats = await db.usage_logs.aggregate([
+            {"$group": {
+                "_id": None,
+                "total_used": {"$sum": "$credits_used"},
+                "total_transactions": {"$sum": 1}
+            }}
+        ]).to_list(1)
+        
+        # Payment statistics
+        payment_stats = await db.payment_transactions.aggregate([
+            {"$match": {"payment_status": "completed"}},
+            {"$group": {
+                "_id": None,
+                "total_revenue": {"$sum": "$amount"},
+                "total_transactions": {"$sum": 1},
+                "total_credits_sold": {"$sum": "$credits_amount"}
+            }}
+        ]).to_list(1)
+        
+        # Recent activities from different sources
+        recent_users = await db.users.find(
+            {},
+            sort=[("created_at", DESCENDING)]
+        ).limit(5).to_list(5)
+        
+        recent_jobs = await db.jobs.find(
+            {},
+            sort=[("created_at", DESCENDING)]
+        ).limit(5).to_list(5)
+        
+        recent_payments = await db.payment_transactions.find(
+            {"payment_status": "completed"},
+            sort=[("completed_at", DESCENDING)]
+        ).limit(5).to_list(5)
+        
+        # Top users by credits
+        top_users = await db.users.find(
+            {},
+            {"username": 1, "email": 1, "credits": 1, "role": 1},
+            sort=[("credits", DESCENDING)]
+        ).limit(5).to_list(5)
+        
+        # Platform usage stats
+        whatsapp_validations = await db.jobs.count_documents({"platforms": {"$in": ["whatsapp"]}})
+        telegram_validations = await db.jobs.count_documents({"platforms": {"$in": ["telegram"]}})
+        
+        # Daily stats for the last 7 days
+        seven_days_ago = datetime.utcnow() - timedelta(days=7)
+        daily_stats = []
+        
+        for i in range(7):
+            day_start = seven_days_ago + timedelta(days=i)
+            day_end = day_start + timedelta(days=1)
+            
+            day_users = await db.users.count_documents({
+                "created_at": {"$gte": day_start, "$lt": day_end}
+            })
+            
+            day_validations = await db.jobs.count_documents({
+                "created_at": {"$gte": day_start, "$lt": day_end}
+            })
+            
+            day_payments = await db.payment_transactions.count_documents({
+                "created_at": {"$gte": day_start, "$lt": day_end},
+                "payment_status": "completed"
+            })
+            
+            daily_stats.append({
+                "date": day_start.strftime("%Y-%m-%d"),
+                "new_users": day_users,
+                "validations": day_validations,
+                "payments": day_payments
+            })
+        
+        return {
+            "user_stats": {
+                "total_users": total_users,
+                "active_users": active_users,
+                "admin_users": admin_users,
+                "new_users_this_month": new_users_this_month
+            },
+            "validation_stats": {
+                "total_validations": total_validations,
+                "completed_validations": completed_validations,
+                "failed_validations": failed_validations,
+                "active_jobs": active_jobs,
+                "whatsapp_validations": whatsapp_validations,
+                "telegram_validations": telegram_validations
+            },
+            "credit_stats": {
+                "total_credits_in_system": total_credits[0]["total"] if total_credits else 0,
+                "total_credits_used": credits_used_stats[0]["total_used"] if credits_used_stats else 0,
+                "total_usage_transactions": credits_used_stats[0]["total_transactions"] if credits_used_stats else 0
+            },
+            "payment_stats": {
+                "total_revenue": payment_stats[0]["total_revenue"] if payment_stats else 0,
+                "total_transactions": payment_stats[0]["total_transactions"] if payment_stats else 0,
+                "total_credits_sold": payment_stats[0]["total_credits_sold"] if payment_stats else 0
+            },
+            "daily_stats": daily_stats,
+            "top_users": [
+                {
+                    "id": user["_id"],
+                    "username": user["username"],
+                    "email": user["email"],
+                    "credits": user["credits"],
+                    "role": user["role"]
+                } for user in top_users
+            ],
+            "recent_activities": {
+                "users": [
+                    {
+                        "id": user["_id"],
+                        "username": user["username"],
+                        "email": user["email"],
+                        "created_at": user["created_at"].isoformat() if isinstance(user["created_at"], datetime) else user["created_at"]
+                    } for user in recent_users
+                ],
+                "jobs": [
+                    {
+                        "id": job["_id"],
+                        "type": job.get("type", "validation"),
+                        "status": job.get("status", "unknown"),
+                        "created_at": job["created_at"].isoformat() if isinstance(job["created_at"], datetime) else job["created_at"]
+                    } for job in recent_jobs
+                ],
+                "payments": [
+                    {
+                        "id": payment["_id"],
+                        "amount": payment["amount"],
+                        "credits": payment["credits_amount"],
+                        "status": payment["payment_status"],
+                        "completed_at": payment["completed_at"].isoformat() if isinstance(payment.get("completed_at"), datetime) else payment.get("completed_at")
+                    } for payment in recent_payments
+                ]
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting analytics: {str(e)}")
+        # Return default structure in case of error
+        return {
+            "user_stats": {
+                "total_users": 0,
+                "active_users": 0,
+                "admin_users": 0,
+                "new_users_this_month": 0
+            },
+            "validation_stats": {
+                "total_validations": 0,
+                "completed_validations": 0,
+                "failed_validations": 0,
+                "active_jobs": 0,
+                "whatsapp_validations": 0,
+                "telegram_validations": 0
+            },
+            "credit_stats": {
+                "total_credits_in_system": 0,
+                "total_credits_used": 0,
+                "total_usage_transactions": 0
+            },
+            "payment_stats": {
+                "total_revenue": 0,
+                "total_transactions": 0,
+                "total_credits_sold": 0
+            },
+            "daily_stats": [],
+            "top_users": [],
+            "recent_activities": {
+                "users": [],
+                "jobs": [],
+                "payments": []
+            }
+        }
+
 @app.post("/api/admin/users/{user_id}/credits")
 async def manage_user_credits(
     user_id: str,
