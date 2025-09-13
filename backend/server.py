@@ -1228,7 +1228,7 @@ async def seed_sample_data():
     # Sample WhatsApp Providers
     whatsapp_providers = [
         {
-            "_id": str(uuid.uuid4()),
+            "_id": generate_id(),
             "name": "Twilio WhatsApp Business",
             "api_endpoint": "https://api.twilio.com/2010-04-01/Accounts/{AccountSid}/Messages.json",
             "api_key": "twilio-api-key-placeholder",
@@ -1238,7 +1238,7 @@ async def seed_sample_data():
             "created_by": "system"
         },
         {
-            "_id": str(uuid.uuid4()),
+            "_id": generate_id(),
             "name": "Vonage WhatsApp API",
             "api_endpoint": "https://messages-sandbox.nexmo.com/v1/messages",
             "api_key": "vonage-api-key-placeholder",
@@ -1248,7 +1248,7 @@ async def seed_sample_data():
             "created_by": "system"
         },
         {
-            "_id": str(uuid.uuid4()),
+            "_id": generate_id(),
             "name": "360Dialog WhatsApp",
             "api_endpoint": "https://waba.360dialog.io/v1/messages",
             "api_key": "360dialog-api-key-placeholder",
