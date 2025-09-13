@@ -38,7 +38,8 @@ const Header = ({ sidebarOpen, setSidebarOpen }) => {
           {/* Sidebar toggle */}
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 lg:hidden"
+            className="p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+            title={sidebarOpen ? "Hide Sidebar" : "Show Sidebar"}
           >
             {sidebarOpen ? (
               <X className="h-5 w-5" />
