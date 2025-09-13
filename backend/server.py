@@ -648,7 +648,7 @@ async def process_bulk_validation(job_id: str):
         
         # Log usage
         usage_doc = {
-            "_id": str(uuid.uuid4()),
+            "_id": generate_id(),
             "user_id": job["user_id"],
             "tenant_id": job["tenant_id"],
             "type": "bulk_check",
