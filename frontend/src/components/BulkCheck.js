@@ -204,7 +204,42 @@ const BulkCheck = () => {
       </div>
 
       {/* Demo Section */}
-      <BulkCheckDemo />
+      <div className="card p-6">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          🎯 Demo Bulk Check
+        </h3>
+        <p className="text-gray-600 dark:text-gray-400 mb-4">
+          Coba fitur bulk validation dengan sample nomor telepon
+        </p>
+        
+        <div className="flex space-x-4">
+          <button
+            onClick={() => {
+              const sampleCSV = `phone_number\n+6281234567890\n+6289876543210\n+6285555666777\n08123456789\n+628111222333`;
+              const element = document.createElement("a");
+              const file = new Blob([sampleCSV], { type: 'text/csv' });
+              element.href = URL.createObjectURL(file);
+              element.download = "sample_phone_numbers.csv";
+              document.body.appendChild(element);
+              element.click();
+              document.body.removeChild(element);
+              toast.success('Sample CSV downloaded!');
+            }}
+            className="btn-secondary flex items-center"
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Download Sample CSV
+          </button>
+          
+          <button
+            onClick={() => toast.info('Upload sample CSV untuk mencoba fitur bulk validation')}
+            className="btn-primary flex items-center"
+          >
+            <FileText className="h-4 w-4 mr-2" />
+            Try Demo Upload
+          </button>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Upload Area */}
