@@ -41,6 +41,9 @@ JWT_EXPIRATION_HOURS = 24
 
 app = FastAPI(title="Webtools Validasi Nomor Telepon", version="1.0.0")
 
+# Mount Socket.IO
+app.mount("/socket.io", socket_app)
+
 # CORS Configuration
 app.add_middleware(
     CORSMiddleware,
