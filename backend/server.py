@@ -615,9 +615,53 @@ async def download_job_result(job_id: str, current_user = Depends(get_current_us
     if job["status"] != "completed":
         raise HTTPException(status_code=400, detail="Job belum selesai")
     
-    # In production, generate and return actual file
-    # For now, return mock response
-    return {"message": "Download akan tersedia segera"}
+    # Generate CSV content from results
+    if not job.get("results") or not job["results"].get("details"):
+        raise HTTPException(status_code=400, detail="Tidak ada hasil untuk diunduh")
+    
+    # Create CSV content
+    csv_content = "phone_number,whatsapp_status,telegram_status,whatsapp_details,telegram_details,processed_at\n"
+    
+    for detail in job["results"]["details"]:
+        if "error" in detail:
+            csv_content += f"{detail['phone_number']},ERROR,ERROR,{detail['error']},,{detail['processed_at']}\n"
+        else:
+            whatsapp_details = json.dumps(detail['whatsapp']['details']) if detail['whatsapp'].get('details') else ""
+            telegram_details = json.dumps(detail['telegram']['details']) if detail['telegram'].get('details') else ""
+            csv_content += f"{detail['phone_number']},{detail['whatsapp']['status']},{detail['telegram']['status']},\"{whatsapp_details}\",\"{telegram_details}\",{detail['processed_at']}\n"
+    
+    # Return CSV as response
+    from fastapi.responses import Response
+    
+    filename = f"validation_results_{job_id[:8]}.csv"
+    return Response(
+        content=csv_content,
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+@app.get("/api/jobs/{job_id}/status")
+async def get_job_status(job_id: str, current_user = Depends(get_current_user)):
+    job = await db.jobs.find_one({"_id": job_id, "user_id": current_user["_id"]})
+    if not job:
+        raise HTTPException(status_code=404, detail="Job tidak ditemukan")
+    
+    progress_percentage = 0
+    if job["total_numbers"] > 0:
+        progress_percentage = round((job.get("processed_numbers", 0) / job["total_numbers"]) * 100, 2)
+    
+    return {
+        "job_id": job["_id"],
+        "status": job["status"],
+        "filename": job["filename"],
+        "total_numbers": job["total_numbers"],
+        "processed_numbers": job.get("processed_numbers", 0),
+        "progress_percentage": progress_percentage,
+        "created_at": job["created_at"],
+        "updated_at": job["updated_at"],
+        "results": job.get("results"),
+        "error_message": job.get("error_message")
+    }
 
 # Admin Routes
 async def admin_required(current_user = Depends(get_current_user)):
