@@ -253,8 +253,31 @@ class WebtoolsAPITester:
             "api/admin/telegram-accounts",
             200,
             token=self.admin_token,
-            description="Get telegram accounts list"
+            description="Get telegram accounts list (should show 3 accounts)"
         )
+        
+        if success and isinstance(response, list):
+            print(f"   Found {len(response)} telegram accounts")
+            expected_accounts = [
+                "Primary Telegram Bot",
+                "Secondary Telegram Account", 
+                "Backup Telegram Account"
+            ]
+            
+            account_names = [acc.get('name', '') for acc in response]
+            active_count = sum(1 for acc in response if acc.get('is_active', False))
+            inactive_count = len(response) - active_count
+            
+            print(f"   Account names: {account_names}")
+            print(f"   Active accounts: {active_count}, Inactive accounts: {inactive_count}")
+            
+            # Check if we have the expected accounts
+            found_expected = [name for name in expected_accounts if name in account_names]
+            if len(found_expected) >= 2:  # At least 2 of the expected accounts
+                print(f"   ✅ Found expected accounts: {found_expected}")
+            else:
+                print(f"   ⚠️  Expected accounts not found. Found: {account_names}")
+                
         return success
 
     def test_admin_whatsapp_providers(self):
@@ -269,8 +292,31 @@ class WebtoolsAPITester:
             "api/admin/whatsapp-providers",
             200,
             token=self.admin_token,
-            description="Get WhatsApp providers list"
+            description="Get WhatsApp providers list (should show 3 providers)"
         )
+        
+        if success and isinstance(response, list):
+            print(f"   Found {len(response)} WhatsApp providers")
+            expected_providers = [
+                "Twilio WhatsApp Business",
+                "Vonage WhatsApp API",
+                "360Dialog WhatsApp"
+            ]
+            
+            provider_names = [prov.get('name', '') for prov in response]
+            active_count = sum(1 for prov in response if prov.get('is_active', False))
+            inactive_count = len(response) - active_count
+            
+            print(f"   Provider names: {provider_names}")
+            print(f"   Active providers: {active_count}, Inactive providers: {inactive_count}")
+            
+            # Check if we have the expected providers
+            found_expected = [name for name in expected_providers if name in provider_names]
+            if len(found_expected) >= 2:  # At least 2 of the expected providers
+                print(f"   ✅ Found expected providers: {found_expected}")
+            else:
+                print(f"   ⚠️  Expected providers not found. Found: {provider_names}")
+                
         return success
 
     def test_admin_jobs(self):
