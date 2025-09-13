@@ -16,7 +16,7 @@ import CreditTopup from './components/CreditTopup';
 import UserManagement from './components/UserManagement';
 import UserProfile from './components/UserProfile';
 import AdminSettings from './components/AdminSettings';
-import PaymentManagement from './components/PaymentManagementNew';
+import PaymentManagement from './components/PaymentManagementClean';
 
 // Context
 import { AuthProvider, useAuth } from './context/AuthContext';
