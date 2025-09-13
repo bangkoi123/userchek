@@ -108,20 +108,30 @@ const Sidebar = ({ isOpen, setSidebarOpen }) => {
         lg:translate-x-0
       `}>
         {/* Logo */}
-        <div className="flex items-center px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex-shrink-0">
-            <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-              <Smartphone className="h-5 w-5 text-white" />
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
+                <Smartphone className="h-5 w-5 text-white" />
+              </div>
+            </div>
+            <div className="ml-3">
+              <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Webtools
+              </h1>
+              <p className="text-xs text-gray-600 dark:text-gray-400">
+                {user?.role === 'admin' ? 'Admin Control' : 'Validasi Nomor'}
+              </p>
             </div>
           </div>
-          <div className="ml-3">
-            <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Webtools
-            </h1>
-            <p className="text-xs text-gray-600 dark:text-gray-400">
-              Validasi Nomor
-            </p>
-          </div>
+          
+          {/* Hide Sidebar Button */}
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="p-1 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 lg:hidden"
+          >
+            <X className="h-5 w-5" />
+          </button>
         </div>
 
         {/* User Info */}
