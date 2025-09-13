@@ -15,7 +15,8 @@ import {
   User,
   Mail,
   Building2,
-  Shield
+  Shield,
+  Plus
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
