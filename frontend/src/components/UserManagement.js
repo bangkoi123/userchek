@@ -226,7 +226,7 @@ const UserManagement = () => {
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                {analytics.daily_stats?.reduce((acc, stat) => acc + stat.count, 0) || 0}
+                {analytics?.validation_stats?.total_validations || 0}
               </p>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Total Activities (30d)
