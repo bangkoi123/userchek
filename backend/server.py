@@ -595,6 +595,91 @@ async def create_demo_user(current_user = Depends(admin_required)):
     
     return {"message": "Demo user created successfully", "username": "demo", "password": "demo123"}
 
+@app.post("/api/admin/seed-sample-data")
+async def seed_sample_data():
+    """Endpoint untuk menambahkan sample data - development only"""
+    
+    # Sample WhatsApp Providers
+    whatsapp_providers = [
+        {
+            "_id": str(uuid.uuid4()),
+            "name": "Twilio WhatsApp Business",
+            "api_endpoint": "https://api.twilio.com/2010-04-01/Accounts/{AccountSid}/Messages.json",
+            "api_key": "twilio-api-key-placeholder",
+            "provider_type": "twilio",
+            "is_active": True,
+            "created_at": datetime.utcnow(),
+            "created_by": "system"
+        },
+        {
+            "_id": str(uuid.uuid4()),
+            "name": "Vonage WhatsApp API",
+            "api_endpoint": "https://messages-sandbox.nexmo.com/v1/messages",
+            "api_key": "vonage-api-key-placeholder",
+            "provider_type": "vonage",
+            "is_active": True,
+            "created_at": datetime.utcnow(),
+            "created_by": "system"
+        },
+        {
+            "_id": str(uuid.uuid4()),
+            "name": "360Dialog WhatsApp",
+            "api_endpoint": "https://waba.360dialog.io/v1/messages",
+            "api_key": "360dialog-api-key-placeholder",
+            "provider_type": "360dialog",
+            "is_active": False,
+            "created_at": datetime.utcnow(),
+            "created_by": "system"
+        }
+    ]
+    
+    # Sample Telegram Accounts
+    telegram_accounts = [
+        {
+            "_id": str(uuid.uuid4()),
+            "name": "Primary Telegram Bot",
+            "phone_number": "+6281234567890",
+            "api_id": "1234567",
+            "api_hash": "abcdef1234567890abcdef1234567890",
+            "bot_token": "123456789:ABCdefGHIjklMNOpqrSTUvwxYZ",
+            "is_active": True,
+            "created_at": datetime.utcnow(),
+            "created_by": "system"
+        },
+        {
+            "_id": str(uuid.uuid4()),
+            "name": "Secondary Telegram Account",
+            "phone_number": "+6289876543210",
+            "api_id": "9876543",
+            "api_hash": "zyxwvu9876543210zyxwvu9876543210",
+            "bot_token": "987654321:ZYXwvuTSRqpONMlkJIhGFEdcBA",
+            "is_active": True,
+            "created_at": datetime.utcnow(),
+            "created_by": "system"
+        },
+        {
+            "_id": str(uuid.uuid4()),
+            "name": "Backup Telegram Account",
+            "phone_number": "+6285555666777",
+            "api_id": "5555666",
+            "api_hash": "backup1234567890backup1234567890",
+            "bot_token": "",
+            "is_active": False,
+            "created_at": datetime.utcnow(),
+            "created_by": "system"
+        }
+    ]
+    
+    # Insert data
+    await db.whatsapp_providers.insert_many(whatsapp_providers)
+    await db.telegram_accounts.insert_many(telegram_accounts)
+    
+    return {
+        "message": "Sample data seeded successfully",
+        "whatsapp_providers": len(whatsapp_providers),
+        "telegram_accounts": len(telegram_accounts)
+    }
+
 @app.post("/api/admin/set-admin-role/{user_id}")
 async def set_admin_role(user_id: str):
     """Endpoint untuk mengubah role user menjadi admin - hanya untuk development"""
