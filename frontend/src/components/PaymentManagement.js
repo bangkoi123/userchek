@@ -540,7 +540,7 @@ const PaymentManagement = () => {
               <div className="flex justify-between items-center">
                 <span className="text-gray-600 dark:text-gray-400">Total Revenue</span>
                 <span className="font-medium text-gray-900 dark:text-white">
-                  {formatCurrency(transactions.reduce((sum, t) => sum + (t.amount || 0), 0))}
+                  {formatCurrency((transactions || []).reduce((sum, t) => sum + (t.amount || 0), 0))}
                 </span>
               </div>
               <div className="flex justify-between items-center">
