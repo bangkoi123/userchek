@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { apiCall } from '../utils/api';
 import { 
@@ -9,7 +9,10 @@ import {
   AlertCircle,
   Copy,
   Download,
-  Loader2
+  Loader2,
+  Plus,
+  Minus,
+  Settings
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
@@ -17,21 +20,82 @@ import { id } from 'date-fns/locale';
 
 const QuickCheck = () => {
   const { user, updateUser } = useAuth();
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [phoneInputs, setPhoneInputs] = useState(['']);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [history, setHistory] = useState([]);
+  const [validateWhatsapp, setValidateWhatsapp] = useState(true);
+  const [validateTelegram, setValidateTelegram] = useState(true);
+  const [platformSettings, setPlatformSettings] = useState({
+    whatsapp_enabled: true,
+    telegram_enabled: true
+  });
+
+  useEffect(() => {
+    fetchPlatformSettings();
+  }, []);
+
+  const fetchPlatformSettings = async () => {
+    try {
+      const settings = await apiCall('/api/platform-settings');
+      setPlatformSettings(settings);
+      
+      // If platform is disabled, uncheck it
+      if (!settings.whatsapp_enabled) {
+        setValidateWhatsapp(false);
+      }
+      if (!settings.telegram_enabled) {
+        setValidateTelegram(false);
+      }
+    } catch (error) {
+      console.error('Error fetching platform settings:', error);
+    }
+  };
+
+  const addPhoneInput = () => {
+    if (phoneInputs.length < 20) {
+      setPhoneInputs([...phoneInputs, '']);
+    }
+  };
+
+  const removePhoneInput = (index) => {
+    if (phoneInputs.length > 1) {
+      const newInputs = phoneInputs.filter((_, i) => i !== index);
+      setPhoneInputs(newInputs);
+    }
+  };
+
+  const updatePhoneInput = (index, value) => {
+    const newInputs = [...phoneInputs];
+    newInputs[index] = value;
+    setPhoneInputs(newInputs);
+  };
+
+  const calculateCredits = () => {
+    const validInputs = phoneInputs.filter(input => input.trim()).length;
+    let creditsPerNumber = 0;
+    if (validateWhatsapp) creditsPerNumber += 1;
+    if (validateTelegram) creditsPerNumber += 1;
+    return validInputs * creditsPerNumber;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!phoneNumber.trim()) {
-      toast.error('Masukkan nomor telepon');
+    const validInputs = phoneInputs.filter(input => input.trim());
+    if (validInputs.length === 0) {
+      toast.error('Masukkan minimal satu nomor telepon');
       return;
     }
 
-    if (user?.credits < 2) {
-      toast.error('Kredit tidak mencukupi. Minimal 2 kredit diperlukan.');
+    if (!validateWhatsapp && !validateTelegram) {
+      toast.error('Pilih minimal satu platform untuk validasi');
+      return;
+    }
+
+    const creditsNeeded = calculateCredits();
+    if (user?.credits < creditsNeeded) {
+      toast.error(`Kredit tidak mencukupi. Dibutuhkan ${creditsNeeded} kredit, tersisa ${user?.credits || 0}`);
       return;
     }
 
@@ -40,19 +104,21 @@ const QuickCheck = () => {
 
     try {
       const data = await apiCall('/api/validation/quick-check', 'POST', {
-        phone_input: phoneNumber.trim()  // Changed from phone_number to phone_input
+        phone_inputs: validInputs,
+        validate_whatsapp: validateWhatsapp,
+        validate_telegram: validateTelegram
       });
 
       setResult(data);
       
       // Update user credits
-      const newCredits = user.credits - 2;
+      const newCredits = user.credits - creditsNeeded;
       updateUser({ ...user, credits: newCredits });
       
       // Add to history
       setHistory(prev => [data, ...prev.slice(0, 4)]);
       
-      toast.success('Validasi berhasil!');
+      toast.success(`Validasi berhasil! ${validInputs.length} nomor diproses`);
     } catch (error) {
       const message = error.response?.data?.detail || 'Terjadi kesalahan saat validasi';
       toast.error(message);
@@ -84,7 +150,7 @@ const QuickCheck = () => {
       case 'inactive':
         return 'Tidak Aktif';
       default:
-        return 'Tidak Diketahui';
+        return 'Unknown';
     }
   };
 
@@ -99,6 +165,43 @@ const QuickCheck = () => {
     }
   };
 
+  const getWhatsAppType = (details) => {
+    const type = details?.type;
+    switch (type) {
+      case 'business':
+        return 'WA Business';
+      case 'personal':
+        return 'WA Basic';
+      default:
+        return 'WA';
+    }
+  };
+
+  const downloadResults = () => {
+    if (!result || !result.details) return;
+    
+    let csvContent = "Identifier,Phone Number,WhatsApp Status,WhatsApp Type,Telegram Status,Telegram Username\n";
+    
+    result.details.forEach(detail => {
+      const identifier = detail.identifier || '';
+      const phone = detail.phone_number;
+      const waStatus = detail.whatsapp ? getStatusText(detail.whatsapp.status) : 'N/A';
+      const waType = detail.whatsapp ? getWhatsAppType(detail.whatsapp.details) : 'N/A';
+      const tgStatus = detail.telegram ? getStatusText(detail.telegram.status) : 'N/A';
+      const tgUsername = detail.telegram?.details?.username || '';
+      
+      csvContent += `"${identifier}","${phone}","${waStatus}","${waType}","${tgStatus}","${tgUsername}"\n`;
+    });
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `quick_check_results_${new Date().getTime()}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -108,16 +211,16 @@ const QuickCheck = () => {
             <Zap className="h-6 w-6" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold">Quick Check</h1>
+            <h1 className="text-2xl font-bold">Quick Check Multiple</h1>
             <p className="text-primary-100">
-              Validasi satu nomor telepon secara instan
+              Validasi hingga 20 nomor telepon secara bersamaan
             </p>
           </div>
         </div>
         <div className="flex items-center space-x-4 text-sm">
           <div className="flex items-center">
             <span className="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
-            Biaya: 2 kredit per validasi
+            Biaya: {calculateCredits()} kredit total
           </div>
           <div className="flex items-center">
             <span className="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
@@ -131,34 +234,105 @@ const QuickCheck = () => {
         <div className="lg:col-span-2 space-y-6">
           <div className="card p-6">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Masukkan Nomor Telepon
+              Platform Selection
             </h2>
             
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Nomor Telepon
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="whatsapp"
+                  checked={validateWhatsapp}
+                  onChange={(e) => setValidateWhatsapp(e.target.checked)}
+                  disabled={!platformSettings.whatsapp_enabled}
+                  className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                />
+                <label htmlFor="whatsapp" className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+                  <span className="flex items-center">
+                    WhatsApp (1 credit)
+                    {!platformSettings.whatsapp_enabled && (
+                      <span className="ml-2 text-xs text-red-500">(Disabled)</span>
+                    )}
+                  </span>
                 </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    id="phone"
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    placeholder="Masukkan nomor: '08123456789' atau dengan nama: 'koi 08123456789'"
-                    className="input-field pl-10"
-                    disabled={loading}
-                  />
-                  <Smartphone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              </div>
+              
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="telegram"
+                  checked={validateTelegram}
+                  onChange={(e) => setValidateTelegram(e.target.checked)}
+                  disabled={!platformSettings.telegram_enabled}
+                  className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                />
+                <label htmlFor="telegram" className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+                  <span className="flex items-center">
+                    Telegram (1 credit)
+                    {!platformSettings.telegram_enabled && (
+                      <span className="ml-2 text-xs text-red-500">(Disabled)</span>
+                    )}
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            <h3 className="text-md font-semibold text-gray-900 dark:text-white mb-4">
+              Masukkan Nomor Telepon (Max 20)
+            </h3>
+            
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {phoneInputs.map((phoneInput, index) => (
+                <div key={index} className="flex items-center space-x-2">
+                  <div className="flex-1 relative">
+                    <input
+                      type="text"
+                      value={phoneInput}
+                      onChange={(e) => updatePhoneInput(index, e.target.value)}
+                      placeholder={`${index + 1}. Masukkan nomor: '08123456789' atau dengan nama: 'koi 08123456789'`}
+                      className="input-field pl-8"
+                      disabled={loading}
+                    />
+                    <Smartphone className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  </div>
+                  
+                  {phoneInputs.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removePhoneInput(index)}
+                      className="p-2 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                      disabled={loading}
+                    >
+                      <Minus className="h-4 w-4" />
+                    </button>
+                  )}
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Format yang didukung: +62xxx, 08xxx, atau 62xxx
+              ))}
+              
+              {phoneInputs.length < 20 && (
+                <button
+                  type="button"
+                  onClick={addPhoneInput}
+                  className="flex items-center text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 text-sm font-medium"
+                  disabled={loading}
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Tambah Nomor ({phoneInputs.length}/20)
+                </button>
+              )}
+
+              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+                <p className="text-sm text-blue-700 dark:text-blue-300">
+                  💡 <strong>Tips:</strong> Masukkan nomor dengan format yang didukung: +62xxx, 08xxx, atau 62xxx.
+                  Anda juga bisa menambahkan nama: "koi 08123456789"
                 </p>
               </div>
 
               <button
                 type="submit"
-                disabled={loading || !phoneNumber.trim() || (user?.credits < 2)}
+                disabled={loading || phoneInputs.filter(p => p.trim()).length === 0 || 
+                         (!validateWhatsapp && !validateTelegram) ||
+                         (user?.credits < calculateCredits())}
                 className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
               >
                 {loading ? (
@@ -169,7 +343,7 @@ const QuickCheck = () => {
                 ) : (
                   <>
                     <Zap className="h-4 w-4 mr-2" />
-                    Validasi Sekarang
+                    Validasi {phoneInputs.filter(p => p.trim()).length} Nomor ({calculateCredits()} kredit)
                   </>
                 )}
               </button>
@@ -185,6 +359,13 @@ const QuickCheck = () => {
                 </h2>
                 <div className="flex items-center space-x-2">
                   <button
+                    onClick={downloadResults}
+                    className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                    title="Download CSV"
+                  >
+                    <Download className="h-4 w-4" />
+                  </button>
+                  <button
                     onClick={() => copyToClipboard(JSON.stringify(result, null, 2))}
                     className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                     title="Salin hasil"
@@ -194,109 +375,118 @@ const QuickCheck = () => {
                 </div>
               </div>
 
-              <div className="space-y-4">
-                {/* Identifier & Phone Number */}
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      {result.identifier && (
-                        <div>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            Nama/ID
-                          </p>
-                          <p className="text-lg font-medium text-primary-600 dark:text-primary-400">
-                            📝 {result.identifier}
-                          </p>
-                        </div>
-                      )}
-                      <div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Nomor Telepon
-                        </p>
-                        <p className="text-lg font-medium text-gray-900 dark:text-white">
-                          📞 {result.phone_number}
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => copyToClipboard(result.phone_number)}
-                      className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                    >
-                      <Copy className="h-4 w-4" />
-                    </button>
-                  </div>
+              {/* Summary Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 text-center">
+                  <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                    {result.summary.whatsapp_active}
+                  </p>
+                  <p className="text-sm text-green-600 dark:text-green-400">WhatsApp Aktif</p>
                 </div>
-
-                {/* WhatsApp Result */}
-                <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center">
-                      <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mr-3">
-                        <span className="text-green-600 dark:text-green-400 font-semibold text-sm">W</span>
-                      </div>
-                      <span className="font-medium text-gray-900 dark:text-white">WhatsApp</span>
-                    </div>
-                    <div className="flex items-center">
-                      {getStatusIcon(result.whatsapp.status)}
-                      <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${getStatusBadgeClass(result.whatsapp.status)}`}>
-                        {getStatusText(result.whatsapp.status)}
-                      </span>
-                    </div>
-                  </div>
-                  
-                  {result.whatsapp.details && (
-                    <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-                      <p>• Foto Profil: {result.whatsapp.details.profile_picture ? 'Ada' : 'Tidak ada'}</p>
-                      <p>• Terakhir Dilihat: {result.whatsapp.details.last_seen}</p>
-                    </div>
-                  )}
+                
+                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 text-center">
+                  <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                    {result.summary.telegram_active}
+                  </p>
+                  <p className="text-sm text-blue-600 dark:text-blue-400">Telegram Aktif</p>
                 </div>
-
-                {/* Telegram Result */}
-                <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center">
-                      <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mr-3">
-                        <span className="text-blue-600 dark:text-blue-400 font-semibold text-sm">T</span>
-                      </div>
-                      <span className="font-medium text-gray-900 dark:text-white">Telegram</span>
-                    </div>
-                    <div className="flex items-center">
-                      {getStatusIcon(result.telegram.status)}
-                      <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${getStatusBadgeClass(result.telegram.status)}`}>
-                        {getStatusText(result.telegram.status)}
-                      </span>
-                    </div>
-                  </div>
-                  
-                  {result.telegram.details && (
-                    <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-                      {result.telegram.details.username && (
-                        <p>• Username: @{result.telegram.details.username}</p>
-                      )}
-                      <p>• Premium: {result.telegram.details.is_premium ? 'Ya' : 'Tidak'}</p>
-                    </div>
-                  )}
+                
+                <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 text-center">
+                  <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                    {result.summary.whatsapp_business}
+                  </p>
+                  <p className="text-sm text-purple-600 dark:text-purple-400">WA Business</p>
                 </div>
-
-                {/* Results Summary */}
-                {result && result.providers_used && (
-                  <div className="text-xs text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-600 pt-3 mt-3">
-                    <div className="flex justify-between">
-                      <span>Providers: WA: {result.providers_used.whatsapp}, TG: {result.providers_used.telegram}</span>
-                      <span>{result.cached ? 'Dari cache' : 'Real-time'}</span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Metadata */}
-                <div className="text-xs text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-600 pt-3">
-                  <div className="flex justify-between">
-                    <span>Dicek pada: {format(new Date(result.checked_at), 'dd MMM yyyy HH:mm:ss', { locale: id })}</span>
-                    <span>{result.cached ? 'Dari cache' : 'Real-time'}</span>
-                  </div>
+                
+                <div className="bg-gray-50 dark:bg-gray-700/20 rounded-lg p-4 text-center">
+                  <p className="text-2xl font-bold text-gray-600 dark:text-gray-400">
+                    {result.summary.total_processed}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Total Diproses</p>
                 </div>
               </div>
+
+              {/* Results Table */}
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b border-gray-200 dark:border-gray-600">
+                      <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Username</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Nomor</th>
+                      {result.platforms_validated.whatsapp && (
+                        <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">WhatsApp</th>
+                      )}
+                      {result.platforms_validated.telegram && (
+                        <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Telegram</th>
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {result.details.map((detail, index) => (
+                      <tr key={index} className="border-b border-gray-100 dark:border-gray-700">
+                        <td className="py-3 px-4">
+                          {detail.identifier ? (
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-200">
+                              📝 {detail.identifier}
+                            </span>
+                          ) : (
+                            <span className="text-gray-400 text-sm">—</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className="font-mono text-sm">{detail.phone_number}</span>
+                        </td>
+                        {result.platforms_validated.whatsapp && (
+                          <td className="py-3 px-4">
+                            {detail.whatsapp ? (
+                              <div className="flex items-center space-x-2">
+                                {getStatusIcon(detail.whatsapp.status)}
+                                <div>
+                                  <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusBadgeClass(detail.whatsapp.status)}`}>
+                                    {detail.whatsapp.status === 'active' 
+                                      ? getWhatsAppType(detail.whatsapp.details)
+                                      : getStatusText(detail.whatsapp.status)
+                                    }
+                                  </span>
+                                </div>
+                              </div>
+                            ) : (
+                              <span className="text-gray-400">N/A</span>
+                            )}
+                          </td>
+                        )}
+                        {result.platforms_validated.telegram && (
+                          <td className="py-3 px-4">
+                            {detail.telegram ? (
+                              <div className="flex items-center space-x-2">
+                                {getStatusIcon(detail.telegram.status)}
+                                <div>
+                                  <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusBadgeClass(detail.telegram.status)}`}>
+                                    {detail.telegram.status === 'active' && detail.telegram.details?.username
+                                      ? `@${detail.telegram.details.username}`
+                                      : getStatusText(detail.telegram.status)
+                                    }
+                                  </span>
+                                </div>
+                              </div>
+                            ) : (
+                              <span className="text-gray-400">N/A</span>
+                            )}
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {result.summary.duplicates_removed > 0 && (
+                <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                  <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                    ℹ️ {result.summary.duplicates_removed} nomor duplikat dihapus untuk menghemat kredit
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -306,27 +496,32 @@ const QuickCheck = () => {
           {/* Credit Info */}
           <div className="card p-6">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Informasi Kredit
+              💳 Info Kredit
             </h3>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-gray-600 dark:text-gray-400">Kredit tersisa</span>
-                <span className="font-bold text-green-600 dark:text-green-400">
-                  {user?.credits || 0}
+                <span className="text-gray-600 dark:text-gray-400">Kredit per nomor</span>
+                <span className="font-medium text-gray-900 dark:text-white">
+                  {(validateWhatsapp ? 1 : 0) + (validateTelegram ? 1 : 0)} kredit
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-600 dark:text-gray-400">Biaya per validasi</span>
-                <span className="font-medium text-gray-900 dark:text-white">2 kredit</span>
+                <span className="text-gray-600 dark:text-gray-400">Total kebutuhan</span>
+                <span className="font-medium text-gray-900 dark:text-white">
+                  {calculateCredits()} kredit
+                </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-600 dark:text-gray-400">Estimasi validasi</span>
                 <span className="font-medium text-gray-900 dark:text-white">
-                  {Math.floor((user?.credits || 0) / 2)} kali
+                  {Math.floor((user?.credits || 0) / ((validateWhatsapp ? 1 : 0) + (validateTelegram ? 1 : 0)) || 1)} nomor
                 </span>
               </div>
             </div>
-            <button className="w-full btn-primary mt-4">
+            <button 
+              onClick={() => window.location.href = '/credit-topup'}
+              className="w-full btn-primary mt-4"
+            >
               Beli Kredit
             </button>
           </div>
@@ -340,22 +535,20 @@ const QuickCheck = () => {
               <div className="space-y-3">
                 {history.map((item, index) => (
                   <div key={index} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
-                    <div className="flex items-center space-x-2 mb-1">
-                      {item.identifier && (
-                        <span className="text-xs bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-300 px-2 py-1 rounded">
-                          📝 {item.identifier}
-                        </span>
-                      )}
-                      <p className="font-medium text-gray-900 dark:text-white text-sm">
-                        📞 {item.phone_number}
-                      </p>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">
+                        {item.summary?.total_processed || 1} nomor divalidasi
+                      </span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        {format(new Date(item.checked_at), 'HH:mm', { locale: id })}
+                      </span>
                     </div>
                     <div className="flex items-center space-x-2 text-xs">
-                      <span className={`px-2 py-1 rounded ${getStatusBadgeClass(item.whatsapp.status)}`}>
-                        WA: {getStatusText(item.whatsapp.status)}
+                      <span className="px-2 py-1 rounded bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                        WA: {item.summary?.whatsapp_active || 0}
                       </span>
-                      <span className={`px-2 py-1 rounded ${getStatusBadgeClass(item.telegram.status)}`}>
-                        TG: {getStatusText(item.telegram.status)}
+                      <span className="px-2 py-1 rounded bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                        TG: {item.summary?.telegram_active || 0}
                       </span>
                     </div>
                   </div>
@@ -372,7 +565,8 @@ const QuickCheck = () => {
             <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-2">
               <li>• Format nomor akan dinormalisasi otomatis</li>
               <li>• Hasil validasi di-cache selama 7 hari</li>
-              <li>• Gunakan Bulk Check untuk validasi banyak nomor</li>
+              <li>• Duplikat dihapus otomatis untuk hemat kredit</li>
+              <li>• Gunakan Bulk Check untuk file CSV/Excel</li>
               <li>• Kredit hanya terpotong jika validasi berhasil</li>
             </ul>
           </div>
