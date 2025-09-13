@@ -167,6 +167,30 @@ class WhatsAppProvider(BaseModel):
     provider_type: str  # twilio, vonage, etc
     is_active: bool = True
 
+class CreditTopupRequest(BaseModel):
+    package_id: str  # starter, professional, enterprise
+    origin_url: str  # Frontend origin URL for redirect URLs
+
+class PaymentTransactionCreate(BaseModel):
+    user_id: str
+    package_id: str
+    amount: float
+    currency: str = "usd" 
+    session_id: str
+    payment_status: str = "pending"
+    credits_amount: int
+    metadata: Optional[Dict[str, Any]] = None
+
+class UserProfileUpdate(BaseModel):
+    username: Optional[str] = None
+    email: Optional[str] = None
+    company_name: Optional[str] = None
+
+class AdminUserUpdate(BaseModel):
+    is_active: Optional[bool] = None
+    credits: Optional[int] = None
+    role: Optional[UserRole] = None
+
 # Socket.IO Events
 @sio.event
 async def connect(sid, environ):
