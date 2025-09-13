@@ -662,9 +662,20 @@ async def quick_check(request: QuickCheckRequest, current_user = Depends(get_cur
             "checked_at": cached_result["cached_at"]
         }
     
-    # Validate with both platforms
-    whatsapp_result = await validate_whatsapp_number(normalized_phone)
-    telegram_result = await validate_telegram_number(normalized_phone)
+    # Get active providers
+    whatsapp_provider = await db.whatsapp_providers.find_one({"is_active": True})
+    telegram_account = await db.telegram_accounts.find_one({"is_active": True})
+    
+    # Validate with both platforms (use real providers if available)
+    if whatsapp_provider:
+        whatsapp_result = await validate_whatsapp_number_real(normalized_phone, whatsapp_provider)
+    else:
+        whatsapp_result = await validate_whatsapp_number(normalized_phone)
+        
+    if telegram_account: 
+        telegram_result = await validate_telegram_number_real(normalized_phone, telegram_account)
+    else:
+        telegram_result = await validate_telegram_number(normalized_phone)
     
     # Cache results
     cache_doc = {
@@ -694,7 +705,11 @@ async def quick_check(request: QuickCheckRequest, current_user = Depends(get_cur
         "type": "quick_check",
         "phone_number": normalized_phone,
         "credits_used": 2,
-        "timestamp": datetime.utcnow()
+        "timestamp": datetime.utcnow(),
+        "providers_used": {
+            "whatsapp": whatsapp_provider.get("name", "mock") if whatsapp_provider else "mock",
+            "telegram": telegram_account.get("name", "mock") if telegram_account else "mock"
+        }
     }
     
     await db.usage_logs.insert_one(usage_doc)
@@ -704,7 +719,11 @@ async def quick_check(request: QuickCheckRequest, current_user = Depends(get_cur
         "whatsapp": whatsapp_result,
         "telegram": telegram_result,
         "cached": False,
-        "checked_at": datetime.utcnow()
+        "checked_at": datetime.utcnow(),
+        "providers_used": {
+            "whatsapp": whatsapp_provider.get("name", "Mock Provider") if whatsapp_provider else "Mock Provider",
+            "telegram": telegram_account.get("name", "Mock Provider") if telegram_account else "Mock Provider"
+        }
     }
 
 @app.get("/api/dashboard/stats")
