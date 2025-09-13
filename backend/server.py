@@ -965,6 +965,261 @@ async def toggle_api_key(key_id: str, current_user = Depends(get_current_user)):
         "is_active": new_status
     }
 
+# Credit Top-up and Payment Routes
+@app.get("/api/credit-packages")
+async def get_credit_packages():
+    """Get available credit packages"""
+    return CREDIT_PACKAGES
+
+@app.post("/api/payments/create-checkout")
+async def create_credit_checkout(request: CreditTopupRequest, current_user = Depends(get_current_user)):
+    """Create Stripe checkout session for credit top-up"""
+    
+    if not STRIPE_API_KEY:
+        raise HTTPException(status_code=500, detail="Payment system not configured")
+    
+    # Validate package
+    if request.package_id not in CREDIT_PACKAGES:
+        raise HTTPException(status_code=400, detail="Invalid package selected")
+    
+    package = CREDIT_PACKAGES[request.package_id]
+    
+    try:
+        # Initialize Stripe checkout
+        webhook_url = f"{request.origin_url}/api/webhook/stripe"
+        stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
+        
+        # Create success and cancel URLs
+        success_url = f"{request.origin_url}/dashboard?session_id={{CHECKOUT_SESSION_ID}}&payment_status=success"
+        cancel_url = f"{request.origin_url}/dashboard"
+        
+        # Create checkout session request
+        checkout_request = CheckoutSessionRequest(
+            amount=package["price"],
+            currency="usd",
+            success_url=success_url,
+            cancel_url=cancel_url,
+            metadata={
+                "user_id": current_user["_id"],
+                "package_id": request.package_id,
+                "credits_amount": str(package["credits"]),
+                "source": "credit_topup"
+            }
+        )
+        
+        # Create checkout session
+        session: CheckoutSessionResponse = await stripe_checkout.create_checkout_session(checkout_request)
+        
+        # Create payment transaction record
+        transaction_doc = {
+            "_id": generate_id(),
+            "user_id": current_user["_id"],
+            "tenant_id": current_user["tenant_id"],
+            "package_id": request.package_id,
+            "amount": package["price"],
+            "currency": "usd",
+            "session_id": session.session_id,
+            "payment_status": "pending",
+            "credits_amount": package["credits"],
+            "package_name": package["name"],
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow(),
+            "metadata": {
+                "user_id": current_user["_id"],
+                "package_id": request.package_id,
+                "credits_amount": str(package["credits"]),
+                "source": "credit_topup"
+            }
+        }
+        
+        await db.payment_transactions.insert_one(transaction_doc)
+        
+        logger.info(f"Created payment transaction {transaction_doc['_id']} for user {current_user['_id']}")
+        
+        return {
+            "url": session.url,
+            "session_id": session.session_id,
+            "package": package,
+            "transaction_id": transaction_doc["_id"]
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to create checkout session: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to create payment session: {str(e)}")
+
+@app.get("/api/payments/status/{session_id}")
+async def get_payment_status(session_id: str, current_user = Depends(get_current_user)):
+    """Get payment status and process if completed"""
+    
+    if not STRIPE_API_KEY:
+        raise HTTPException(status_code=500, detail="Payment system not configured")
+    
+    try:
+        # Get transaction from database
+        transaction = await db.payment_transactions.find_one({
+            "session_id": session_id,
+            "user_id": current_user["_id"]
+        })
+        
+        if not transaction:
+            raise HTTPException(status_code=404, detail="Transaction not found")
+        
+        # If already processed, return status
+        if transaction["payment_status"] in ["completed", "failed", "expired"]:
+            return {
+                "status": transaction["payment_status"],
+                "payment_status": transaction["payment_status"],
+                "amount_total": int(transaction["amount"] * 100),  # Convert to cents
+                "currency": transaction["currency"],
+                "credits_amount": transaction["credits_amount"],
+                "processed": True
+            }
+        
+        # Check with Stripe
+        stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url="")
+        checkout_status: CheckoutStatusResponse = await stripe_checkout.get_checkout_status(session_id)
+        
+        # Update transaction status
+        await db.payment_transactions.update_one(
+            {"_id": transaction["_id"]},
+            {"$set": {
+                "payment_status": checkout_status.payment_status,
+                "stripe_status": checkout_status.status,
+                "updated_at": datetime.utcnow()
+            }}
+        )
+        
+        # If payment is completed and not already processed, add credits
+        if (checkout_status.payment_status == "paid" and 
+            transaction["payment_status"] != "completed"):
+            
+            # Add credits to user account
+            await db.users.update_one(
+                {"_id": current_user["_id"]},
+                {"$inc": {"credits": transaction["credits_amount"]}}
+            )
+            
+            # Mark transaction as completed
+            await db.payment_transactions.update_one(
+                {"_id": transaction["_id"]},
+                {"$set": {
+                    "payment_status": "completed",
+                    "completed_at": datetime.utcnow(),
+                    "updated_at": datetime.utcnow()
+                }}
+            )
+            
+            # Log the credit addition
+            usage_doc = {
+                "_id": generate_id(),
+                "user_id": current_user["_id"],
+                "tenant_id": current_user["tenant_id"],
+                "type": "credit_purchase",
+                "transaction_id": transaction["_id"],
+                "credits_added": transaction["credits_amount"],
+                "amount_paid": transaction["amount"],
+                "timestamp": datetime.utcnow()
+            }
+            
+            await db.usage_logs.insert_one(usage_doc)
+            
+            # Send success email
+            try:
+                user = await db.users.find_one({"_id": current_user["_id"]})
+                if user and user.get("email"):
+                    await email_service.send_credit_purchase_email(
+                        user["email"],
+                        user["username"],
+                        transaction["credits_amount"],
+                        transaction["amount"],
+                        transaction["package_name"]
+                    )
+            except Exception as e:
+                logger.error(f"Failed to send credit purchase email: {e}")
+            
+            logger.info(f"Added {transaction['credits_amount']} credits to user {current_user['_id']}")
+        
+        return {
+            "status": checkout_status.status,
+            "payment_status": checkout_status.payment_status,
+            "amount_total": checkout_status.amount_total,
+            "currency": checkout_status.currency,
+            "credits_amount": transaction["credits_amount"],
+            "processed": checkout_status.payment_status == "paid"
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get payment status: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to check payment status: {str(e)}")
+
+@app.get("/api/payments/transactions")
+async def get_payment_transactions(current_user = Depends(get_current_user)):
+    """Get user's payment transaction history"""
+    
+    transactions = await db.payment_transactions.find(
+        {"user_id": current_user["_id"]},
+        sort=[("created_at", DESCENDING)]
+    ).limit(50).to_list(50)
+    
+    return transactions
+
+@app.post("/api/webhook/stripe")
+async def stripe_webhook(request: Request):
+    """Handle Stripe webhooks"""
+    
+    if not STRIPE_API_KEY:
+        return {"status": "error", "message": "Stripe not configured"}
+    
+    try:
+        body = await request.body()
+        signature = request.headers.get("stripe-signature")
+        
+        if not signature:
+            logger.warning("Missing Stripe signature")
+            return {"status": "error", "message": "Missing signature"}
+        
+        # Initialize Stripe checkout for webhook handling
+        stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url="")
+        
+        # Handle webhook
+        webhook_response = await stripe_checkout.handle_webhook(body, signature)
+        
+        logger.info(f"Stripe webhook received: {webhook_response.event_type}")
+        
+        # Process based on event type
+        if webhook_response.event_type in ["checkout.session.completed", "payment_intent.succeeded"]:
+            # Find transaction by session_id
+            transaction = await db.payment_transactions.find_one({
+                "session_id": webhook_response.session_id
+            })
+            
+            if transaction and transaction["payment_status"] != "completed":
+                # Add credits to user
+                await db.users.update_one(
+                    {"_id": transaction["user_id"]},
+                    {"$inc": {"credits": transaction["credits_amount"]}}
+                )
+                
+                # Update transaction
+                await db.payment_transactions.update_one(
+                    {"_id": transaction["_id"]},
+                    {"$set": {
+                        "payment_status": "completed",
+                        "stripe_status": webhook_response.payment_status,
+                        "completed_at": datetime.utcnow(),
+                        "updated_at": datetime.utcnow(),
+                        "webhook_processed": True
+                    }}
+                )
+                
+                logger.info(f"Webhook processed: Added {transaction['credits_amount']} credits to user {transaction['user_id']}")
+        
+        return {"status": "success"}
+        
+    except Exception as e:
+        logger.error(f"Stripe webhook error: {e}")
+        return {"status": "error", "message": str(e)}
+
 @app.post("/api/validation/quick-check")
 async def quick_check(request: QuickCheckRequest, current_user = Depends(get_current_user)):
     if current_user.get("credits", 0) < 2:
