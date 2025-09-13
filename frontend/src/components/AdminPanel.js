@@ -316,10 +316,6 @@ const AdminPanel = () => {
             <JobsTab jobs={jobs} onRefresh={fetchAdminData} />
           )}
           
-          {activeTab === 'users' && (
-            <UsersTab />
-          )}
-          
           {activeTab === 'settings' && (
             <SettingsTab />
           )}
