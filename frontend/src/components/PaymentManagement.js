@@ -546,7 +546,7 @@ const PaymentManagement = () => {
               <div className="flex justify-between items-center">
                 <span className="text-gray-600 dark:text-gray-400">Transactions</span>
                 <span className="font-medium text-gray-900 dark:text-white">
-                  {transactions.length}
+                  {(transactions || []).length}
                 </span>
               </div>
               <div className="flex justify-between items-center">
