@@ -267,6 +267,16 @@ const QuickCheck = () => {
                   )}
                 </div>
 
+                {/* Results Summary */}
+                {result && result.providers_used && (
+                  <div className="text-xs text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-600 pt-3 mt-3">
+                    <div className="flex justify-between">
+                      <span>Providers: WA: {result.providers_used.whatsapp}, TG: {result.providers_used.telegram}</span>
+                      <span>{result.cached ? 'Dari cache' : 'Real-time'}</span>
+                    </div>
+                  </div>
+                )}
+
                 {/* Metadata */}
                 <div className="text-xs text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-600 pt-3">
                   <div className="flex justify-between">
