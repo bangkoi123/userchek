@@ -843,23 +843,7 @@ const JobsTab = ({ jobs, onRefresh }) => {
   );
 };
 
-// Users Tab Component
-const UsersTab = () => {
-  return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-          User Management
-        </h3>
-      </div>
-
-      <div className="text-center py-12">
-        <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-        <p className="text-gray-600 dark:text-gray-400">User management akan tersedia segera</p>
-      </div>
-    </div>
-  );
-};
+// Users Tab Component removed - now available via sidebar User Management
 
 // Settings Tab Component
 const SettingsTab = () => {
