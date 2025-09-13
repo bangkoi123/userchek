@@ -469,6 +469,124 @@ const UserManagement = () => {
           onUpdate={updateUser}
         />
       )}
+
+      {/* Add User Modal */}
+      {showAddUserModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-600">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                Add New User
+              </h2>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Username
+                </label>
+                <input
+                  type="text"
+                  value={newUserForm.username}
+                  onChange={(e) => setNewUserForm({ ...newUserForm, username: e.target.value })}
+                  className="input-field"
+                  placeholder="Enter username"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={newUserForm.email}
+                  onChange={(e) => setNewUserForm({ ...newUserForm, email: e.target.value })}
+                  className="input-field"
+                  placeholder="Enter email address"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  value={newUserForm.password}
+                  onChange={(e) => setNewUserForm({ ...newUserForm, password: e.target.value })}
+                  className="input-field"
+                  placeholder="Enter password"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Role
+                </label>
+                <select
+                  value={newUserForm.role}
+                  onChange={(e) => setNewUserForm({ ...newUserForm, role: e.target.value })}
+                  className="input-field"
+                >
+                  <option value="user">User</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Initial Credits
+                </label>
+                <input
+                  type="number"
+                  value={newUserForm.credits}
+                  onChange={(e) => setNewUserForm({ ...newUserForm, credits: parseInt(e.target.value) || 0 })}
+                  className="input-field"
+                  placeholder="Initial credit amount"
+                  min="0"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Company Name (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={newUserForm.company_name}
+                  onChange={(e) => setNewUserForm({ ...newUserForm, company_name: e.target.value })}
+                  className="input-field"
+                  placeholder="Company name"
+                />
+              </div>
+            </div>
+            <div className="p-6 border-t border-gray-200 dark:border-gray-600">
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => {
+                    setShowAddUserModal(false);
+                    setNewUserForm({
+                      username: '',
+                      email: '',
+                      password: '',
+                      role: 'user',
+                      credits: 100,
+                      company_name: ''
+                    });
+                  }}
+                  className="btn-secondary"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={addUser}
+                  className="btn-primary"
+                >
+                  Add User
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
