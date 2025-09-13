@@ -19,6 +19,7 @@ import requests
 import aiohttp
 import logging
 from email_service import email_service
+import socketio
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -28,6 +29,10 @@ logger = logging.getLogger(__name__)
 MONGO_URL = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
 client = AsyncIOMotorClient(MONGO_URL)
 db = client.webtools_validation
+
+# Socket.IO setup
+sio = socketio.AsyncServer(cors_allowed_origins="*", async_mode='asgi')
+socket_app = socketio.ASGIApp(sio)
 
 # JWT Configuration
 JWT_SECRET = os.environ.get('JWT_SECRET', 'your-secret-key-change-in-production')
