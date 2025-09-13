@@ -1553,21 +1553,65 @@ async def bulk_check(background_tasks: BackgroundTasks, file: UploadFile = File(
         else:
             df = pd.read_excel(io.BytesIO(content))
         
-        if 'phone_number' not in df.columns:
-            raise HTTPException(status_code=400, detail="File harus memiliki kolom 'phone_number'")
+        # Flexible column support - check for various column names
+        phone_col = None
+        name_col = None
         
-        # Clean and normalize phone numbers
-        phone_numbers = df['phone_number'].dropna().astype(str).tolist()
-        phone_numbers = [normalize_phone_number(phone) for phone in phone_numbers]
+        # Look for phone number column
+        for col in df.columns:
+            col_lower = col.lower()
+            if col_lower in ['phone_number', 'nomor', 'phone', 'no_hp', 'telepon']:
+                phone_col = col
+                break
         
-        # Remove duplicates
-        unique_numbers = list(set(phone_numbers))
+        # Look for name column (optional)
+        for col in df.columns:
+            col_lower = col.lower()
+            if col_lower in ['name', 'nama', 'identifier', 'username']:
+                name_col = col
+                break
         
-        if len(unique_numbers) > 1000:
-            raise HTTPException(status_code=400, detail="Maksimal 1000 nomor per file")
+        if phone_col is None:
+            raise HTTPException(
+                status_code=400, 
+                detail="File harus memiliki kolom nomor telepon dengan nama: 'phone_number', 'nomor', 'phone', 'no_hp', atau 'telepon'"
+            )
+        
+        # Extract data with identifiers
+        phone_data = []
+        for index, row in df.iterrows():
+            phone_number = str(row[phone_col]).strip() if pd.notna(row[phone_col]) else ""
+            identifier = str(row[name_col]).strip() if name_col and pd.notna(row[name_col]) else None
+            
+            if phone_number and phone_number.lower() not in ['nan', 'none', '']:
+                # Truncate identifier to 12 characters if provided
+                if identifier and len(identifier) > 12:
+                    identifier = identifier[:12]
+                
+                normalized_phone = normalize_phone_number(phone_number)
+                phone_data.append({
+                    "identifier": identifier,
+                    "phone_number": normalized_phone,
+                    "original_phone": phone_number
+                })
+        
+        if not phone_data:
+            raise HTTPException(status_code=400, detail="Tidak ada nomor telepon valid yang ditemukan")
+        
+        # Remove duplicates based on normalized phone number (keep first occurrence with identifier)
+        seen_phones = set()
+        unique_phone_data = []
+        
+        for item in phone_data:
+            if item["phone_number"] not in seen_phones:
+                seen_phones.add(item["phone_number"])
+                unique_phone_data.append(item)
+        
+        if len(unique_phone_data) > 1000:
+            raise HTTPException(status_code=400, detail="Maksimal 1000 nomor unik per file")
         
         # Check credits
-        required_credits = len(unique_numbers) * 2
+        required_credits = len(unique_phone_data) * 2
         if current_user.get("credits", 0) < required_credits:
             raise HTTPException(
                 status_code=400, 
@@ -1581,13 +1625,14 @@ async def bulk_check(background_tasks: BackgroundTasks, file: UploadFile = File(
             "tenant_id": current_user["tenant_id"],
             "filename": file.filename,
             "status": JobStatus.PENDING,
-            "total_numbers": len(unique_numbers),
+            "total_numbers": len(unique_phone_data),
             "processed_numbers": 0,
-            "phone_numbers": unique_numbers,
+            "phone_data": unique_phone_data,  # Store both phone and identifier
             "results": None,
             "credits_used": required_credits,
             "created_at": datetime.utcnow(),
             "updated_at": datetime.utcnow(),
+            "duplicates_removed": len(phone_data) - len(unique_phone_data),  # Track duplicates removed
             "error_message": None
         }
         
@@ -1599,7 +1644,7 @@ async def bulk_check(background_tasks: BackgroundTasks, file: UploadFile = File(
         return {
             "message": "File berhasil diupload dan sedang diproses",
             "job_id": job_doc["_id"],
-            "total_numbers": len(unique_numbers),
+            "total_numbers": len(unique_phone_data),
             "estimated_credits": required_credits,
             "status": "processing_started"
         }
