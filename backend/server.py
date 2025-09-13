@@ -246,7 +246,7 @@ class UserLogin(BaseModel):
     password: str
 
 class QuickCheckRequest(BaseModel):
-    phone_number: str
+    phone_input: str  # Changed from phone_number to support "nama 08123456789" format
 
 class TelegramAccount(BaseModel):
     name: str
