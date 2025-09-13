@@ -1187,11 +1187,11 @@ async def create_demo_user(current_user = Depends(admin_required)):
         return {"message": "Demo user already exists"}
     
     # Create demo tenant
-    tenant_id = str(uuid.uuid4())
+    tenant_id = generate_id()
     
     # Create demo user
     user_doc = {
-        "_id": str(uuid.uuid4()),
+        "_id": generate_id(),
         "username": "demo",
         "email": "demo@example.com",
         "password": hash_password("demo123"),
