@@ -2178,6 +2178,18 @@ async def update_platform_settings(
         "telegram_enabled": telegram_enabled
     }
 
+@app.get("/api/platform-settings")
+async def get_public_platform_settings():
+    """Get platform availability for frontend (public endpoint)"""
+    settings = await db.admin_settings.find_one({"setting_type": "platform_visibility"}) or {
+        "whatsapp_enabled": True,
+        "telegram_enabled": True
+    }
+    return {
+        "whatsapp_enabled": settings.get("whatsapp_enabled", True),
+        "telegram_enabled": settings.get("telegram_enabled", True)
+    }
+
 @app.get("/api/admin/credit-management")
 async def get_credit_management_stats(current_user = Depends(admin_required)):
     """Get credit management statistics"""
