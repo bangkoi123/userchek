@@ -25,13 +25,20 @@ export const AuthProvider = ({ children }) => {
       if (savedToken && savedUser) {
         try {
           setToken(savedToken);
-          setUser(JSON.parse(savedUser));
+          const localUser = JSON.parse(savedUser);
+          setUser(localUser);
           
-          // Verify token is still valid
-          const profile = await apiCall('/api/user/profile', 'GET');
-          setUser(profile);
+          // Verify token is still valid without overwriting user data
+          try {
+            await apiCall('/api/user/profile', 'GET');
+            // Token is valid, keep using local user data
+            console.log('Token validated successfully');
+          } catch (tokenError) {
+            console.error('Token validation failed:', tokenError);
+            logout();
+          }
         } catch (error) {
-          console.error('Token validation failed:', error);
+          console.error('Auth initialization failed:', error);
           logout();
         }
       }
