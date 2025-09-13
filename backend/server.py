@@ -864,7 +864,7 @@ async def process_bulk_validation(job_id: str):
             "tenant_id": job["tenant_id"],
             "type": "bulk_check",
             "job_id": job_id,
-            "numbers_processed": len(phone_numbers),
+            "numbers_processed": len(phone_data_list),
             "credits_used": job["credits_used"],
             "timestamp": datetime.utcnow()
         }
