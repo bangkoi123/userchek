@@ -688,7 +688,7 @@ async def register(user_data: UserCreate, background_tasks: BackgroundTasks):
     
     # Create user
     user_doc = {
-        "_id": str(uuid.uuid4()),
+        "_id": generate_id(),
         "username": user_data.username,
         "email": user_data.email,
         "password": hash_password(user_data.password),
