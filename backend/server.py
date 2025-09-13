@@ -17,6 +17,7 @@ import asyncio
 from enum import Enum
 import requests
 import aiohttp
+from email_service import email_service
 
 # MongoDB connection
 MONGO_URL = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
