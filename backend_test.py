@@ -158,20 +158,35 @@ class WebtoolsAPITester:
             "POST",
             "api/validation/quick-check",
             200,
-            data={"phone_number": "+6281234567890"},
+            data={"phone_number": "+628123456789"},
             token=self.demo_token,
-            description="Validate a single phone number"
+            description="Validate a single phone number (enhanced with providers)"
         )
         
         if success:
             # Verify response structure
-            expected_keys = ['phone_number', 'whatsapp', 'telegram', 'cached', 'checked_at']
+            expected_keys = ['phone_number', 'whatsapp', 'telegram', 'cached', 'checked_at', 'providers_used']
             response_keys = list(response.keys())
             missing_keys = [key for key in expected_keys if key not in response_keys]
             if missing_keys:
                 print(f"   ⚠️  Missing response keys: {missing_keys}")
             else:
                 print(f"   ✅ Response structure is correct")
+                
+            # Check if providers_used field exists and has proper structure
+            if 'providers_used' in response:
+                providers = response['providers_used']
+                if isinstance(providers, dict) and 'whatsapp' in providers and 'telegram' in providers:
+                    print(f"   ✅ Providers used: WhatsApp={providers['whatsapp']}, Telegram={providers['telegram']}")
+                    # Check if real provider names are used instead of "Mock Provider"
+                    if providers['whatsapp'] != "Mock Provider" or providers['telegram'] != "Mock Provider":
+                        print(f"   ✅ Real provider integration detected")
+                    else:
+                        print(f"   ⚠️  Still using mock providers")
+                else:
+                    print(f"   ⚠️  Invalid providers_used structure: {providers}")
+            else:
+                print(f"   ❌ Missing providers_used field in response")
                 
         return success
 
