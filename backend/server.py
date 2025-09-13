@@ -1098,7 +1098,7 @@ async def get_telegram_accounts(current_user = Depends(admin_required)):
 @app.post("/api/admin/telegram-accounts")
 async def create_telegram_account(account: TelegramAccount, current_user = Depends(admin_required)):
     account_doc = {
-        "_id": str(uuid.uuid4()),
+        "_id": generate_id(),
         **account.dict(),
         "created_at": datetime.utcnow(),
         "created_by": current_user["_id"]
