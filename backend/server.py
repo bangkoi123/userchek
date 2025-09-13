@@ -79,6 +79,16 @@ JWT_SECRET = os.environ.get('JWT_SECRET', 'your-secret-key-change-in-production'
 JWT_ALGORITHM = 'HS256'
 JWT_EXPIRATION_HOURS = 24
 
+# Stripe Configuration
+STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY')
+
+# Credit Packages Configuration (fixed server-side pricing)
+CREDIT_PACKAGES = {
+    "starter": {"credits": 1000, "price": 10.0, "name": "Starter Package"},
+    "professional": {"credits": 5000, "price": 40.0, "name": "Professional Package"},
+    "enterprise": {"credits": 25000, "price": 150.0, "name": "Enterprise Package"}
+}
+
 app = FastAPI(title="Webtools Validasi Nomor Telepon", version="1.0.0")
 
 # Mount Socket.IO
