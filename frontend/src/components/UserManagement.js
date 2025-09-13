@@ -313,6 +313,14 @@ const UserManagement = () => {
             >
               Admins
             </button>
+            
+            <button
+              onClick={() => setShowAddUserModal(true)}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 flex items-center"
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              Add User
+            </button>
           </div>
         </div>
       </div>
