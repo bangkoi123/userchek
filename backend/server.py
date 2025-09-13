@@ -21,6 +21,7 @@ import aiohttp
 import logging
 from email_service import email_service
 import socketio
+from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionResponse, CheckoutStatusResponse, CheckoutSessionRequest
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
