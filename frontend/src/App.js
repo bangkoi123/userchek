@@ -81,8 +81,13 @@ function AppContent() {
               <Route path="/quick-check" element={<QuickCheck />} />
               <Route path="/bulk-check" element={<BulkCheck />} />
               <Route path="/job-history" element={<JobHistory />} />
+              <Route path="/credit-topup" element={<CreditTopup />} />
+              <Route path="/profile" element={<UserProfile />} />
               {user.role === 'admin' && (
-                <Route path="/admin" element={<AdminPanel />} />
+                <>
+                  <Route path="/admin" element={<AdminPanel />} />
+                  <Route path="/admin/users" element={<UserManagement />} />
+                </>
               )}
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Routes>
