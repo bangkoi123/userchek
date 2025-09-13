@@ -647,30 +647,36 @@ const OverviewTab = ({ stats }) => {
 
         <div className="bg-white dark:bg-gray-800 rounded-lg p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            System Health
+            Top Users (Credits)
           </h3>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-gray-600 dark:text-gray-400">Database</span>
-              <div className="flex items-center">
-                <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-                <span className="text-sm font-medium text-green-600 dark:text-green-400">Healthy</span>
+          <div className="space-y-3">
+            {stats?.top_users?.length > 0 ? stats.top_users.slice(0, 5).map((user, index) => (
+              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm font-bold">{index + 1}</span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                      {user.username}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {user.role === 'admin' ? 'Admin' : 'User'}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-bold text-primary-600 dark:text-primary-400">
+                    {formatNumber(user.credits)}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">credits</p>
+                </div>
               </div>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-gray-600 dark:text-gray-400">API Services</span>
-              <div className="flex items-center">
-                <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-                <span className="text-sm font-medium text-green-600 dark:text-green-400">Running</span>
-              </div>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-gray-600 dark:text-gray-400">Job Queue</span>
-              <div className="flex items-center">
-                <AlertCircle className="h-5 w-5 text-yellow-500 mr-2" />
-                <span className="text-sm font-medium text-yellow-600 dark:text-yellow-400">Monitoring</span>
-              </div>
-            </div>
+            )) : (
+              <p className="text-gray-500 dark:text-gray-400 text-center py-4">
+                Tidak ada data user
+              </p>
+            )}
           </div>
         </div>
       </div>
