@@ -17,6 +17,7 @@ import asyncio
 from enum import Enum
 import requests
 import aiohttp
+import logging
 from email_service import email_service
 
 # MongoDB connection
