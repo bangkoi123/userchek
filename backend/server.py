@@ -838,7 +838,7 @@ async def quick_check(request: QuickCheckRequest, current_user = Depends(get_cur
     
     # Log usage
     usage_doc = {
-        "_id": str(uuid.uuid4()),
+        "_id": generate_id(),
         "user_id": current_user["_id"],
         "tenant_id": current_user["tenant_id"],
         "type": "quick_check",
