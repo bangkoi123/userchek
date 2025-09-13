@@ -340,9 +340,16 @@ const QuickCheck = () => {
               <div className="space-y-3">
                 {history.map((item, index) => (
                   <div key={index} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
-                    <p className="font-medium text-gray-900 dark:text-white text-sm mb-1">
-                      {item.phone_number}
-                    </p>
+                    <div className="flex items-center space-x-2 mb-1">
+                      {item.identifier && (
+                        <span className="text-xs bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-300 px-2 py-1 rounded">
+                          📝 {item.identifier}
+                        </span>
+                      )}
+                      <p className="font-medium text-gray-900 dark:text-white text-sm">
+                        📞 {item.phone_number}
+                      </p>
+                    </div>
                     <div className="flex items-center space-x-2 text-xs">
                       <span className={`px-2 py-1 rounded ${getStatusBadgeClass(item.whatsapp.status)}`}>
                         WA: {getStatusText(item.whatsapp.status)}
