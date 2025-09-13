@@ -695,7 +695,14 @@ async def process_bulk_validation(job_id: str):
         if not job:
             return
             
-        phone_numbers = job["phone_numbers"]
+        # Handle both old and new data structures for backward compatibility
+        if "phone_data" in job:
+            phone_data_list = job["phone_data"]
+        else:
+            # Backward compatibility: convert old phone_numbers to new format
+            phone_numbers = job.get("phone_numbers", [])
+            phone_data_list = [{"identifier": None, "phone_number": phone, "original_phone": phone} for phone in phone_numbers]
+        
         results = {
             "whatsapp_active": 0,
             "telegram_active": 0,
@@ -704,18 +711,25 @@ async def process_bulk_validation(job_id: str):
             "details": []
         }
         
-        # Process each number
-        for i, phone in enumerate(phone_numbers):
+        # Process each phone data entry
+        for i, phone_data in enumerate(phone_data_list):
             try:
+                phone = phone_data["phone_number"]
+                identifier = phone_data.get("identifier")
+                
                 # Check cache first
                 cached_result = await db.validation_cache.find_one({"phone_number": phone})
                 if cached_result and (datetime.utcnow() - cached_result["cached_at"]).days < 7:
                     whatsapp_result = cached_result["whatsapp"]
                     telegram_result = cached_result["telegram"]
+                    # Add identifier to cached results
+                    whatsapp_result["identifier"] = identifier
+                    telegram_result["identifier"] = identifier
                 else:
-                    # Perform validation
-                    whatsapp_result = await validate_whatsapp_number(phone)
+                    # Perform validation with identifier support
+                    whatsapp_result = await validate_whatsapp_web_api(phone, identifier)
                     telegram_result = await validate_telegram_number(phone)
+                    telegram_result["identifier"] = identifier
                     
                     # Cache results
                     cache_doc = {
@@ -740,9 +754,11 @@ async def process_bulk_validation(job_id: str):
                     telegram_result["status"] == ValidationStatus.INACTIVE):
                     results["inactive"] += 1
                 
-                # Store detailed result
+                # Store detailed result with identifier
                 results["details"].append({
+                    "identifier": identifier,
                     "phone_number": phone,
+                    "original_phone": phone_data.get("original_phone", phone),
                     "whatsapp": whatsapp_result,
                     "telegram": telegram_result,
                     "processed_at": datetime.utcnow()
@@ -750,7 +766,7 @@ async def process_bulk_validation(job_id: str):
                 
                 # Update progress
                 processed_count = i + 1
-                progress_percentage = round((processed_count / len(phone_numbers)) * 100, 2)
+                progress_percentage = round((processed_count / len(phone_data_list)) * 100, 2)
                 
                 await db.jobs.update_one(
                     {"_id": job_id},
@@ -765,9 +781,10 @@ async def process_bulk_validation(job_id: str):
                     "job_id": job_id,
                     "status": "processing",
                     "processed_numbers": processed_count,
-                    "total_numbers": len(phone_numbers),
+                    "total_numbers": len(phone_data_list),
                     "progress_percentage": progress_percentage,
                     "current_phone": phone,
+                    "current_identifier": identifier,
                     "last_result": {
                         "whatsapp": whatsapp_result["status"],
                         "telegram": telegram_result["status"]
@@ -780,7 +797,9 @@ async def process_bulk_validation(job_id: str):
             except Exception as e:
                 results["errors"] += 1
                 results["details"].append({
-                    "phone_number": phone,
+                    "identifier": phone_data.get("identifier"),
+                    "phone_number": phone_data.get("phone_number", "unknown"),
+                    "original_phone": phone_data.get("original_phone", "unknown"),
                     "error": str(e),
                     "processed_at": datetime.utcnow()
                 })
