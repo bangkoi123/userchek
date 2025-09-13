@@ -18,7 +18,7 @@ import {
   Shield,
   Settings
 } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
 
 const PaymentManagement = () => {
   const { user } = useAuth();
