@@ -161,7 +161,7 @@ class WebtoolsAPITester:
             "POST",
             "api/validation/quick-check",
             200,
-            data={"phone_number": "+628123456789"},
+            data={"phone_inputs": ["+628123456789"], "validate_whatsapp": True, "validate_telegram": True},
             token=self.demo_token,
             description="Validate a single phone number (enhanced with providers)"
         )
