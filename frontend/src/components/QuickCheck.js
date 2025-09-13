@@ -145,7 +145,7 @@ const QuickCheck = () => {
                     id="phone"
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
-                    placeholder="Contoh: +628123456789 atau 08123456789"
+                    placeholder="Masukkan nomor: '08123456789' atau dengan nama: 'koi 08123456789'"
                     className="input-field pl-10"
                     disabled={loading}
                   />
