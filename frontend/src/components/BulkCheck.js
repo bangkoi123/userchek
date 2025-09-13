@@ -165,7 +165,7 @@ const BulkCheck = () => {
         ));
 
         try {
-          await uploadFile('/api/validation/bulk-check', fileItem.file, (progress) => {
+          const response = await uploadFile('/api/validation/bulk-check', fileItem.file, (progress) => {
             setUploadProgress(Math.round(((i / files.length) * 100) + (progress / files.length)));
           });
 
@@ -175,6 +175,14 @@ const BulkCheck = () => {
           ));
 
           toast.success(`File ${fileItem.file.name} berhasil diupload`);
+          
+          // Start real-time monitoring if job_id is returned
+          if (response.job_id) {
+            setCurrentJobId(response.job_id);
+            startListening();
+            toast.info('🔄 Mulai monitoring progress real-time...');
+          }
+          
         } catch (error) {
           // Update file status to error
           setFiles(prev => prev.map(f => 
