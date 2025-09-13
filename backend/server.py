@@ -1043,6 +1043,11 @@ async def delete_whatsapp_provider(provider_id: str, current_user = Depends(admi
     
     return {"message": "WhatsApp provider deleted successfully"}
 
+@app.get("/api/admin/jobs")
+async def get_admin_jobs(current_user = Depends(admin_required)):
+    jobs = await db.jobs.find({}, sort=[("created_at", DESCENDING)]).limit(100).to_list(100)
+    return jobs
+
 @app.post("/api/admin/create-demo-user")
 async def create_demo_user(current_user = Depends(admin_required)):
     # Check if demo user already exists
