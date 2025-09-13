@@ -2143,94 +2143,161 @@ async def update_admin_user(
     
     return {"message": "User updated successfully"}
 
-@app.get("/api/admin/analytics")
-async def get_admin_analytics(
-    period: str = "30d",  # 7d, 30d, 90d
+@app.get("/api/admin/platform-settings")
+async def get_platform_settings(current_user = Depends(admin_required)):
+    """Get platform visibility settings"""
+    settings = await db.admin_settings.find_one({"setting_type": "platform_visibility"}) or {
+        "whatsapp_enabled": True,
+        "telegram_enabled": True
+    }
+    return settings
+
+@app.put("/api/admin/platform-settings")
+async def update_platform_settings(
+    whatsapp_enabled: bool,
+    telegram_enabled: bool,
     current_user = Depends(admin_required)
 ):
-    """Get system analytics"""
+    """Update platform visibility settings"""
     
-    # Calculate date range
-    now = datetime.utcnow()
-    if period == "7d":
-        start_date = now - timedelta(days=7)
-    elif period == "30d":
-        start_date = now - timedelta(days=30)
-    elif period == "90d":
-        start_date = now - timedelta(days=90)
-    else:
-        start_date = now - timedelta(days=30)
+    await db.admin_settings.update_one(
+        {"setting_type": "platform_visibility"},
+        {"$set": {
+            "setting_type": "platform_visibility",
+            "whatsapp_enabled": whatsapp_enabled,
+            "telegram_enabled": telegram_enabled,
+            "updated_at": datetime.utcnow(),
+            "updated_by": current_user["_id"]
+        }},
+        upsert=True
+    )
     
-    # Daily usage stats
-    daily_stats = await db.usage_logs.aggregate([
-        {"$match": {"timestamp": {"$gte": start_date}}},
+    return {
+        "message": "Platform settings updated successfully",
+        "whatsapp_enabled": whatsapp_enabled,
+        "telegram_enabled": telegram_enabled
+    }
+
+@app.get("/api/admin/credit-management")
+async def get_credit_management_stats(current_user = Depends(admin_required)):
+    """Get credit management statistics"""
+    
+    # Total credits distributed
+    total_credits = await db.users.aggregate([
+        {"$group": {"_id": None, "total": {"$sum": "$credits"}}}
+    ]).to_list(1)
+    
+    # Credits used statistics
+    credits_used_stats = await db.usage_logs.aggregate([
         {"$group": {
-            "_id": {
-                "date": {"$dateToString": {"format": "%Y-%m-%d", "date": "$timestamp"}},
-                "type": "$type"
-            },
-            "count": {"$sum": 1},
-            "credits_used": {"$sum": "$credits_used"}
-        }},
-        {"$sort": {"_id.date": 1}}
-    ]).to_list(1000)
+            "_id": None,
+            "total_used": {"$sum": "$credits_used"},
+            "total_transactions": {"$sum": 1}
+        }}
+    ]).to_list(1)
     
-    # User registration stats
-    user_stats = await db.users.aggregate([
-        {"$match": {"created_at": {"$gte": start_date}}},
-        {"$group": {
-            "_id": {"$dateToString": {"format": "%Y-%m-%d", "date": "$created_at"}},
-            "new_users": {"$sum": 1}
-        }},
-        {"$sort": {"_id": 1}}
-    ]).to_list(1000)
-    
-    # Payment stats
-    payment_stats = await db.payment_transactions.aggregate([
-        {"$match": {
-            "created_at": {"$gte": start_date},
-            "payment_status": "completed"
-        }},
-        {"$group": {
-            "_id": {"$dateToString": {"format": "%Y-%m-%d", "date": "$created_at"}},
-            "revenue": {"$sum": "$amount"},
-            "transactions": {"$sum": 1},
-            "credits_sold": {"$sum": "$credits_amount"}
-        }},
-        {"$sort": {"_id": 1}}
-    ]).to_list(1000)
-    
-    # Top users by usage
-    top_users = await db.usage_logs.aggregate([
-        {"$match": {"timestamp": {"$gte": start_date}}},
-        {"$group": {
-            "_id": "$user_id",
-            "total_validations": {"$sum": 1},
-            "total_credits_used": {"$sum": "$credits_used"}
-        }},
-        {"$lookup": {
-            "from": "users",
-            "localField": "_id",
-            "foreignField": "_id",
-            "as": "user"
-        }},
-        {"$unwind": "$user"},
+    # Top credit users
+    top_users = await db.users.aggregate([
         {"$project": {
-            "username": "$user.username",
-            "email": "$user.email",
-            "total_validations": 1,
-            "total_credits_used": 1
+            "username": 1,
+            "email": 1,
+            "credits": 1,
+            "role": 1
         }},
-        {"$sort": {"total_validations": -1}},
+        {"$sort": {"credits": -1}},
         {"$limit": 10}
     ]).to_list(10)
     
+    # Recent credit transactions
+    recent_transactions = await db.payment_transactions.find(
+        {"payment_status": "completed"},
+        sort=[("completed_at", DESCENDING)]
+    ).limit(20).to_list(20)
+    
     return {
-        "period": period,
-        "daily_stats": daily_stats,
-        "user_stats": user_stats,
-        "payment_stats": payment_stats,
-        "top_users": top_users
+        "total_credits_in_system": total_credits[0]["total"] if total_credits else 0,
+        "total_credits_used": credits_used_stats[0]["total_used"] if credits_used_stats else 0,
+        "total_usage_transactions": credits_used_stats[0]["total_transactions"] if credits_used_stats else 0,
+        "top_credit_users": top_users,
+        "recent_transactions": recent_transactions
+    }
+
+@app.post("/api/admin/users/{user_id}/credits")
+async def manage_user_credits(
+    user_id: str,
+    action: str,  # "add", "subtract", "set"
+    amount: int,
+    reason: str,
+    current_user = Depends(admin_required)
+):
+    """Manage user credits (admin only)"""
+    
+    if action not in ["add", "subtract", "set"]:
+        raise HTTPException(status_code=400, detail="Invalid action. Use 'add', 'subtract', or 'set'")
+    
+    if amount < 0:
+        raise HTTPException(status_code=400, detail="Amount must be positive")
+    
+    # Get target user
+    target_user = await db.users.find_one({"_id": user_id})
+    if not target_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    current_credits = target_user.get("credits", 0)
+    
+    # Calculate new credit amount
+    if action == "add":
+        new_credits = current_credits + amount
+    elif action == "subtract":
+        new_credits = max(0, current_credits - amount)  # Don't go below 0
+    else:  # set
+        new_credits = amount
+    
+    # Update user credits
+    await db.users.update_one(
+        {"_id": user_id},
+        {"$set": {
+            "credits": new_credits,
+            "updated_at": datetime.utcnow()
+        }}
+    )
+    
+    # Log admin action
+    admin_log = {
+        "_id": generate_id(),
+        "admin_id": current_user["_id"],
+        "target_user_id": user_id,
+        "action": f"credit_{action}",
+        "details": {
+            "previous_credits": current_credits,
+            "amount": amount,
+            "new_credits": new_credits,
+            "reason": reason
+        },
+        "timestamp": datetime.utcnow()
+    }
+    await db.admin_logs.insert_one(admin_log)
+    
+    # Log usage for target user
+    usage_log = {
+        "_id": generate_id(),
+        "user_id": user_id,
+        "tenant_id": target_user["tenant_id"],
+        "type": f"admin_credit_{action}",
+        "credits_used": -amount if action == "add" else amount,  # Negative for added credits
+        "admin_id": current_user["_id"],
+        "reason": reason,
+        "timestamp": datetime.utcnow()
+    }
+    await db.usage_logs.insert_one(usage_log)
+    
+    return {
+        "message": f"Successfully {action}ed {amount} credits",
+        "user_id": user_id,
+        "previous_credits": current_credits,
+        "new_credits": new_credits,
+        "action": action,
+        "amount": amount
     }
 
 @app.get("/api/admin/telegram-accounts")
