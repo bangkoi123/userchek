@@ -62,9 +62,119 @@ async def verify_api_key(api_key: str) -> dict:
     return user
 
 # Helper function to generate unique IDs using secrets
-def generate_id() -> str:
-    """Generate a unique ID using secrets module"""
-    return secrets.token_hex(16)  # 32 character hex string
+def generate_id():
+    return str(uuid.uuid4())
+
+def parse_phone_input(input_text: str) -> dict:
+    """Parse input: 'nama 08123456789' or '08123456789'"""
+    if not input_text or not input_text.strip():
+        return {"identifier": None, "phone_number": ""}
+    
+    parts = input_text.strip().split()
+    
+    if len(parts) == 1:
+        # Only phone number
+        return {
+            "identifier": None,
+            "phone_number": parts[0]
+        }
+    else:
+        # Last part is phone, rest is name (max 12 chars)
+        phone = parts[-1]
+        name = " ".join(parts[:-1])
+        # Truncate name to 12 characters
+        name = name[:12] if len(name) > 12 else name
+        return {
+            "identifier": name,
+            "phone_number": phone
+        }
+
+async def validate_whatsapp_web_api(phone: str, identifier: str = None) -> Dict[str, Any]:
+    """FREE WhatsApp validation using WhatsApp Web API"""
+    try:
+        # WhatsApp Web API URL
+        url = f"https://api.whatsapp.com/send/?phone={phone}&text&type=phone_number&app_absent=0"
+        
+        timeout = aiohttp.ClientTimeout(total=10)
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            async with session.get(url) as response:
+                if response.status != 200:
+                    return {
+                        'identifier': identifier,
+                        'phone_number': phone,
+                        'platform': 'whatsapp',
+                        'status': ValidationStatus.ERROR,
+                        'validated_at': datetime.utcnow(),
+                        'error': f'HTTP {response.status}',
+                        'details': {}
+                    }
+                
+                html_content = await response.text()
+                
+                # Pattern detection based on our analysis
+                indicators = {
+                    'has_send_link': 'web.whatsapp.com/send/' in html_content,
+                    'main_block_visible': 'main_block' in html_content and 'style="display: none"' not in html_content,
+                    'app_absent_0': 'app_absent=0' in html_content,
+                    'no_error_message': 'error' not in html_content.lower() and 'invalid' not in html_content.lower(),
+                    'fallback_hidden': 'fallback_block' in html_content and 'style="display: none"' in html_content
+                }
+                
+                # Scoring system
+                score = sum(indicators.values())
+                
+                # Determine status and type
+                if score >= 4:
+                    # Check for business indicators
+                    is_business = any([
+                        'business' in html_content.lower(),
+                        'verified' in html_content.lower(),
+                        'official' in html_content.lower()
+                    ])
+                    
+                    wa_type = 'business' if is_business else 'personal'
+                    status = ValidationStatus.ACTIVE
+                    
+                elif score >= 2:
+                    wa_type = 'unknown'
+                    status = ValidationStatus.ACTIVE
+                else:
+                    wa_type = None
+                    status = ValidationStatus.INACTIVE
+                
+                return {
+                    'identifier': identifier,
+                    'phone_number': phone,
+                    'platform': 'whatsapp',
+                    'status': status,
+                    'validated_at': datetime.utcnow(),
+                    'details': {
+                        'type': wa_type,
+                        'confidence_score': score,
+                        'indicators': indicators
+                    }
+                }
+                
+    except asyncio.TimeoutError:
+        return {
+            'identifier': identifier,
+            'phone_number': phone,
+            'platform': 'whatsapp',
+            'status': ValidationStatus.ERROR,
+            'validated_at': datetime.utcnow(),
+            'error': 'Timeout',
+            'details': {}
+        }
+    except Exception as e:
+        return {
+            'identifier': identifier,
+            'phone_number': phone,
+            'platform': 'whatsapp',
+            'status': ValidationStatus.ERROR,
+            'validated_at': datetime.utcnow(),
+            'error': str(e),
+            'details': {}
+        }
 
 # MongoDB connection
 MONGO_URL = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
