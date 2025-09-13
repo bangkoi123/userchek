@@ -26,6 +26,11 @@ import socketio
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Helper function to generate unique IDs using secrets
+def generate_id() -> str:
+    """Generate a unique ID using secrets module"""
+    return secrets.token_hex(16)  # 32 character hex string
+
 # MongoDB connection
 MONGO_URL = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
 client = AsyncIOMotorClient(MONGO_URL)
