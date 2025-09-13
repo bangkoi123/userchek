@@ -1262,7 +1262,7 @@ async def seed_sample_data():
     # Sample Telegram Accounts
     telegram_accounts = [
         {
-            "_id": str(uuid.uuid4()),
+            "_id": generate_id(),
             "name": "Primary Telegram Bot",
             "phone_number": "+6281234567890",
             "api_id": "1234567",
@@ -1273,7 +1273,7 @@ async def seed_sample_data():
             "created_by": "system"
         },
         {
-            "_id": str(uuid.uuid4()),
+            "_id": generate_id(),
             "name": "Secondary Telegram Account",
             "phone_number": "+6289876543210",
             "api_id": "9876543",
@@ -1284,7 +1284,7 @@ async def seed_sample_data():
             "created_by": "system"
         },
         {
-            "_id": str(uuid.uuid4()),
+            "_id": generate_id(),
             "name": "Backup Telegram Account",
             "phone_number": "+6285555666777",
             "api_id": "5555666",
