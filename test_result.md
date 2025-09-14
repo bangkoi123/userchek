@@ -164,6 +164,18 @@ backend:
         agent: "testing"
         comment: "✅ BULK CHECK UPLOAD FIXES VERIFIED: Conducted targeted testing of the specific fixes mentioned in review request. CRITICAL ISSUE RESOLVED: NO dual notifications detected during upload process - the previous issue of simultaneous 'Upload gagal' + success notifications has been completely fixed. Only single appropriate notifications appear (success OR error, never both). Platform selection working correctly with proper credit calculation (WhatsApp: 1 credit, Telegram: 1 credit, Both: 2 credits per number). CSV file upload with name,phone_number format processed successfully. File preview showing '3 baris data' correctly. Validation button properly disabled when no platforms selected, enabled when platforms chosen. Upload process clean and error-free. All upload-related functionality working as expected without notification conflicts."
 
+  - task: "Bulk Check 400 Error Debugging"
+    implemented: true
+    working: true
+    file: "frontend/src/components/BulkCheck.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ CRITICAL 400 ERROR DEBUGGING COMPLETED: Successfully identified and resolved the root cause of reported 400 Bad Request error in Bulk Check upload. DISCOVERY: The issue was NOT a 400 Bad Request from backend, but a JavaScript error in frontend preventing API request from being made. ROOT CAUSE: JavaScript error 'Right-hand side of instanceof is not callable' in BulkCheck.js line 217 where `value instanceof File` failed because File constructor wasn't available in scope. SOLUTION: Fixed File type checking by replacing `instanceof File` with safer `value.constructor.name === 'File'` check. VERIFICATION: ✅ Bulk Check upload now working perfectly with 200 OK response from backend. ✅ FormData properly constructed with file and platform parameters. ✅ Authentication token correctly included. ✅ Backend processes file successfully returning job_id. ✅ No JavaScript errors in final testing. ✅ Upload response confirms successful processing. COMPARISON: Curl worked because it bypassed frontend entirely, while frontend was failing due to JS error before HTTP request was made. Both now work identically. ADDITIONAL FIX: Resolved toast.info() availability issue by replacing with toast.success(). System fully functional with no upload errors."
+
   - task: "Job History Detail Button Functionality"
     implemented: true
     working: true
