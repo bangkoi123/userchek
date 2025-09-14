@@ -1,6 +1,7 @@
 import asyncio
 from playwright.async_api import async_playwright
 import json
+from datetime import datetime
 
 class WhatsAppSimpleDetector:
     def __init__(self):
