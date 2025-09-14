@@ -21,6 +21,7 @@ const SystemHealth = () => {
   const [healthData, setHealthData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [clearingCache, setClearingCache] = useState(false);
 
   useEffect(() => {
     if (user?.role === 'admin') {
