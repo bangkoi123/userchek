@@ -882,7 +882,7 @@ async def process_bulk_validation(job_id: str):
                     telegram_result = None
                     
                     if validate_whatsapp:
-                        whatsapp_result = await validate_whatsapp_web_api(phone, identifier)
+                        whatsapp_result = await validate_whatsapp_number_smart(phone, identifier)
                     
                     if validate_telegram:
                         telegram_result = await validate_telegram_number(phone)
