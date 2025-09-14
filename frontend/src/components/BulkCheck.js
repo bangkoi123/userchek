@@ -203,8 +203,21 @@ const BulkCheck = () => {
         ));
 
         try {
-          const response = await uploadFile('/api/validation/bulk-check', fileItem.file, (progress) => {
-            setUploadProgress(Math.round(((i / files.length) * 100) + (progress / files.length)));
+          const formData = new FormData();
+          formData.append('file', fileItem.file);
+          formData.append('validate_whatsapp', validateWhatsapp);
+          formData.append('validate_telegram', validateTelegram);
+
+          const response = await apiCall('/api/validation/bulk-check', 'POST', formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+            onUploadProgress: (progressEvent) => {
+              const percentCompleted = Math.round(
+                (progressEvent.loaded * 100) / progressEvent.total
+              );
+              setUploadProgress(Math.round(((i / files.length) * 100) + (percentCompleted / files.length)));
+            },
           });
 
           // Update file status to success
