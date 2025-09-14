@@ -334,7 +334,7 @@ Maya,+628111222333`;
           </button>
           
           <button
-            onClick={() => toast.info('Upload sample CSV untuk mencoba fitur bulk validation')}
+            onClick={() => toast.success('Upload sample CSV untuk mencoba fitur bulk validation')}
             className="btn-primary flex items-center"
           >
             <FileText className="h-4 w-4 mr-2" />
