@@ -215,6 +215,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.on_event("startup")
+async def startup_event():
+    """Initialize application on startup"""
+    await create_demo_users()
+
 # Security
 security = HTTPBearer()
 
