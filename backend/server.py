@@ -130,11 +130,15 @@ async def validate_whatsapp_web_api(phone: str, identifier: str = None) -> Dict[
                     'fallback_hidden': 'fallback_block' in html_content and 'style="display: none"' in html_content
                 }
                 
-                # Scoring system
+                # Scoring system with improved logic
                 score = sum(indicators.values())
                 
-                # Determine status and type
-                if score >= 4:
+                # If there's an error message, immediately mark as inactive
+                if has_error_message:
+                    wa_type = None
+                    status = ValidationStatus.INACTIVE
+                # More strict scoring - need at least 4 indicators for active
+                elif score >= 4:
                     # Check for business indicators
                     is_business = any([
                         'business' in html_content.lower(),
@@ -144,11 +148,8 @@ async def validate_whatsapp_web_api(phone: str, identifier: str = None) -> Dict[
                     
                     wa_type = 'business' if is_business else 'personal'
                     status = ValidationStatus.ACTIVE
-                    
-                elif score >= 2:
-                    wa_type = 'unknown'
-                    status = ValidationStatus.ACTIVE
                 else:
+                    # More conservative - if score < 4, mark as inactive
                     wa_type = None
                     status = ValidationStatus.INACTIVE
                 
