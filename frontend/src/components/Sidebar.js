@@ -17,7 +17,8 @@ import {
   Monitor,
   UserPlus,
   ChevronLeft,
-  BarChart3
+  BarChart3,
+  MessageSquare
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen, setSidebarOpen }) => {
