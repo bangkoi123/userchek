@@ -44,6 +44,12 @@ const Sidebar = ({ isOpen, setSidebarOpen }) => {
         description: 'Kelola sistem pembayaran'
       },
       {
+        name: 'System Health',
+        path: '/admin/system-health',
+        icon: Monitor,
+        description: 'Monitor sistem & performance'
+      },
+      {
         name: 'Admin Settings',
         path: '/admin/settings',
         icon: Settings,
