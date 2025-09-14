@@ -1733,6 +1733,10 @@ async def bulk_check(
     if file.size > 10 * 1024 * 1024:  # 10MB
         raise HTTPException(status_code=400, detail="File terlalu besar. Maksimal 10MB")
     
+    # Validate platform selection
+    if not validate_whatsapp and not validate_telegram:
+        raise HTTPException(status_code=400, detail="Pilih minimal satu platform untuk validasi")
+    
     try:
         # Read file content
         content = await file.read()
