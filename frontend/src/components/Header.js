@@ -11,7 +11,8 @@ import {
   User, 
   LogOut,
   Settings,
-  CreditCard
+  CreditCard,
+  ChevronLeft
 } from 'lucide-react';
 
 const Header = ({ sidebarOpen, setSidebarOpen }) => {
