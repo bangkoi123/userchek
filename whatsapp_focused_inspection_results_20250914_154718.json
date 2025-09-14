@@ -1,0 +1,12 @@
+{
+  "082253767671": {
+    "status": "error",
+    "method": "focused_inspection",
+    "error": "Page.evaluate: TypeError: className.includes is not a function\n    at eval (eval at evaluate (:291:30), <anonymous>:21:43)\n    at NodeList.forEach (<anonymous>)\n    at eval (eval at evaluate (:291:30), <anonymous>:14:37)\n    at UtilityScript.evaluate (<anonymous>:298:18)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+  },
+  "6285586712458": {
+    "status": "error",
+    "method": "focused_inspection",
+    "error": "Page.evaluate: TypeError: className.includes is not a function\n    at eval (eval at evaluate (:291:30), <anonymous>:21:43)\n    at NodeList.forEach (<anonymous>)\n    at eval (eval at evaluate (:291:30), <anonymous>:14:37)\n    at UtilityScript.evaluate (<anonymous>:298:18)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+  }
+}
