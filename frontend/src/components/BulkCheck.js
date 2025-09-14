@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useAuth } from '../context/AuthContext';
-import { uploadFile } from '../utils/api';
+import { uploadFile, apiCall } from '../utils/api';
 import { useJobProgress } from '../hooks/useSocket';
 import { 
   Upload, 
