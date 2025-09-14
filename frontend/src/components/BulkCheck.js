@@ -214,7 +214,7 @@ Maya,+628111222333`;
           console.log('Platform settings:', { validateWhatsapp, validateTelegram });
           console.log('FormData entries:');
           for (let [key, value] of formData.entries()) {
-            console.log(`${key}:`, value instanceof File ? `File(${value.name})` : value);
+            console.log(`${key}:`, value && value.constructor && value.constructor.name === 'File' ? `File(${value.name})` : value);
           }
           
           const response = await apiCall('/api/validation/bulk-check', 'POST', formData, {
