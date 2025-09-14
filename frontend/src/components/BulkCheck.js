@@ -205,13 +205,10 @@ Maya,+628111222333`;
         try {
           const formData = new FormData();
           formData.append('file', fileItem.file);
-          formData.append('validate_whatsapp', validateWhatsapp);
-          formData.append('validate_telegram', validateTelegram);
+          formData.append('validate_whatsapp', validateWhatsapp.toString());
+          formData.append('validate_telegram', validateTelegram.toString());
 
           const response = await apiCall('/api/validation/bulk-check', 'POST', formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-            },
             onUploadProgress: (progressEvent) => {
               const percentCompleted = Math.round(
                 (progressEvent.loaded * 100) / progressEvent.total
