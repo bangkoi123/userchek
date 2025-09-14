@@ -169,6 +169,16 @@ const SystemHealth = () => {
             >
               <RefreshCw className="h-5 w-5" />
             </button>
+            
+            <button
+              onClick={clearValidationCache}
+              disabled={clearingCache}
+              className="flex items-center space-x-2 px-3 py-2 bg-red-500/20 hover:bg-red-500/30 disabled:bg-gray-500/20 rounded-lg transition-colors text-sm"
+              title="Clear validation cache - all numbers will be re-validated on next check"
+            >
+              <Trash2 className="h-4 w-4" />
+              <span>{clearingCache ? 'Clearing...' : 'Clear Cache'}</span>
+            </button>
           </div>
         </div>
         
