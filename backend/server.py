@@ -769,12 +769,22 @@ async def process_bulk_validation(job_id: str):
                         )
                 
                 # Count results
-                if whatsapp_result["status"] == ValidationStatus.ACTIVE:
+                if whatsapp_result and whatsapp_result["status"] == ValidationStatus.ACTIVE:
                     results["whatsapp_active"] += 1
-                if telegram_result["status"] == ValidationStatus.ACTIVE:
+                if telegram_result and telegram_result["status"] == ValidationStatus.ACTIVE:
                     results["telegram_active"] += 1
-                if (whatsapp_result["status"] == ValidationStatus.INACTIVE and 
-                    telegram_result["status"] == ValidationStatus.INACTIVE):
+                
+                # Check if both platforms are inactive (only count if both were validated)
+                whatsapp_inactive = whatsapp_result and whatsapp_result["status"] == ValidationStatus.INACTIVE
+                telegram_inactive = telegram_result and telegram_result["status"] == ValidationStatus.INACTIVE
+                
+                # Count as inactive only if ALL validated platforms are inactive
+                if validate_whatsapp and validate_telegram:
+                    if whatsapp_inactive and telegram_inactive:
+                        results["inactive"] += 1
+                elif validate_whatsapp and whatsapp_inactive:
+                    results["inactive"] += 1
+                elif validate_telegram and telegram_inactive:
                     results["inactive"] += 1
                 
                 # Store detailed result with identifier
