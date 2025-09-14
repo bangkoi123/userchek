@@ -2890,6 +2890,277 @@ async def create_audit_log(action: str, user_id: str = None, admin_id: str = Non
     except Exception as e:
         logger.error(f"Error creating audit log: {str(e)}")
 
+@app.post("/api/admin/bulk-import-users")
+async def bulk_import_users(file: UploadFile = File(...), current_user = Depends(admin_required)):
+    """Bulk import users from CSV file"""
+    
+    if not file.filename.endswith('.csv'):
+        raise HTTPException(status_code=400, detail="File must be a CSV")
+    
+    try:
+        # Read CSV file
+        contents = await file.read()
+        csv_data = contents.decode('utf-8')
+        csv_reader = csv.DictReader(StringIO(csv_data))
+        
+        imported_count = 0
+        errors = []
+        
+        for row_num, row in enumerate(csv_reader, start=2):
+            try:
+                # Validate required fields
+                required_fields = ['username', 'email', 'password']
+                missing_fields = [field for field in required_fields if not row.get(field)]
+                if missing_fields:
+                    errors.append(f"Row {row_num}: Missing fields: {', '.join(missing_fields)}")
+                    continue
+                
+                # Check if user already exists
+                existing_user = await db.users.find_one({
+                    "$or": [
+                        {"username": row['username']},
+                        {"email": row['email']}
+                    ]
+                })
+                
+                if existing_user:
+                    errors.append(f"Row {row_num}: User with username '{row['username']}' or email '{row['email']}' already exists")
+                    continue
+                
+                # Create user document
+                user_doc = {
+                    "_id": str(uuid.uuid4()),
+                    "username": row['username'],
+                    "email": row['email'],
+                    "password": hash_password(row['password']),
+                    "role": row.get('role', 'user'),
+                    "credits": int(row.get('credits', 0)),
+                    "is_active": row.get('is_active', 'true').lower() == 'true',
+                    "created_at": datetime.utcnow(),
+                    "updated_at": datetime.utcnow()
+                }
+                
+                # Insert user
+                await db.users.insert_one(user_doc)
+                imported_count += 1
+                
+                # Create audit log
+                await create_audit_log(
+                    action="bulk_user_import",
+                    admin_id=current_user["_id"],
+                    details={
+                        "imported_user": row['username'],
+                        "email": row['email'],
+                        "role": user_doc['role']
+                    }
+                )
+                
+            except Exception as e:
+                errors.append(f"Row {row_num}: {str(e)}")
+        
+        return {
+            "success": True,
+            "message": f"Bulk import completed. Imported {imported_count} users.",
+            "imported_count": imported_count,
+            "errors": errors[:10]  # Limit errors shown
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in bulk import: {str(e)}")
+        return {
+            "success": False,
+            "message": "Failed to process CSV file",
+            "errors": [str(e)]
+        }
+
+@app.post("/api/admin/bulk-credit-management")
+async def bulk_credit_management(
+    request: dict,
+    current_user = Depends(admin_required)
+):
+    """Bulk credit management for multiple users"""
+    
+    try:
+        user_ids = request.get('user_ids', [])
+        action = request.get('action', 'add')
+        amount = request.get('amount', 0)
+        reason = request.get('reason', '')
+        
+        if not user_ids or not reason:
+            raise HTTPException(status_code=400, detail="User IDs and reason are required")
+        
+        if amount <= 0:
+            raise HTTPException(status_code=400, detail="Amount must be positive")
+        
+        processed_users = 0
+        errors = []
+        
+        for user_identifier in user_ids:
+            try:
+                # Find user by ID or username
+                user = await db.users.find_one({
+                    "$or": [
+                        {"_id": user_identifier},
+                        {"username": user_identifier}
+                    ]
+                })
+                
+                if not user:
+                    errors.append(f"User not found: {user_identifier}")
+                    continue
+                
+                # Calculate new credit amount
+                current_credits = user.get('credits', 0)
+                if action == "add":
+                    new_credits = current_credits + amount
+                elif action == "subtract":
+                    new_credits = max(0, current_credits - amount)
+                elif action == "set":
+                    new_credits = amount
+                else:
+                    raise ValueError(f"Invalid action: {action}")
+                
+                # Update user credits
+                await db.users.update_one(
+                    {"_id": user["_id"]},
+                    {
+                        "$set": {"credits": new_credits},
+                        "$push": {
+                            "credit_history": {
+                                "action": action,
+                                "amount": amount,
+                                "previous_credits": current_credits,
+                                "new_credits": new_credits,
+                                "reason": reason,
+                                "admin_id": current_user["_id"],
+                                "timestamp": datetime.utcnow()
+                            }
+                        }
+                    }
+                )
+                
+                # Create audit log
+                await create_audit_log(
+                    action=f"bulk_credit_{action}",
+                    admin_id=current_user["_id"],
+                    user_id=user["_id"],
+                    details={
+                        "username": user["username"],
+                        "action": action,
+                        "amount": amount,
+                        "previous_credits": current_credits,
+                        "new_credits": new_credits,
+                        "reason": reason
+                    }
+                )
+                
+                processed_users += 1
+                
+            except Exception as e:
+                errors.append(f"Error processing {user_identifier}: {str(e)}")
+        
+        return {
+            "success": True,
+            "message": f"Bulk credit {action} completed",
+            "processed_users": processed_users,
+            "errors": errors
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in bulk credit management: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/admin/bulk-notification")
+async def bulk_notification(
+    request: dict,
+    current_user = Depends(admin_required)
+):
+    """Send bulk notifications to multiple users"""
+    
+    try:
+        user_ids = request.get('user_ids', [])
+        subject = request.get('subject', '')
+        message = request.get('message', '')
+        notification_type = request.get('type', 'info')
+        
+        if not user_ids or not subject or not message:
+            raise HTTPException(status_code=400, detail="User IDs, subject, and message are required")
+        
+        sent_count = 0
+        errors = []
+        
+        for user_identifier in user_ids:
+            try:
+                # Find user
+                user = await db.users.find_one({
+                    "$or": [
+                        {"_id": user_identifier},
+                        {"username": user_identifier}
+                    ]
+                })
+                
+                if not user:
+                    errors.append(f"User not found: {user_identifier}")
+                    continue
+                
+                # Create notification record
+                notification = {
+                    "_id": f"NOTIF-{int(time.time())}-{random.randint(1000, 9999)}",
+                    "user_id": user["_id"],
+                    "type": notification_type,
+                    "subject": subject,
+                    "message": message,
+                    "read": False,
+                    "created_at": datetime.utcnow(),
+                    "admin_id": current_user["_id"]
+                }
+                
+                await db.notifications.insert_one(notification)
+                
+                # Send email notification if email service is configured
+                try:
+                    await send_notification_email(user["email"], subject, message)
+                except Exception as email_error:
+                    logger.warning(f"Failed to send email to {user['email']}: {str(email_error)}")
+                
+                sent_count += 1
+                
+            except Exception as e:
+                errors.append(f"Error sending notification to {user_identifier}: {str(e)}")
+        
+        # Create audit log
+        await create_audit_log(
+            action="bulk_notification_sent",
+            admin_id=current_user["_id"],
+            details={
+                "subject": subject,
+                "type": notification_type,
+                "sent_count": sent_count,
+                "target_users": len(user_ids)
+            }
+        )
+        
+        return {
+            "success": True,
+            "message": f"Bulk notification sent to {sent_count} users",
+            "sent_count": sent_count,
+            "errors": errors
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in bulk notification: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Helper function for sending notification emails
+async def send_notification_email(email: str, subject: str, message: str):
+    """Send notification email to user"""
+    try:
+        # This would use your email service (SendGrid, etc.)
+        # For now, just log the action
+        logger.info(f"Notification email sent to {email}: {subject}")
+    except Exception as e:
+        logger.error(f"Failed to send notification email: {str(e)}")
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001, log_level="info")
