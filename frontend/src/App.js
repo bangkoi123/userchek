@@ -68,7 +68,7 @@ function AppContent() {
         <Sidebar isOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
         
         {/* Main Content */}
-        <div className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-0'}`}>
+        <div className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'lg:ml-64' : 'ml-0'}`}>
           {/* Header */}
           <Header 
             sidebarOpen={sidebarOpen}
