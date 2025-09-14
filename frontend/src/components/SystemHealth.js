@@ -52,6 +52,26 @@ const SystemHealth = () => {
     }
   };
 
+  const clearValidationCache = async () => {
+    if (!window.confirm('Apakah Anda yakin ingin menghapus semua cache validasi? Semua nomor akan divalidasi ulang pada pengecekan berikutnya.')) {
+      return;
+    }
+
+    setClearingCache(true);
+    try {
+      const result = await apiCall('/api/admin/clear-validation-cache', 'POST');
+      toast.success(`Cache berhasil dihapus! ${result.deleted_count} entri cache dihapus.`);
+      
+      // Refresh system health after clearing cache
+      fetchSystemHealth();
+    } catch (error) {
+      console.error('Error clearing cache:', error);
+      toast.error('Gagal menghapus cache: ' + (error.response?.data?.detail || error.message));
+    } finally {
+      setClearingCache(false);
+    }
+  };
+
   const getStatusIcon = (status) => {
     switch (status) {
       case 'healthy':
