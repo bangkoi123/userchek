@@ -296,7 +296,7 @@ Maya,+628111222333`;
         <div className="flex space-x-4">
           <button
             onClick={() => {
-              const sampleCSV = `phone_number\n+6281234567890\n+6289876543210\n+6285555666777\n08123456789\n+628111222333`;
+              const sampleCSV = `name,phone_number\nKoi,+6281234567890\nBudi,+6289876543210\nSari,+6285555666777\nAndi,08123456789\nMaya,+628111222333`;
               const element = document.createElement("a");
               const file = new Blob([sampleCSV], { type: 'text/csv' });
               element.href = URL.createObjectURL(file);
