@@ -3207,6 +3207,12 @@ async def create_demo_users():
     except Exception as e:
         logger.error(f"Error creating demo users: {str(e)}")
 
+@app.post("/api/admin/create-demo-users")
+async def create_demo_users_endpoint(current_user = Depends(admin_required)):
+    """Manually create demo users"""
+    await create_demo_users()
+    return {"message": "Demo users created successfully"}
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001, log_level="info")
