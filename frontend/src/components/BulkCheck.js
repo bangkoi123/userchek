@@ -74,12 +74,12 @@ const BulkCheck = () => {
   }, [progress, stopListening]);
 
   // Sample CSV for download
-  const sampleCSV = `phone_number
-+6281234567890
-+6289876543210
-+6285555666777
-08123456789
-+628111222333`;
+  const sampleCSV = `name,phone_number
+Koi,+6281234567890  
+Budi,+6289876543210
+Sari,+6285555666777
+Andi,08123456789
+Maya,+628111222333`;
 
   const downloadSampleCSV = () => {
     const element = document.createElement("a");
