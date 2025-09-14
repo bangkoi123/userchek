@@ -164,7 +164,13 @@ const BulkCheck = () => {
         totalRows += Math.max(0, lines.length - 1); // Subtract header row
       }
     });
-    return totalRows * 2; // 2 credits per validation
+    
+    // Calculate credits based on platform selection
+    let creditsPerNumber = 0;
+    if (validateWhatsapp) creditsPerNumber += 1;
+    if (validateTelegram) creditsPerNumber += 1;
+    
+    return totalRows * creditsPerNumber;
   };
 
   const startValidation = async () => {
