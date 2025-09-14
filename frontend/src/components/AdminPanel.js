@@ -200,9 +200,6 @@ const AdminPanel = () => {
       
       await apiCall(`/api/admin/whatsapp-provider?${params.toString()}`, 'PUT');
       toast.success('Pengaturan WhatsApp provider berhasil disimpan!');
-        await apiCall('/api/admin/whatsapp-providers', 'POST', whatsAppForm);
-        toast.success('Provider WhatsApp berhasil ditambahkan');
-      }
       
       closeWhatsAppModal();
       fetchAdminData(); // Refresh data
