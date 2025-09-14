@@ -7,12 +7,15 @@ import {
   Upload, 
   History, 
   Settings, 
-  Smartphone,
+  CreditCard, 
+  Users, 
   Shield,
-  CreditCard,
   User,
-  Users,
   X,
+  Menu,
+  Smartphone,
+  Monitor,
+  UserPlus,
   ChevronLeft
 } from 'lucide-react';
 
