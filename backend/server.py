@@ -300,17 +300,21 @@ async def validate_whatsapp_number_smart(phone: str, identifier: str = None) -> 
         if provider_settings and provider_settings.get("enabled", True):
             provider = provider_settings.get("provider", "free")
             
+            print(f"🔧 Using WhatsApp provider: {provider}")
+            
             if provider == "checknumber_ai":
-                # Use CheckNumber.ai API
-                return await validate_whatsapp_checknumber_api(phone, identifier)
+                # Use CheckNumber.ai API with settings
+                return await validate_whatsapp_checknumber_api(phone, identifier, provider_settings)
             elif provider == "free":
                 # Use free web scraping method
                 return await validate_whatsapp_web_api(phone, identifier)
             else:
                 # Unknown provider, fallback to free
+                print(f"⚠️ Unknown provider {provider}, falling back to free method")
                 return await validate_whatsapp_web_api(phone, identifier)
         else:
             # No provider configured or disabled, use free method
+            print(f"⚠️ No provider configured or disabled, using free method")
             return await validate_whatsapp_web_api(phone, identifier)
             
     except Exception as e:
