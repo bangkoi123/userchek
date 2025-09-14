@@ -810,6 +810,12 @@ async def process_bulk_validation(job_id: str):
                 )
                 
                 # Emit real-time progress
+                last_result = {}
+                if whatsapp_result:
+                    last_result["whatsapp"] = whatsapp_result["status"]
+                if telegram_result:
+                    last_result["telegram"] = telegram_result["status"]
+                
                 await emit_job_progress(job_id, {
                     "job_id": job_id,
                     "status": "processing",
@@ -818,10 +824,7 @@ async def process_bulk_validation(job_id: str):
                     "progress_percentage": progress_percentage,
                     "current_phone": phone,
                     "current_identifier": identifier,
-                    "last_result": {
-                        "whatsapp": whatsapp_result["status"],
-                        "telegram": telegram_result["status"]
-                    }
+                    "last_result": last_result
                 })
                 
                 # Small delay to prevent overwhelming
