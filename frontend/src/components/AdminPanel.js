@@ -47,11 +47,10 @@ const AdminPanel = () => {
   });
 
   const [whatsAppForm, setWhatsAppForm] = useState({
-    name: '',
-    api_endpoint: '',
+    provider: 'free',
     api_key: '',
-    provider_type: 'twilio',
-    is_active: true
+    api_url: 'https://api.ekycpro.com/v1/whatsapp',
+    enabled: true
   });
 
   useEffect(() => {
