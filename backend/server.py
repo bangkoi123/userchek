@@ -1755,10 +1755,21 @@ async def bulk_check(
     validate_telegram: bool = Form(True),
     current_user = Depends(get_current_user)
 ):
+    # Debug logging
+    print(f"🔍 DEBUG bulk_check endpoint called:")
+    print(f"  - filename: {file.filename}")
+    print(f"  - file size: {file.size}")
+    print(f"  - content_type: {file.content_type}")
+    print(f"  - validate_whatsapp: {validate_whatsapp} (type: {type(validate_whatsapp)})")
+    print(f"  - validate_telegram: {validate_telegram} (type: {type(validate_telegram)})")
+    print(f"  - user: {current_user.get('username', 'N/A')}")
+    
     if not file.filename.endswith(('.csv', '.xlsx', '.xls')):
+        print(f"❌ ERROR: File format not supported: {file.filename}")
         raise HTTPException(status_code=400, detail="Format file tidak didukung. Gunakan CSV, XLS, atau XLSX")
     
     if file.size > 10 * 1024 * 1024:  # 10MB
+        print(f"❌ ERROR: File too large: {file.size} bytes")
         raise HTTPException(status_code=400, detail="File terlalu besar. Maksimal 10MB")
     
     # Validate platform selection
