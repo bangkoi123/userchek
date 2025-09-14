@@ -53,6 +53,18 @@ const Sidebar = ({ isOpen, setSidebarOpen }) => {
         description: 'Monitor sistem & performance'
       },
       {
+        name: 'Audit Logs',
+        path: '/admin/audit-logs',
+        icon: Shield,
+        description: 'Track admin & user activities'
+      },
+      {
+        name: 'Bulk Operations',
+        path: '/admin/bulk-operations',
+        icon: UserPlus,
+        description: 'Import users & bulk management'
+      },
+      {
         name: 'Admin Settings',
         path: '/admin/settings',
         icon: Settings,
