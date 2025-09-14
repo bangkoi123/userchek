@@ -1,0 +1,1058 @@
+{
+  "6281261623389": {
+    "Method 1: wa.me": {
+      "status": "inactive",
+      "method": "wa.me",
+      "score": "2/5",
+      "indicators": {
+        "has_chat_link": true,
+        "has_whatsapp_scheme": false,
+        "main_block_visible": false,
+        "fallback_hidden": true,
+        "no_error_message": false
+      },
+      "raw_response_length": 194183
+    },
+    "Method 2: api.whatsapp.com": {
+      "status": "inactive",
+      "method": "api.whatsapp.com",
+      "score": "3/5",
+      "indicators": {
+        "has_send_link": true,
+        "main_block_visible": false,
+        "app_absent_0": true,
+        "no_error_message": false,
+        "fallback_hidden": true
+      },
+      "has_error": true,
+      "raw_response_length": 194181
+    },
+    "Method 3: web.whatsapp.com": {
+      "status": "error",
+      "method": "web.whatsapp.com",
+      "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://web.whatsapp.com/send/?phone=6281261623389&text='"
+    },
+    "Method 4: mobile_api": {
+      "status": "inactive",
+      "method": "mobile_api",
+      "successful_endpoints": 0,
+      "total_endpoints": 3,
+      "results": [
+        {
+          "endpoint": "https://wa.me/6281261623389?text=",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://api.whatsapp.com/send/?phone=6281261623389&text&type=phone_number&app_absent=0'"
+        },
+        {
+          "endpoint": "https://api.whatsapp.com/send?phone=6281261623389",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://api.whatsapp.com/send?phone=6281261623389'"
+        },
+        {
+          "endpoint": "https://chat.whatsapp.com/6281261623389",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://chat.whatsapp.com/6281261623389'"
+        }
+      ]
+    },
+    "Method 5: business_directory": {
+      "status": "active",
+      "method": "business_directory",
+      "score": "5/5",
+      "indicators": {
+        "has_business_profile": true,
+        "has_profile_pic": true,
+        "has_business_hours": true,
+        "has_catalog": true,
+        "has_about": true
+      }
+    }
+  },
+  "6282151118348": {
+    "Method 1: wa.me": {
+      "status": "inactive",
+      "method": "wa.me",
+      "score": "2/5",
+      "indicators": {
+        "has_chat_link": true,
+        "has_whatsapp_scheme": false,
+        "main_block_visible": false,
+        "fallback_hidden": true,
+        "no_error_message": false
+      },
+      "raw_response_length": 194181
+    },
+    "Method 2: api.whatsapp.com": {
+      "status": "inactive",
+      "method": "api.whatsapp.com",
+      "score": "3/5",
+      "indicators": {
+        "has_send_link": true,
+        "main_block_visible": false,
+        "app_absent_0": true,
+        "no_error_message": false,
+        "fallback_hidden": true
+      },
+      "has_error": true,
+      "raw_response_length": 194180
+    },
+    "Method 3: web.whatsapp.com": {
+      "status": "error",
+      "method": "web.whatsapp.com",
+      "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://web.whatsapp.com/send/?phone=6282151118348&text='"
+    },
+    "Method 4: mobile_api": {
+      "status": "inactive",
+      "method": "mobile_api",
+      "successful_endpoints": 0,
+      "total_endpoints": 3,
+      "results": [
+        {
+          "endpoint": "https://wa.me/6282151118348?text=",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://api.whatsapp.com/send/?phone=6282151118348&text&type=phone_number&app_absent=0'"
+        },
+        {
+          "endpoint": "https://api.whatsapp.com/send?phone=6282151118348",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://api.whatsapp.com/send?phone=6282151118348'"
+        },
+        {
+          "endpoint": "https://chat.whatsapp.com/6282151118348",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://chat.whatsapp.com/6282151118348'"
+        }
+      ]
+    },
+    "Method 5: business_directory": {
+      "status": "active",
+      "method": "business_directory",
+      "score": "5/5",
+      "indicators": {
+        "has_business_profile": true,
+        "has_profile_pic": true,
+        "has_business_hours": true,
+        "has_catalog": true,
+        "has_about": true
+      }
+    }
+  },
+  "6285586712458": {
+    "Method 1: wa.me": {
+      "status": "inactive",
+      "method": "wa.me",
+      "score": "2/5",
+      "indicators": {
+        "has_chat_link": true,
+        "has_whatsapp_scheme": false,
+        "main_block_visible": false,
+        "fallback_hidden": true,
+        "no_error_message": false
+      },
+      "raw_response_length": 194180
+    },
+    "Method 2: api.whatsapp.com": {
+      "status": "inactive",
+      "method": "api.whatsapp.com",
+      "score": "3/5",
+      "indicators": {
+        "has_send_link": true,
+        "main_block_visible": false,
+        "app_absent_0": true,
+        "no_error_message": false,
+        "fallback_hidden": true
+      },
+      "has_error": true,
+      "raw_response_length": 194324
+    },
+    "Method 3: web.whatsapp.com": {
+      "status": "error",
+      "method": "web.whatsapp.com",
+      "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://web.whatsapp.com/send/?phone=6285586712458&text='"
+    },
+    "Method 4: mobile_api": {
+      "status": "inactive",
+      "method": "mobile_api",
+      "successful_endpoints": 0,
+      "total_endpoints": 3,
+      "results": [
+        {
+          "endpoint": "https://wa.me/6285586712458?text=",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://api.whatsapp.com/send/?phone=6285586712458&text&type=phone_number&app_absent=0'"
+        },
+        {
+          "endpoint": "https://api.whatsapp.com/send?phone=6285586712458",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://api.whatsapp.com/send?phone=6285586712458'"
+        },
+        {
+          "endpoint": "https://chat.whatsapp.com/6285586712458",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://chat.whatsapp.com/6285586712458'"
+        }
+      ]
+    },
+    "Method 5: business_directory": {
+      "status": "active",
+      "method": "business_directory",
+      "score": "5/5",
+      "indicators": {
+        "has_business_profile": true,
+        "has_profile_pic": true,
+        "has_business_hours": true,
+        "has_catalog": true,
+        "has_about": true
+      }
+    }
+  },
+  "62855717536356": {
+    "Method 1: wa.me": {
+      "status": "inactive",
+      "method": "wa.me",
+      "score": "2/5",
+      "indicators": {
+        "has_chat_link": true,
+        "has_whatsapp_scheme": false,
+        "main_block_visible": false,
+        "fallback_hidden": true,
+        "no_error_message": false
+      },
+      "raw_response_length": 194189
+    },
+    "Method 2: api.whatsapp.com": {
+      "status": "inactive",
+      "method": "api.whatsapp.com",
+      "score": "3/5",
+      "indicators": {
+        "has_send_link": true,
+        "main_block_visible": false,
+        "app_absent_0": true,
+        "no_error_message": false,
+        "fallback_hidden": true
+      },
+      "has_error": true,
+      "raw_response_length": 194185
+    },
+    "Method 3: web.whatsapp.com": {
+      "status": "error",
+      "method": "web.whatsapp.com",
+      "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://web.whatsapp.com/send/?phone=62855717536356&text='"
+    },
+    "Method 4: mobile_api": {
+      "status": "inactive",
+      "method": "mobile_api",
+      "successful_endpoints": 0,
+      "total_endpoints": 3,
+      "results": [
+        {
+          "endpoint": "https://wa.me/62855717536356?text=",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://api.whatsapp.com/send/?phone=62855717536356&text&type=phone_number&app_absent=0'"
+        },
+        {
+          "endpoint": "https://api.whatsapp.com/send?phone=62855717536356",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://api.whatsapp.com/send?phone=62855717536356'"
+        },
+        {
+          "endpoint": "https://chat.whatsapp.com/62855717536356",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://chat.whatsapp.com/62855717536356'"
+        }
+      ]
+    },
+    "Method 5: business_directory": {
+      "status": "active",
+      "method": "business_directory",
+      "score": "5/5",
+      "indicators": {
+        "has_business_profile": true,
+        "has_profile_pic": true,
+        "has_business_hours": true,
+        "has_catalog": true,
+        "has_about": true
+      }
+    }
+  },
+  "6289664393975": {
+    "Method 1: wa.me": {
+      "status": "inactive",
+      "method": "wa.me",
+      "score": "2/5",
+      "indicators": {
+        "has_chat_link": true,
+        "has_whatsapp_scheme": false,
+        "main_block_visible": false,
+        "fallback_hidden": true,
+        "no_error_message": false
+      },
+      "raw_response_length": 194180
+    },
+    "Method 2: api.whatsapp.com": {
+      "status": "inactive",
+      "method": "api.whatsapp.com",
+      "score": "3/5",
+      "indicators": {
+        "has_send_link": true,
+        "main_block_visible": false,
+        "app_absent_0": true,
+        "no_error_message": false,
+        "fallback_hidden": true
+      },
+      "has_error": true,
+      "raw_response_length": 194183
+    },
+    "Method 3: web.whatsapp.com": {
+      "status": "error",
+      "method": "web.whatsapp.com",
+      "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://web.whatsapp.com/send/?phone=6289664393975&text='"
+    },
+    "Method 4: mobile_api": {
+      "status": "inactive",
+      "method": "mobile_api",
+      "successful_endpoints": 0,
+      "total_endpoints": 3,
+      "results": [
+        {
+          "endpoint": "https://wa.me/6289664393975?text=",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://api.whatsapp.com/send/?phone=6289664393975&text&type=phone_number&app_absent=0'"
+        },
+        {
+          "endpoint": "https://api.whatsapp.com/send?phone=6289664393975",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://api.whatsapp.com/send?phone=6289664393975'"
+        },
+        {
+          "endpoint": "https://chat.whatsapp.com/6289664393975",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://chat.whatsapp.com/6289664393975'"
+        }
+      ]
+    },
+    "Method 5: business_directory": {
+      "status": "active",
+      "method": "business_directory",
+      "score": "5/5",
+      "indicators": {
+        "has_business_profile": true,
+        "has_profile_pic": true,
+        "has_business_hours": true,
+        "has_catalog": true,
+        "has_about": true
+      }
+    }
+  },
+  "6281807801515": {
+    "Method 1: wa.me": {
+      "status": "inactive",
+      "method": "wa.me",
+      "score": "2/5",
+      "indicators": {
+        "has_chat_link": true,
+        "has_whatsapp_scheme": false,
+        "main_block_visible": false,
+        "fallback_hidden": true,
+        "no_error_message": false
+      },
+      "raw_response_length": 194180
+    },
+    "Method 2: api.whatsapp.com": {
+      "status": "inactive",
+      "method": "api.whatsapp.com",
+      "score": "3/5",
+      "indicators": {
+        "has_send_link": true,
+        "main_block_visible": false,
+        "app_absent_0": true,
+        "no_error_message": false,
+        "fallback_hidden": true
+      },
+      "has_error": true,
+      "raw_response_length": 194184
+    },
+    "Method 3: web.whatsapp.com": {
+      "status": "error",
+      "method": "web.whatsapp.com",
+      "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://web.whatsapp.com/send/?phone=6281807801515&text='"
+    },
+    "Method 4: mobile_api": {
+      "status": "inactive",
+      "method": "mobile_api",
+      "successful_endpoints": 0,
+      "total_endpoints": 3,
+      "results": [
+        {
+          "endpoint": "https://wa.me/6281807801515?text=",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://api.whatsapp.com/send/?phone=6281807801515&text&type=phone_number&app_absent=0'"
+        },
+        {
+          "endpoint": "https://api.whatsapp.com/send?phone=6281807801515",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://api.whatsapp.com/send?phone=6281807801515'"
+        },
+        {
+          "endpoint": "https://chat.whatsapp.com/6281807801515",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://chat.whatsapp.com/6281807801515'"
+        }
+      ]
+    },
+    "Method 5: business_directory": {
+      "status": "active",
+      "method": "business_directory",
+      "score": "5/5",
+      "indicators": {
+        "has_business_profile": true,
+        "has_profile_pic": true,
+        "has_business_hours": true,
+        "has_catalog": true,
+        "has_about": true
+      }
+    }
+  },
+  "6281290529129": {
+    "Method 1: wa.me": {
+      "status": "inactive",
+      "method": "wa.me",
+      "score": "2/5",
+      "indicators": {
+        "has_chat_link": true,
+        "has_whatsapp_scheme": false,
+        "main_block_visible": false,
+        "fallback_hidden": true,
+        "no_error_message": false
+      },
+      "raw_response_length": 194184
+    },
+    "Method 2: api.whatsapp.com": {
+      "status": "inactive",
+      "method": "api.whatsapp.com",
+      "score": "3/5",
+      "indicators": {
+        "has_send_link": true,
+        "main_block_visible": false,
+        "app_absent_0": true,
+        "no_error_message": false,
+        "fallback_hidden": true
+      },
+      "has_error": true,
+      "raw_response_length": 194176
+    },
+    "Method 3: web.whatsapp.com": {
+      "status": "error",
+      "method": "web.whatsapp.com",
+      "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://web.whatsapp.com/send/?phone=6281290529129&text='"
+    },
+    "Method 4: mobile_api": {
+      "status": "inactive",
+      "method": "mobile_api",
+      "successful_endpoints": 0,
+      "total_endpoints": 3,
+      "results": [
+        {
+          "endpoint": "https://wa.me/6281290529129?text=",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://api.whatsapp.com/send/?phone=6281290529129&text&type=phone_number&app_absent=0'"
+        },
+        {
+          "endpoint": "https://api.whatsapp.com/send?phone=6281290529129",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://api.whatsapp.com/send?phone=6281290529129'"
+        },
+        {
+          "endpoint": "https://chat.whatsapp.com/6281290529129",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://chat.whatsapp.com/6281290529129'"
+        }
+      ]
+    },
+    "Method 5: business_directory": {
+      "status": "active",
+      "method": "business_directory",
+      "score": "5/5",
+      "indicators": {
+        "has_business_profile": true,
+        "has_profile_pic": true,
+        "has_business_hours": true,
+        "has_catalog": true,
+        "has_about": true
+      }
+    }
+  },
+  "6283866651289": {
+    "Method 1: wa.me": {
+      "status": "inactive",
+      "method": "wa.me",
+      "score": "2/5",
+      "indicators": {
+        "has_chat_link": true,
+        "has_whatsapp_scheme": false,
+        "main_block_visible": false,
+        "fallback_hidden": true,
+        "no_error_message": false
+      },
+      "raw_response_length": 194180
+    },
+    "Method 2: api.whatsapp.com": {
+      "status": "inactive",
+      "method": "api.whatsapp.com",
+      "score": "3/5",
+      "indicators": {
+        "has_send_link": true,
+        "main_block_visible": false,
+        "app_absent_0": true,
+        "no_error_message": false,
+        "fallback_hidden": true
+      },
+      "has_error": true,
+      "raw_response_length": 194180
+    },
+    "Method 3: web.whatsapp.com": {
+      "status": "error",
+      "method": "web.whatsapp.com",
+      "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://web.whatsapp.com/send/?phone=6283866651289&text='"
+    },
+    "Method 4: mobile_api": {
+      "status": "inactive",
+      "method": "mobile_api",
+      "successful_endpoints": 0,
+      "total_endpoints": 3,
+      "results": [
+        {
+          "endpoint": "https://wa.me/6283866651289?text=",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://api.whatsapp.com/send/?phone=6283866651289&text&type=phone_number&app_absent=0'"
+        },
+        {
+          "endpoint": "https://api.whatsapp.com/send?phone=6283866651289",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://api.whatsapp.com/send?phone=6283866651289'"
+        },
+        {
+          "endpoint": "https://chat.whatsapp.com/6283866651289",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://chat.whatsapp.com/6283866651289'"
+        }
+      ]
+    },
+    "Method 5: business_directory": {
+      "status": "active",
+      "method": "business_directory",
+      "score": "5/5",
+      "indicators": {
+        "has_business_profile": true,
+        "has_profile_pic": true,
+        "has_business_hours": true,
+        "has_catalog": true,
+        "has_about": true
+      }
+    }
+  },
+  "6289530706258": {
+    "Method 1: wa.me": {
+      "status": "inactive",
+      "method": "wa.me",
+      "score": "2/5",
+      "indicators": {
+        "has_chat_link": true,
+        "has_whatsapp_scheme": false,
+        "main_block_visible": false,
+        "fallback_hidden": true,
+        "no_error_message": false
+      },
+      "raw_response_length": 194181
+    },
+    "Method 2: api.whatsapp.com": {
+      "status": "inactive",
+      "method": "api.whatsapp.com",
+      "score": "3/5",
+      "indicators": {
+        "has_send_link": true,
+        "main_block_visible": false,
+        "app_absent_0": true,
+        "no_error_message": false,
+        "fallback_hidden": true
+      },
+      "has_error": true,
+      "raw_response_length": 194185
+    },
+    "Method 3: web.whatsapp.com": {
+      "status": "error",
+      "method": "web.whatsapp.com",
+      "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://web.whatsapp.com/send/?phone=6289530706258&text='"
+    },
+    "Method 4: mobile_api": {
+      "status": "inactive",
+      "method": "mobile_api",
+      "successful_endpoints": 0,
+      "total_endpoints": 3,
+      "results": [
+        {
+          "endpoint": "https://wa.me/6289530706258?text=",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://api.whatsapp.com/send/?phone=6289530706258&text&type=phone_number&app_absent=0'"
+        },
+        {
+          "endpoint": "https://api.whatsapp.com/send?phone=6289530706258",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://api.whatsapp.com/send?phone=6289530706258'"
+        },
+        {
+          "endpoint": "https://chat.whatsapp.com/6289530706258",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://chat.whatsapp.com/6289530706258'"
+        }
+      ]
+    },
+    "Method 5: business_directory": {
+      "status": "active",
+      "method": "business_directory",
+      "score": "5/5",
+      "indicators": {
+        "has_business_profile": true,
+        "has_profile_pic": true,
+        "has_business_hours": true,
+        "has_catalog": true,
+        "has_about": true
+      }
+    }
+  },
+  "6285163631515": {
+    "Method 1: wa.me": {
+      "status": "inactive",
+      "method": "wa.me",
+      "score": "2/5",
+      "indicators": {
+        "has_chat_link": true,
+        "has_whatsapp_scheme": false,
+        "main_block_visible": false,
+        "fallback_hidden": true,
+        "no_error_message": false
+      },
+      "raw_response_length": 194161
+    },
+    "Method 2: api.whatsapp.com": {
+      "status": "inactive",
+      "method": "api.whatsapp.com",
+      "score": "3/5",
+      "indicators": {
+        "has_send_link": true,
+        "main_block_visible": false,
+        "app_absent_0": true,
+        "no_error_message": false,
+        "fallback_hidden": true
+      },
+      "has_error": true,
+      "raw_response_length": 194158
+    },
+    "Method 3: web.whatsapp.com": {
+      "status": "error",
+      "method": "web.whatsapp.com",
+      "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://web.whatsapp.com/send/?phone=6285163631515&text='"
+    },
+    "Method 4: mobile_api": {
+      "status": "inactive",
+      "method": "mobile_api",
+      "successful_endpoints": 0,
+      "total_endpoints": 3,
+      "results": [
+        {
+          "endpoint": "https://wa.me/6285163631515?text=",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://api.whatsapp.com/send/?phone=6285163631515&text&type=phone_number&app_absent=0'"
+        },
+        {
+          "endpoint": "https://api.whatsapp.com/send?phone=6285163631515",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://api.whatsapp.com/send?phone=6285163631515'"
+        },
+        {
+          "endpoint": "https://chat.whatsapp.com/6285163631515",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://chat.whatsapp.com/6285163631515'"
+        }
+      ]
+    },
+    "Method 5: business_directory": {
+      "status": "active",
+      "method": "business_directory",
+      "score": "5/5",
+      "indicators": {
+        "has_business_profile": true,
+        "has_profile_pic": true,
+        "has_business_hours": true,
+        "has_catalog": true,
+        "has_about": true
+      }
+    }
+  },
+  "6282370723099": {
+    "Method 1: wa.me": {
+      "status": "inactive",
+      "method": "wa.me",
+      "score": "2/5",
+      "indicators": {
+        "has_chat_link": true,
+        "has_whatsapp_scheme": false,
+        "main_block_visible": false,
+        "fallback_hidden": true,
+        "no_error_message": false
+      },
+      "raw_response_length": 194186
+    },
+    "Method 2: api.whatsapp.com": {
+      "status": "inactive",
+      "method": "api.whatsapp.com",
+      "score": "3/5",
+      "indicators": {
+        "has_send_link": true,
+        "main_block_visible": false,
+        "app_absent_0": true,
+        "no_error_message": false,
+        "fallback_hidden": true
+      },
+      "has_error": true,
+      "raw_response_length": 194183
+    },
+    "Method 3: web.whatsapp.com": {
+      "status": "error",
+      "method": "web.whatsapp.com",
+      "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://web.whatsapp.com/send/?phone=6282370723099&text='"
+    },
+    "Method 4: mobile_api": {
+      "status": "inactive",
+      "method": "mobile_api",
+      "successful_endpoints": 0,
+      "total_endpoints": 3,
+      "results": [
+        {
+          "endpoint": "https://wa.me/6282370723099?text=",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://api.whatsapp.com/send/?phone=6282370723099&text&type=phone_number&app_absent=0'"
+        },
+        {
+          "endpoint": "https://api.whatsapp.com/send?phone=6282370723099",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://api.whatsapp.com/send?phone=6282370723099'"
+        },
+        {
+          "endpoint": "https://chat.whatsapp.com/6282370723099",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://chat.whatsapp.com/6282370723099'"
+        }
+      ]
+    },
+    "Method 5: business_directory": {
+      "status": "active",
+      "method": "business_directory",
+      "score": "5/5",
+      "indicators": {
+        "has_business_profile": true,
+        "has_profile_pic": true,
+        "has_business_hours": true,
+        "has_catalog": true,
+        "has_about": true
+      }
+    }
+  },
+  "62881026999701": {
+    "Method 1: wa.me": {
+      "status": "inactive",
+      "method": "wa.me",
+      "score": "2/5",
+      "indicators": {
+        "has_chat_link": true,
+        "has_whatsapp_scheme": false,
+        "main_block_visible": false,
+        "fallback_hidden": true,
+        "no_error_message": false
+      },
+      "raw_response_length": 194188
+    },
+    "Method 2: api.whatsapp.com": {
+      "status": "inactive",
+      "method": "api.whatsapp.com",
+      "score": "3/5",
+      "indicators": {
+        "has_send_link": true,
+        "main_block_visible": false,
+        "app_absent_0": true,
+        "no_error_message": false,
+        "fallback_hidden": true
+      },
+      "has_error": true,
+      "raw_response_length": 194188
+    },
+    "Method 3: web.whatsapp.com": {
+      "status": "error",
+      "method": "web.whatsapp.com",
+      "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://web.whatsapp.com/send/?phone=62881026999701&text='"
+    },
+    "Method 4: mobile_api": {
+      "status": "inactive",
+      "method": "mobile_api",
+      "successful_endpoints": 0,
+      "total_endpoints": 3,
+      "results": [
+        {
+          "endpoint": "https://wa.me/62881026999701?text=",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://api.whatsapp.com/send/?phone=62881026999701&text&type=phone_number&app_absent=0'"
+        },
+        {
+          "endpoint": "https://api.whatsapp.com/send?phone=62881026999701",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://api.whatsapp.com/send?phone=62881026999701'"
+        },
+        {
+          "endpoint": "https://chat.whatsapp.com/62881026999701",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://chat.whatsapp.com/62881026999701'"
+        }
+      ]
+    },
+    "Method 5: business_directory": {
+      "status": "active",
+      "method": "business_directory",
+      "score": "5/5",
+      "indicators": {
+        "has_business_profile": true,
+        "has_profile_pic": true,
+        "has_business_hours": true,
+        "has_catalog": true,
+        "has_about": true
+      }
+    }
+  },
+  "6285750437717": {
+    "Method 1: wa.me": {
+      "status": "inactive",
+      "method": "wa.me",
+      "score": "2/5",
+      "indicators": {
+        "has_chat_link": true,
+        "has_whatsapp_scheme": false,
+        "main_block_visible": false,
+        "fallback_hidden": true,
+        "no_error_message": false
+      },
+      "raw_response_length": 196407
+    },
+    "Method 2: api.whatsapp.com": {
+      "status": "inactive",
+      "method": "api.whatsapp.com",
+      "score": "3/5",
+      "indicators": {
+        "has_send_link": true,
+        "main_block_visible": false,
+        "app_absent_0": true,
+        "no_error_message": false,
+        "fallback_hidden": true
+      },
+      "has_error": true,
+      "raw_response_length": 194182
+    },
+    "Method 3: web.whatsapp.com": {
+      "status": "error",
+      "method": "web.whatsapp.com",
+      "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://web.whatsapp.com/send/?phone=6285750437717&text='"
+    },
+    "Method 4: mobile_api": {
+      "status": "inactive",
+      "method": "mobile_api",
+      "successful_endpoints": 0,
+      "total_endpoints": 3,
+      "results": [
+        {
+          "endpoint": "https://wa.me/6285750437717?text=",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://api.whatsapp.com/send/?phone=6285750437717&text&type=phone_number&app_absent=0'"
+        },
+        {
+          "endpoint": "https://api.whatsapp.com/send?phone=6285750437717",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://api.whatsapp.com/send?phone=6285750437717'"
+        },
+        {
+          "endpoint": "https://chat.whatsapp.com/6285750437717",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://chat.whatsapp.com/6285750437717'"
+        }
+      ]
+    },
+    "Method 5: business_directory": {
+      "status": "active",
+      "method": "business_directory",
+      "score": "5/5",
+      "indicators": {
+        "has_business_profile": true,
+        "has_profile_pic": true,
+        "has_business_hours": true,
+        "has_catalog": true,
+        "has_about": true
+      }
+    }
+  },
+  "6282222208609": {
+    "Method 1: wa.me": {
+      "status": "inactive",
+      "method": "wa.me",
+      "score": "2/5",
+      "indicators": {
+        "has_chat_link": true,
+        "has_whatsapp_scheme": false,
+        "main_block_visible": false,
+        "fallback_hidden": true,
+        "no_error_message": false
+      },
+      "raw_response_length": 194183
+    },
+    "Method 2: api.whatsapp.com": {
+      "status": "inactive",
+      "method": "api.whatsapp.com",
+      "score": "3/5",
+      "indicators": {
+        "has_send_link": true,
+        "main_block_visible": false,
+        "app_absent_0": true,
+        "no_error_message": false,
+        "fallback_hidden": true
+      },
+      "has_error": true,
+      "raw_response_length": 194190
+    },
+    "Method 3: web.whatsapp.com": {
+      "status": "error",
+      "method": "web.whatsapp.com",
+      "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://web.whatsapp.com/send/?phone=6282222208609&text='"
+    },
+    "Method 4: mobile_api": {
+      "status": "inactive",
+      "method": "mobile_api",
+      "successful_endpoints": 0,
+      "total_endpoints": 3,
+      "results": [
+        {
+          "endpoint": "https://wa.me/6282222208609?text=",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://api.whatsapp.com/send/?phone=6282222208609&text&type=phone_number&app_absent=0'"
+        },
+        {
+          "endpoint": "https://api.whatsapp.com/send?phone=6282222208609",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://api.whatsapp.com/send?phone=6282222208609'"
+        },
+        {
+          "endpoint": "https://chat.whatsapp.com/6282222208609",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://chat.whatsapp.com/6282222208609'"
+        }
+      ]
+    },
+    "Method 5: business_directory": {
+      "status": "active",
+      "method": "business_directory",
+      "score": "5/5",
+      "indicators": {
+        "has_business_profile": true,
+        "has_profile_pic": true,
+        "has_business_hours": true,
+        "has_catalog": true,
+        "has_about": true
+      }
+    }
+  },
+  "089689547785": {
+    "Method 1: wa.me": {
+      "status": "inactive",
+      "method": "wa.me",
+      "score": "2/5",
+      "indicators": {
+        "has_chat_link": true,
+        "has_whatsapp_scheme": false,
+        "main_block_visible": false,
+        "fallback_hidden": true,
+        "no_error_message": false
+      },
+      "raw_response_length": 194157
+    },
+    "Method 2: api.whatsapp.com": {
+      "status": "inactive",
+      "method": "api.whatsapp.com",
+      "score": "3/5",
+      "indicators": {
+        "has_send_link": true,
+        "main_block_visible": false,
+        "app_absent_0": true,
+        "no_error_message": false,
+        "fallback_hidden": true
+      },
+      "has_error": true,
+      "raw_response_length": 194158
+    },
+    "Method 3: web.whatsapp.com": {
+      "status": "error",
+      "method": "web.whatsapp.com",
+      "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://web.whatsapp.com/send/?phone=6289689547785&text='"
+    },
+    "Method 4: mobile_api": {
+      "status": "inactive",
+      "method": "mobile_api",
+      "successful_endpoints": 0,
+      "total_endpoints": 3,
+      "results": [
+        {
+          "endpoint": "https://wa.me/6289689547785?text=",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://api.whatsapp.com/send/?phone=6289689547785&text&type=phone_number&app_absent=0'"
+        },
+        {
+          "endpoint": "https://api.whatsapp.com/send?phone=6289689547785",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://api.whatsapp.com/send?phone=6289689547785'"
+        },
+        {
+          "endpoint": "https://chat.whatsapp.com/6289689547785",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://chat.whatsapp.com/6289689547785'"
+        }
+      ]
+    },
+    "Method 5: business_directory": {
+      "status": "active",
+      "method": "business_directory",
+      "score": "5/5",
+      "indicators": {
+        "has_business_profile": true,
+        "has_profile_pic": true,
+        "has_business_hours": true,
+        "has_catalog": true,
+        "has_about": true
+      }
+    }
+  },
+  "082253767671": {
+    "Method 1: wa.me": {
+      "status": "inactive",
+      "method": "wa.me",
+      "score": "2/5",
+      "indicators": {
+        "has_chat_link": true,
+        "has_whatsapp_scheme": false,
+        "main_block_visible": false,
+        "fallback_hidden": true,
+        "no_error_message": false
+      },
+      "raw_response_length": 194180
+    },
+    "Method 2: api.whatsapp.com": {
+      "status": "inactive",
+      "method": "api.whatsapp.com",
+      "score": "3/5",
+      "indicators": {
+        "has_send_link": true,
+        "main_block_visible": false,
+        "app_absent_0": true,
+        "no_error_message": false,
+        "fallback_hidden": true
+      },
+      "has_error": true,
+      "raw_response_length": 194182
+    },
+    "Method 3: web.whatsapp.com": {
+      "status": "error",
+      "method": "web.whatsapp.com",
+      "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://web.whatsapp.com/send/?phone=6282253767671&text='"
+    },
+    "Method 4: mobile_api": {
+      "status": "inactive",
+      "method": "mobile_api",
+      "successful_endpoints": 0,
+      "total_endpoints": 3,
+      "results": [
+        {
+          "endpoint": "https://wa.me/6282253767671?text=",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://api.whatsapp.com/send/?phone=6282253767671&text&type=phone_number&app_absent=0'"
+        },
+        {
+          "endpoint": "https://api.whatsapp.com/send?phone=6282253767671",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://api.whatsapp.com/send?phone=6282253767671'"
+        },
+        {
+          "endpoint": "https://chat.whatsapp.com/6282253767671",
+          "error": "400, message='Can not decode content-encoding: brotli (br). Please install `Brotli`', url='https://chat.whatsapp.com/6282253767671'"
+        }
+      ]
+    },
+    "Method 5: business_directory": {
+      "status": "active",
+      "method": "business_directory",
+      "score": "5/5",
+      "indicators": {
+        "has_business_profile": true,
+        "has_profile_pic": true,
+        "has_business_hours": true,
+        "has_catalog": true,
+        "has_about": true
+      }
+    }
+  }
+}
