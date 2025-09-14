@@ -12,7 +12,8 @@ import {
   CreditCard,
   User,
   Users,
-  X
+  X,
+  ChevronLeft
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen, setSidebarOpen }) => {
