@@ -1828,6 +1828,8 @@ async def bulk_check(
             "total_numbers": len(unique_phone_data),
             "processed_numbers": 0,
             "phone_data": unique_phone_data,  # Store both phone and identifier
+            "validate_whatsapp": validate_whatsapp,
+            "validate_telegram": validate_telegram,
             "results": None,
             "credits_used": required_credits,
             "created_at": datetime.utcnow(),
