@@ -593,7 +593,8 @@ const BulkCheck = () => {
               {/* Action Button */}
               <button
                 onClick={startValidation}
-                disabled={uploading || files.length === 0 || files.some(f => f.status === 'error')}
+                disabled={uploading || files.length === 0 || files.some(f => f.status === 'error') || 
+                         (!validateWhatsapp && !validateTelegram)}
                 className="w-full btn-primary mt-4 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
               >
                 {uploading ? (
