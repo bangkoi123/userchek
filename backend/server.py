@@ -2405,13 +2405,23 @@ async def get_public_platform_settings():
 @app.get("/api/admin/whatsapp-provider")
 async def get_whatsapp_provider_settings(current_user = Depends(admin_required)):
     """Get WhatsApp provider configuration"""
-    settings = await db.admin_settings.find_one({"setting_type": "whatsapp_provider"}) or {
-        "provider": "free",
-        "api_key": "",
-        "api_url": "",
-        "enabled": True
-    }
-    return settings
+    settings = await db.admin_settings.find_one({"setting_type": "whatsapp_provider"})
+    
+    if settings:
+        # Remove MongoDB-specific fields
+        return {
+            "provider": settings.get("provider", "free"),
+            "api_key": settings.get("api_key", ""),
+            "api_url": settings.get("api_url", ""),
+            "enabled": settings.get("enabled", True)
+        }
+    else:
+        return {
+            "provider": "free",
+            "api_key": "",
+            "api_url": "",
+            "enabled": True
+        }
 
 @app.put("/api/admin/whatsapp-provider") 
 async def update_whatsapp_provider_settings(
