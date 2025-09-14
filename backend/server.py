@@ -2740,6 +2740,155 @@ async def set_admin_role(user_id: str):
     
     return {"message": "User role updated to admin"}
 
+@app.get("/api/admin/system-health")
+async def get_system_health(current_user = Depends(admin_required)):
+    """Get real-time system health status"""
+    
+    import psutil
+    import time
+    from datetime import datetime
+    
+    try:
+        # Start timing API response
+        start_time = time.time()
+        
+        # Database health check
+        db_status = "healthy"
+        db_response_time = 0
+        try:
+            db_start = time.time()
+            await db.admin.command("ping")
+            db_response_time = round((time.time() - db_start) * 1000, 2)  # ms
+        except Exception as e:
+            db_status = "unhealthy"
+            db_response_time = -1
+        
+        # Server resource usage
+        cpu_usage = psutil.cpu_percent(interval=1)
+        memory = psutil.virtual_memory()
+        disk = psutil.disk_usage('/')
+        
+        # API response time
+        api_response_time = round((time.time() - start_time) * 1000, 2)  # ms
+        
+        # Active connections/users
+        active_jobs = await db.jobs.count_documents({"status": {"$in": ["running", "pending"]}})
+        total_users = await db.users.count_documents({})
+        
+        # Recent error logs (you can implement this based on your logging system)
+        recent_errors = []  # Placeholder for error monitoring
+        
+        return {
+            "timestamp": datetime.utcnow().isoformat(),
+            "overall_status": "healthy" if db_status == "healthy" and cpu_usage < 90 else "warning",
+            "database": {
+                "status": db_status,
+                "response_time_ms": db_response_time,
+                "connection_pool": "available"  # Could be enhanced with actual pool stats
+            },
+            "server": {
+                "cpu_usage_percent": cpu_usage,
+                "memory_usage_percent": memory.percent,
+                "memory_used_gb": round(memory.used / (1024**3), 2),
+                "memory_total_gb": round(memory.total / (1024**3), 2),
+                "disk_usage_percent": disk.percent,
+                "disk_used_gb": round(disk.used / (1024**3), 2),
+                "disk_total_gb": round(disk.total / (1024**3), 2)
+            },
+            "api": {
+                "response_time_ms": api_response_time,
+                "status": "healthy" if api_response_time < 1000 else "slow"
+            },
+            "application": {
+                "active_jobs": active_jobs,
+                "total_users": total_users,
+                "uptime_hours": round(time.time() / 3600, 1)  # Rough uptime estimate
+            },
+            "recent_errors": recent_errors
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting system health: {str(e)}")
+        return {
+            "timestamp": datetime.utcnow().isoformat(),
+            "overall_status": "error",
+            "error": str(e)
+        }
+
+@app.get("/api/admin/audit-logs")
+async def get_audit_logs(
+    page: int = 1,
+    limit: int = 50,
+    action_filter: str = None,
+    user_filter: str = None,
+    current_user = Depends(admin_required)
+):
+    """Get audit logs with filtering and pagination"""
+    
+    try:
+        skip = (page - 1) * limit
+        
+        # Build filter query
+        filter_query = {}
+        if action_filter:
+            filter_query["action"] = {"$regex": action_filter, "$options": "i"}
+        if user_filter:
+            filter_query["$or"] = [
+                {"user_id": {"$regex": user_filter, "$options": "i"}},
+                {"admin_id": {"$regex": user_filter, "$options": "i"}},
+                {"details.username": {"$regex": user_filter, "$options": "i"}}
+            ]
+        
+        # Get audit logs
+        logs = await db.audit_logs.find(filter_query).sort("timestamp", DESCENDING).skip(skip).limit(limit).to_list(limit)
+        total_logs = await db.audit_logs.count_documents(filter_query)
+        
+        # Format logs for response
+        formatted_logs = []
+        for log in logs:
+            formatted_logs.append({
+                "id": log["_id"],
+                "timestamp": log["timestamp"].isoformat() if isinstance(log["timestamp"], datetime) else log["timestamp"],
+                "action": log["action"],
+                "user_id": log.get("user_id", ""),
+                "admin_id": log.get("admin_id", ""),
+                "ip_address": log.get("ip_address", ""),
+                "details": log.get("details", {}),
+                "status": log.get("status", "success")
+            })
+        
+        return {
+            "logs": formatted_logs,
+            "total": total_logs,
+            "page": page,
+            "limit": limit,
+            "total_pages": (total_logs + limit - 1) // limit
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting audit logs: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to get audit logs")
+
+# Helper function to create audit log
+async def create_audit_log(action: str, user_id: str = None, admin_id: str = None, details: dict = None, ip_address: str = None):
+    """Create an audit log entry"""
+    try:
+        audit_entry = {
+            "_id": f"AUDIT-{int(time.time())}-{random.randint(1000, 9999)}",
+            "timestamp": datetime.utcnow(),
+            "action": action,
+            "user_id": user_id,
+            "admin_id": admin_id,
+            "ip_address": ip_address,
+            "details": details or {},
+            "status": "success"
+        }
+        
+        await db.audit_logs.insert_one(audit_entry)
+        
+    except Exception as e:
+        logger.error(f"Error creating audit log: {str(e)}")
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001, log_level="info")
