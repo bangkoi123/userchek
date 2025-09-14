@@ -65,6 +65,12 @@ const Sidebar = ({ isOpen, setSidebarOpen }) => {
         description: 'Import users & bulk management'
       },
       {
+        name: 'Advanced Analytics',
+        path: '/admin/analytics',
+        icon: BarChart3,
+        description: 'Deep insights & performance metrics'
+      },
+      {
         name: 'Admin Settings',
         path: '/admin/settings',
         icon: Settings,
