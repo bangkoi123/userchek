@@ -154,7 +154,7 @@ const Dashboard = () => {
               </div>
               <div>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  ${formatNumber(stats?.total_revenue)}
+                  ${formatNumber(stats?.payment_stats?.total_revenue)}
                 </p>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
                   Total Revenue
