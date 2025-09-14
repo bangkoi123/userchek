@@ -42,11 +42,20 @@ api.interceptors.response.use(
 
 export const apiCall = async (endpoint, method = 'GET', data = null, config = {}) => {
   try {
+    // If data is FormData, remove Content-Type header to let axios set it automatically
+    const finalConfig = { ...config };
+    if (data instanceof FormData) {
+      finalConfig.headers = {
+        ...finalConfig.headers,
+        'Content-Type': undefined // Let axios handle multipart/form-data automatically
+      };
+    }
+    
     const response = await api({
       url: endpoint,
       method,
       data,
-      ...config
+      ...finalConfig
     });
     return response.data;
   } catch (error) {
