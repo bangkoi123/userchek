@@ -1,0 +1,95 @@
+{
+  "082253767671": {
+    "status": "active",
+    "confidence": "high",
+    "score": 8,
+    "decision_factors": [
+      "CHAT_INDICATORS: ['continue to chat']",
+      "HAS_WHATSAPP_LINK",
+      "VISIBLE_BUTTONS: 57"
+    ],
+    "method": "simple_detection",
+    "analysis": {
+      "phone": "6282253767671",
+      "final_url": "https://api.whatsapp.com/send/?phone=6282253767671&text&type=phone_number&app_absent=0",
+      "content_length": 36837,
+      "patterns": {
+        "indonesian_errors": [],
+        "english_errors": [],
+        "chat_indicators": [
+          "continue to chat"
+        ],
+        "download_prompts": []
+      },
+      "element_check": {
+        "main_blocks": 1,
+        "fallback_blocks": 1,
+        "hidden_elements": 343,
+        "visible_buttons": 57,
+        "has_whatsapp_link": true
+      },
+      "page_title": "Share on WhatsApp"
+    }
+  },
+  "6285586712458": {
+    "status": "active",
+    "confidence": "medium",
+    "score": 3,
+    "decision_factors": [
+      "HAS_WHATSAPP_LINK",
+      "VISIBLE_BUTTONS: 58"
+    ],
+    "method": "simple_detection",
+    "analysis": {
+      "phone": "6285586712458",
+      "final_url": "https://api.whatsapp.com/send/?phone=6285586712458&text&type=phone_number&app_absent=0",
+      "content_length": 36887,
+      "patterns": {
+        "indonesian_errors": [],
+        "english_errors": [],
+        "chat_indicators": [],
+        "download_prompts": []
+      },
+      "element_check": {
+        "main_blocks": 1,
+        "fallback_blocks": 1,
+        "hidden_elements": 345,
+        "visible_buttons": 58,
+        "has_whatsapp_link": true
+      },
+      "page_title": "Share on WhatsApp"
+    }
+  },
+  "089689547785": {
+    "status": "active",
+    "confidence": "high",
+    "score": 8,
+    "decision_factors": [
+      "CHAT_INDICATORS: ['continue to chat']",
+      "HAS_WHATSAPP_LINK",
+      "VISIBLE_BUTTONS: 56"
+    ],
+    "method": "simple_detection",
+    "analysis": {
+      "phone": "6289689547785",
+      "final_url": "https://api.whatsapp.com/send/?phone=6289689547785&text&type=phone_number&app_absent=0",
+      "content_length": 36827,
+      "patterns": {
+        "indonesian_errors": [],
+        "english_errors": [],
+        "chat_indicators": [
+          "continue to chat"
+        ],
+        "download_prompts": []
+      },
+      "element_check": {
+        "main_blocks": 1,
+        "fallback_blocks": 1,
+        "hidden_elements": 334,
+        "visible_buttons": 56,
+        "has_whatsapp_link": true
+      },
+      "page_title": "Share on WhatsApp"
+    }
+  }
+}
