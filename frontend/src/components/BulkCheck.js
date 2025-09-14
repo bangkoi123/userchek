@@ -208,6 +208,8 @@ Maya,+628111222333`;
           formData.append('validate_whatsapp', validateWhatsapp.toString());
           formData.append('validate_telegram', validateTelegram.toString());
 
+          console.log('Starting upload for file:', fileItem.file.name);
+          
           const response = await apiCall('/api/validation/bulk-check', 'POST', formData, {
             onUploadProgress: (progressEvent) => {
               const percentCompleted = Math.round(
@@ -217,31 +219,39 @@ Maya,+628111222333`;
             },
           });
 
-          // Update file status to success
-          setFiles(prev => prev.map(f => 
-            f.id === fileItem.id ? { ...f, status: 'success' } : f
-          ));
+          console.log('Upload response:', response);
 
-          toast.success(`File ${fileItem.file.name} berhasil diupload`);
-          
-          // Start real-time monitoring if job_id is returned
-          if (response.job_id) {
+          // Verify we have a successful response
+          if (response && response.job_id) {
+            // Update file status to success
+            setFiles(prev => prev.map(f => 
+              f.id === fileItem.id ? { ...f, status: 'success' } : f
+            ));
+
+            toast.success(`File ${fileItem.file.name} berhasil diupload dan diproses`);
+            
+            // Start real-time monitoring
             setCurrentJobId(response.job_id);
             startListening();
             toast.info('🔄 Mulai monitoring progress real-time...');
+          } else {
+            throw new Error('Response tidak valid atau tidak ada job_id');
           }
           
         } catch (error) {
+          console.error('Upload error for file:', fileItem.file.name, error);
+          
           // Update file status to error
           setFiles(prev => prev.map(f => 
             f.id === fileItem.id ? { 
               ...f, 
               status: 'error', 
-              error: error.response?.data?.detail || 'Upload gagal' 
+              error: error.response?.data?.detail || error.message || 'Upload gagal' 
             } : f
           ));
           
-          toast.error(`Error uploading ${fileItem.file.name}: ${error.response?.data?.detail || 'Upload gagal'}`);
+          const errorMessage = error.response?.data?.detail || error.message || 'Upload gagal';
+          toast.error(`Error uploading ${fileItem.file.name}: ${errorMessage}`);
         }
       }
     } finally {
