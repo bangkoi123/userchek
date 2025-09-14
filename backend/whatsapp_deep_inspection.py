@@ -29,10 +29,14 @@ class WhatsAppDeepInspector:
         
         async with async_playwright() as p:
             browser = await p.chromium.launch(
-                headless=False,  # Use non-headless to see what's happening
+                headless=True,  # Use headless for server environment
                 args=[
                     '--no-sandbox',
-                    '--disable-dev-shm-usage'
+                    '--disable-dev-shm-usage',
+                    '--disable-gpu',
+                    '--disable-background-timer-throttling',
+                    '--disable-renderer-backgrounding',
+                    '--disable-backgrounding-occluded-windows'
                 ]
             )
             
