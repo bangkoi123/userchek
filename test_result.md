@@ -275,9 +275,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Credit Top-up System Frontend"
-    - "User Profile Management Frontend"
-    - "Admin User Management Frontend"
+    - "Enhanced Bulk Check Functionality"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
