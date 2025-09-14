@@ -42,7 +42,7 @@ const Header = ({ sidebarOpen, setSidebarOpen }) => {
             title={sidebarOpen ? "Hide Sidebar" : "Show Sidebar"}
           >
             {sidebarOpen ? (
-              <X className="h-5 w-5" />
+              <ChevronLeft className="h-5 w-5" />
             ) : (
               <Menu className="h-5 w-5" />
             )}
