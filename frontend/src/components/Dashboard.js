@@ -172,7 +172,7 @@ const Dashboard = () => {
               </div>
               <div>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {formatNumber(stats?.total_validations)}
+                  {formatNumber(stats?.validation_stats?.total_validations)}
                 </p>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
                   Total Validations
