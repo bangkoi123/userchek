@@ -197,15 +197,20 @@ async def validate_whatsapp_web_api(phone: str, identifier: str = None) -> Dict[
             'details': {}
         }
 
-async def validate_whatsapp_checknumber_api(phone: str, identifier: str = None) -> Dict[str, Any]:
+async def validate_whatsapp_checknumber_api(phone: str, identifier: str = None, provider_settings: dict = None) -> Dict[str, Any]:
     """Accurate WhatsApp validation using CheckNumber.ai API"""
     try:
-        # Get API configuration from environment
-        api_key = os.environ.get('CHECKNUMBER_API_KEY')
-        api_url = os.environ.get('CHECKNUMBER_API_URL', 'https://api.ekycpro.com/v1/whatsapp')
+        # Get API configuration from provider settings or environment fallback
+        if provider_settings:
+            api_key = provider_settings.get('api_key')
+            api_url = provider_settings.get('api_url', 'https://api.ekycpro.com/v1/whatsapp')
+        else:
+            api_key = os.environ.get('CHECKNUMBER_API_KEY')
+            api_url = os.environ.get('CHECKNUMBER_API_URL', 'https://api.ekycpro.com/v1/whatsapp')
         
         if not api_key:
             # Fallback to free method if no API key configured
+            print(f"⚠️ No API key found for CheckNumber.ai, falling back to free method")
             return await validate_whatsapp_web_api(phone, identifier)
         
         # Determine country code from phone number
