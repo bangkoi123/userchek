@@ -94,23 +94,103 @@ const Dashboard = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Credits */}
-        <div className="card p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
-              <CreditCard className="h-6 w-6 text-green-600 dark:text-green-400" />
+        {user?.role === 'admin' ? (
+          /* Admin Stats */
+          <>
+            {/* Total Users */}
+            <div className="card p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                  <Users className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                </div>
+                <ArrowUpRight className="h-4 w-4 text-blue-500" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {formatNumber(stats?.total_users)}
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Total Users
+                </p>
+              </div>
             </div>
-            <ArrowUpRight className="h-4 w-4 text-green-500" />
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">
-              {formatNumber(stats?.credits_remaining)}
-            </p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Kredit Tersisa
-            </p>
-          </div>
-        </div>
+
+            {/* Active Users */}
+            <div className="card p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
+                  <UserCheck className="h-6 w-6 text-green-600 dark:text-green-400" />
+                </div>
+                <ArrowUpRight className="h-4 w-4 text-green-500" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {formatNumber(stats?.active_users)}
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Active Users
+                </p>
+              </div>
+            </div>
+
+            {/* System Revenue */}
+            <div className="card p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
+                  <DollarSign className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                </div>
+                <ArrowUpRight className="h-4 w-4 text-purple-500" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  ${formatNumber(stats?.total_revenue)}
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Total Revenue
+                </p>
+              </div>
+            </div>
+
+            {/* Total Validations */}
+            <div className="card p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-2 bg-orange-100 dark:bg-orange-900 rounded-lg">
+                  <Activity className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+                </div>
+                <ArrowUpRight className="h-4 w-4 text-orange-500" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {formatNumber(stats?.total_validations)}
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Total Validations
+                </p>
+              </div>
+            </div>
+          </>
+        ) : (
+          /* User Stats */
+          <>
+            {/* Credits */}
+            <div className="card p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
+                  <CreditCard className="h-6 w-6 text-green-600 dark:text-green-400" />
+                </div>
+                <ArrowUpRight className="h-4 w-4 text-green-500" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {formatNumber(stats?.credits_remaining)}
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Kredit Tersisa
+                </p>
+              </div>
+            </div>
+          </>
+        )}
 
         {/* Total Checks */}
         <div className="card p-6">
