@@ -63,16 +63,30 @@ const AdminPanel = () => {
   const fetchAdminData = async () => {
     setLoading(true);
     try {
-      const [statsData, telegramData, whatsappData, jobsData] = await Promise.all([
+      const [statsData, telegramData, whatsappProviderSettings, jobsData] = await Promise.all([
         apiCall('/api/admin/analytics').catch(() => ({})),
         apiCall('/api/admin/telegram-accounts').catch(() => []),
-        apiCall('/api/admin/whatsapp-providers').catch(() => []),
+        apiCall('/api/admin/whatsapp-provider').catch(() => ({})),
         apiCall('/api/admin/jobs').catch(() => [])
       ]);
       
       setSystemStats(statsData);
       setTelegramAccounts(telegramData);
-      setWhatsappProviders(whatsappData);
+      
+      // Convert single whatsapp provider settings to array format for compatibility
+      const whatsappProvidersArray = [];
+      if (whatsappProviderSettings.provider) {
+        whatsappProvidersArray.push({
+          _id: 'primary',
+          name: whatsappProviderSettings.provider === 'checknumber_ai' ? 'CheckNumber.ai' : 'Free Method',
+          provider_type: whatsappProviderSettings.provider,
+          api_endpoint: whatsappProviderSettings.api_url || 'N/A',
+          api_key: whatsappProviderSettings.api_key || '',
+          is_active: whatsappProviderSettings.enabled
+        });
+      }
+      
+      setWhatsappProviders(whatsappProvidersArray);
       setJobs(jobsData);
     } catch (error) {
       console.error('Error fetching admin data:', error);
