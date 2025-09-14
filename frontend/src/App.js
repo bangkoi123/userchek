@@ -20,6 +20,7 @@ import PaymentManagement from './components/PaymentManagementClean';
 import SystemHealth from './components/SystemHealth';
 import AuditLogs from './components/AuditLogs';
 import BulkUserOperations from './components/BulkUserOperations';
+import AdvancedAnalytics from './components/AdvancedAnalytics';
 
 // Context
 import { AuthProvider, useAuth } from './context/AuthContext';
