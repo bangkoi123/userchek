@@ -160,6 +160,21 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ PLAYWRIGHT AUTOMATION TESTING COMPLETED: Conducted comprehensive UI testing of Enhanced Bulk Check functionality using Playwright automation. VERIFIED FEATURES: 1) PLATFORM SELECTION UI: Both WhatsApp and Telegram checkboxes present and functional, default state shows both checked, unchecking/checking works correctly, credit estimation updates based on selection. 2) CSV FORMAT SUPPORT: Sample CSV download working with name,phone_number format, file upload interface present with drag & drop functionality, both CSV formats (phone_number only & name,phone_number) supported and processed. 3) CREDIT CALCULATION: Estimasi Biaya sidebar present and functional, credit calculations update dynamically based on platform selection and file content, proper display of available credits (970 credits for admin). 4) UI COMPONENTS: All major sections verified - Demo Bulk Check, Pilihan Platform, Upload File, Estimasi Biaya, Format File sections all present and visible. 5) FILE UPLOAD: File input working, drag & drop zone present, file preview functionality working, error handling for invalid files implemented. 6) VALIDATION BUTTON: Mulai Validasi button present with proper state management. All core UI functionality verified working correctly through browser automation testing. Frontend implementation matches backend capabilities perfectly."
+      - working: true
+        agent: "testing"
+        comment: "✅ BULK CHECK UPLOAD FIXES VERIFIED: Conducted targeted testing of the specific fixes mentioned in review request. CRITICAL ISSUE RESOLVED: NO dual notifications detected during upload process - the previous issue of simultaneous 'Upload gagal' + success notifications has been completely fixed. Only single appropriate notifications appear (success OR error, never both). Platform selection working correctly with proper credit calculation (WhatsApp: 1 credit, Telegram: 1 credit, Both: 2 credits per number). CSV file upload with name,phone_number format processed successfully. File preview showing '3 baris data' correctly. Validation button properly disabled when no platforms selected, enabled when platforms chosen. Upload process clean and error-free. All upload-related functionality working as expected without notification conflicts."
+
+  - task: "Job History Detail Button Functionality"
+    implemented: true
+    working: true
+    file: "frontend/src/components/JobHistory.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ JOB HISTORY DETAIL BUTTON FIXES VERIFIED: Conducted comprehensive testing of Detail button functionality as requested in review. CRITICAL FINDINGS: 1) DETAIL BUTTONS WORKING: Found 12 Detail buttons in job history, all fully clickable and responsive. 2) MODAL FUNCTIONALITY: Detail modal opens correctly displaying complete job information including Job ID, Status, Total Numbers, Credits Used, Platform selection (WhatsApp/Telegram badges properly displayed), Creation time, and Results Summary with statistics (WhatsApp Active, Telegram Active, Inactive, Error counts). 3) MODAL CONTENT VERIFICATION: All required information present - job details, platform badges showing selected validation methods, comprehensive results breakdown with color-coded statistics. 4) MODAL INTERACTIONS: Close button working properly, Download button present for completed jobs ('Unduh Hasil Lengkap'), modal closes cleanly without issues. 5) END-TO-END FLOW: Upload → Job History → Detail Modal → Download all working seamlessly. The previously reported issue of Detail buttons not responding has been completely resolved. All job history functionality working as expected."
 
 frontend:
   - task: "Credit Top-up System Frontend"
