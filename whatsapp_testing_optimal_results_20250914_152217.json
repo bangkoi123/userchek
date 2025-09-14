@@ -1,0 +1,102 @@
+{
+  "082253767671": {
+    "status": "active",
+    "confidence": "medium",
+    "reason": "Medium score (5/8)",
+    "method": "optimal",
+    "score": "5/8",
+    "indicators": {
+      "has_send_redirect": true,
+      "has_whatsapp_scheme": false,
+      "main_visible": true,
+      "fallback_not_displayed": true,
+      "has_phone_param": true,
+      "is_business_api": false,
+      "no_error_message": true,
+      "no_app_download": false
+    },
+    "detected_errors": [],
+    "is_business_api": false,
+    "raw_response_length": 193308
+  },
+  "089689547785": {
+    "status": "active",
+    "confidence": "medium",
+    "reason": "Medium score (5/8)",
+    "method": "optimal",
+    "score": "5/8",
+    "indicators": {
+      "has_send_redirect": true,
+      "has_whatsapp_scheme": false,
+      "main_visible": true,
+      "fallback_not_displayed": true,
+      "has_phone_param": true,
+      "is_business_api": false,
+      "no_error_message": true,
+      "no_app_download": false
+    },
+    "detected_errors": [],
+    "is_business_api": false,
+    "raw_response_length": 187934
+  },
+  "6285586712458": {
+    "status": "active",
+    "confidence": "medium",
+    "reason": "Medium score (5/8)",
+    "method": "optimal",
+    "score": "5/8",
+    "indicators": {
+      "has_send_redirect": true,
+      "has_whatsapp_scheme": false,
+      "main_visible": true,
+      "fallback_not_displayed": true,
+      "has_phone_param": true,
+      "is_business_api": false,
+      "no_error_message": true,
+      "no_app_download": false
+    },
+    "detected_errors": [],
+    "is_business_api": false,
+    "raw_response_length": 187964
+  },
+  "6281261623389": {
+    "status": "active",
+    "confidence": "medium",
+    "reason": "Medium score (5/8)",
+    "method": "optimal",
+    "score": "5/8",
+    "indicators": {
+      "has_send_redirect": true,
+      "has_whatsapp_scheme": false,
+      "main_visible": true,
+      "fallback_not_displayed": true,
+      "has_phone_param": true,
+      "is_business_api": false,
+      "no_error_message": true,
+      "no_app_download": false
+    },
+    "detected_errors": [],
+    "is_business_api": false,
+    "raw_response_length": 187957
+  },
+  "6282151118348": {
+    "status": "active",
+    "confidence": "medium",
+    "reason": "Medium score (5/8)",
+    "method": "optimal",
+    "score": "5/8",
+    "indicators": {
+      "has_send_redirect": true,
+      "has_whatsapp_scheme": false,
+      "main_visible": true,
+      "fallback_not_displayed": true,
+      "has_phone_param": true,
+      "is_business_api": false,
+      "no_error_message": true,
+      "no_app_download": false
+    },
+    "detected_errors": [],
+    "is_business_api": false,
+    "raw_response_length": 187963
+  }
+}
