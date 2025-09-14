@@ -155,11 +155,12 @@ async def validate_whatsapp_web_api(phone: str, identifier: str = None) -> Dict[
                 
                 # Debug logging for validation accuracy
                 print(f"🔍 WhatsApp Validation Debug for {phone}:")
+                print(f"  - Raw HTML sample: {html_content[:300]}")
                 print(f"  - Has error message: {has_error_message}")
                 print(f"  - Score: {score}/5")
                 print(f"  - Indicators: {indicators}")
                 print(f"  - Final status: {status}")
-                print(f"  - HTML content sample: {html_content[:200]}...")
+                print(f"  - WA Type: {wa_type}")
                 
                 return {
                     'identifier': identifier,
