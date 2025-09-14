@@ -1669,7 +1669,7 @@ async def quick_check(request: QuickCheckRequest, current_user = Depends(get_cur
             telegram_result = None
             
             if request.validate_whatsapp:
-                whatsapp_result = await validate_whatsapp_web_api(phone, identifier)
+                whatsapp_result = await validate_whatsapp_number_smart(phone, identifier)
             
             if request.validate_telegram:
                 if telegram_account:
