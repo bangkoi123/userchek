@@ -412,6 +412,119 @@ const JobHistory = () => {
           )}
         </div>
       )}
+
+      {/* Detail Modal */}
+      {showDetailModal && selectedJob && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Detail Pekerjaan - {selectedJob.filename}
+                </h3>
+                <button
+                  onClick={() => setShowDetailModal(false)}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                >
+                  <XCircle className="h-6 w-6" />
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              {/* Job Info */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">ID Pekerjaan</p>
+                  <p className="font-mono text-sm bg-gray-100 dark:bg-gray-700 p-2 rounded">
+                    {selectedJob._id}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Status</p>
+                  <div className="flex items-center mt-1">
+                    {getStatusIcon(selectedJob.status)}
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadgeClass(selectedJob.status)}`}>
+                      {selectedJob.status}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Total Nomor</p>
+                  <p className="font-semibold">{selectedJob.total_numbers}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Kredit Digunakan</p>
+                  <p className="font-semibold">{selectedJob.credits_used}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Platform</p>
+                  <div className="flex space-x-2">
+                    {selectedJob.validate_whatsapp && (
+                      <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">WhatsApp</span>
+                    )}
+                    {selectedJob.validate_telegram && (
+                      <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">Telegram</span>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Waktu Dibuat</p>
+                  <p className="font-semibold">
+                    {format(new Date(selectedJob.created_at), 'dd/MM/yyyy HH:mm', { locale: id })}
+                  </p>
+                </div>
+              </div>
+
+              {/* Results Summary */}
+              {selectedJob.results && (
+                <div className="mb-6">
+                  <h4 className="text-md font-semibold text-gray-900 dark:text-white mb-4">Ringkasan Hasil</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                      <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                        {selectedJob.results.whatsapp_active || 0}
+                      </div>
+                      <div className="text-sm text-green-600 dark:text-green-400">WhatsApp Aktif</div>
+                    </div>
+                    <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                        {selectedJob.results.telegram_active || 0}
+                      </div>
+                      <div className="text-sm text-blue-600 dark:text-blue-400">Telegram Aktif</div>
+                    </div>
+                    <div className="text-center p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                      <div className="text-2xl font-bold text-red-600 dark:text-red-400">
+                        {selectedJob.results.inactive || 0}
+                      </div>
+                      <div className="text-sm text-red-600 dark:text-red-400">Tidak Aktif</div>
+                    </div>
+                    <div className="text-center p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                      <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+                        {selectedJob.results.errors || 0}
+                      </div>
+                      <div className="text-sm text-yellow-600 dark:text-yellow-400">Error</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Download Button */}
+              {selectedJob.status === 'completed' && (
+                <div className="flex justify-end">
+                  <button
+                    onClick={() => handleDownload(selectedJob._id, `results_${selectedJob.filename}`)}
+                    className="btn-primary flex items-center"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Unduh Hasil Lengkap
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
