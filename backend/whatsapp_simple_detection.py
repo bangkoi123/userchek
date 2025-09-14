@@ -13,7 +13,7 @@ class WhatsAppSimpleDetector:
     
     def normalize_phone(self, phone):
         phone = phone.strip().replace('+', '').replace('-', '').replace(' ', '')
-        if phone.startsWith('0'):
+        if phone.startswith('0'):
             phone = '62' + phone[1:]
         elif not phone.startswith('62'):
             phone = '62' + phone
