@@ -468,69 +468,69 @@ const AdminPanel = () => {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Nama *
-                </label>
-                <input
-                  type="text"
-                  value={whatsAppForm.name}
-                  onChange={(e) => setWhatsAppForm({ ...whatsAppForm, name: e.target.value })}
-                  className="input-field"
-                  placeholder="Twilio WhatsApp Business"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Provider Type *
                 </label>
                 <select
-                  value={whatsAppForm.provider_type}
-                  onChange={(e) => setWhatsAppForm({ ...whatsAppForm, provider_type: e.target.value })}
+                  value={whatsAppForm.provider}
+                  onChange={(e) => setWhatsAppForm({ ...whatsAppForm, provider: e.target.value })}
                   className="input-field"
                 >
-                  <option value="twilio">Twilio</option>
-                  <option value="vonage">Vonage</option>
-                  <option value="360dialog">360Dialog</option>
-                  <option value="custom">Custom</option>
+                  <option value="free">Free Method (Web Scraping)</option>
+                  <option value="checknumber_ai">CheckNumber.ai (API Premium)</option>
                 </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  {whatsAppForm.provider === 'free' 
+                    ? 'Metode gratis dengan akurasi 70-80%' 
+                    : 'API premium dengan akurasi 95%+'}
+                </p>
               </div>
               
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  API Endpoint *
-                </label>
-                <input
-                  type="url"
-                  value={whatsAppForm.api_endpoint}
-                  onChange={(e) => setWhatsAppForm({ ...whatsAppForm, api_endpoint: e.target.value })}
-                  className="input-field"
-                  placeholder="https://api.twilio.com/..."
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  API Key *
-                </label>
-                <input
-                  type="text"
-                  value={whatsAppForm.api_key}
-                  onChange={(e) => setWhatsAppForm({ ...whatsAppForm, api_key: e.target.value })}
-                  className="input-field"
-                  placeholder="your-api-key-here"
-                />
-              </div>
+              {whatsAppForm.provider === 'checknumber_ai' && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      API Key *
+                    </label>
+                    <input
+                      type="password"
+                      value={whatsAppForm.api_key}
+                      onChange={(e) => setWhatsAppForm({ ...whatsAppForm, api_key: e.target.value })}
+                      className="input-field"
+                      placeholder="Masukkan API Key CheckNumber.ai"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Dapatkan API key dari dashboard CheckNumber.ai
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      API URL
+                    </label>
+                    <input
+                      type="url"
+                      value={whatsAppForm.api_url}
+                      onChange={(e) => setWhatsAppForm({ ...whatsAppForm, api_url: e.target.value })}
+                      className="input-field"
+                      placeholder="https://api.ekycpro.com/v1/whatsapp"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      URL endpoint API CheckNumber.ai (gunakan default jika tidak yakin)
+                    </p>
+                  </div>
+                </>
+              )}
               
               <div className="flex items-center">
                 <input
                   type="checkbox"
-                  id="whatsapp-active"
-                  checked={whatsAppForm.is_active}
-                  onChange={(e) => setWhatsAppForm({ ...whatsAppForm, is_active: e.target.checked })}
+                  id="whatsapp-enabled"
+                  checked={whatsAppForm.enabled}
+                  onChange={(e) => setWhatsAppForm({ ...whatsAppForm, enabled: e.target.checked })}
                   className="mr-2"
                 />
-                <label htmlFor="whatsapp-active" className="text-sm text-gray-700 dark:text-gray-300">
-                  Aktif
+                <label htmlFor="whatsapp-enabled" className="text-sm text-gray-700 dark:text-gray-300">
+                  Aktifkan provider
                 </label>
               </div>
             </div>
