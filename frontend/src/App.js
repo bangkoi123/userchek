@@ -92,6 +92,7 @@ function AppContent() {
                   <Route path="/admin/users" element={<UserManagement />} />
                   <Route path="/admin/payments" element={<PaymentManagement />} />
                   <Route path="/admin/settings" element={<AdminSettings />} />
+                  <Route path="/admin/system-health" element={<SystemHealth />} />
                 </>
               )}
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
