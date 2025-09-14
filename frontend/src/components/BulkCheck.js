@@ -26,6 +26,12 @@ const BulkCheck = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [currentJobId, setCurrentJobId] = useState(null);
   const [realTimeProgress, setRealTimeProgress] = useState(null);
+  const [validateWhatsapp, setValidateWhatsapp] = useState(true);
+  const [validateTelegram, setValidateTelegram] = useState(true);
+  const [platformSettings, setPlatformSettings] = useState({
+    whatsapp_enabled: true,
+    telegram_enabled: true
+  });
   
   // Real-time job progress hook
   const { progress, isListening, startListening, stopListening } = useJobProgress(currentJobId);
