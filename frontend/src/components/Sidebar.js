@@ -54,6 +54,12 @@ const Sidebar = ({ isOpen, setSidebarOpen }) => {
         description: 'Monitor sistem & performance'
       },
       {
+        name: 'WhatsApp Providers',
+        path: '/admin/whatsapp-providers',
+        icon: MessageSquare,
+        description: 'Kelola provider validasi WhatsApp'
+      },
+      {
         name: 'Audit Logs',
         path: '/admin/audit-logs',
         icon: Shield,
