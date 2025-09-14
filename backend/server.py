@@ -286,6 +286,32 @@ async def validate_whatsapp_checknumber_api(phone: str, identifier: str = None) 
         print(f"❌ CheckNumber.ai API error for {phone}: {str(e)}, falling back to free method")
         return await validate_whatsapp_web_api(phone, identifier)
 
+async def validate_whatsapp_number_smart(phone: str, identifier: str = None) -> Dict[str, Any]:
+    """Smart WhatsApp validation that uses configured provider"""
+    try:
+        # Get provider configuration from admin settings
+        provider_settings = await db.admin_settings.find_one({"setting_type": "whatsapp_provider"})
+        
+        if provider_settings and provider_settings.get("enabled", True):
+            provider = provider_settings.get("provider", "free")
+            
+            if provider == "checknumber_ai":
+                # Use CheckNumber.ai API
+                return await validate_whatsapp_checknumber_api(phone, identifier)
+            elif provider == "free":
+                # Use free web scraping method
+                return await validate_whatsapp_web_api(phone, identifier)
+            else:
+                # Unknown provider, fallback to free
+                return await validate_whatsapp_web_api(phone, identifier)
+        else:
+            # No provider configured or disabled, use free method
+            return await validate_whatsapp_web_api(phone, identifier)
+            
+    except Exception as e:
+        print(f"❌ Smart validation error for {phone}: {str(e)}, falling back to free method")
+        return await validate_whatsapp_web_api(phone, identifier)
+
 # MongoDB connection
 MONGO_URL = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
 client = AsyncIOMotorClient(MONGO_URL)
