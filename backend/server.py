@@ -3161,6 +3161,47 @@ async def send_notification_email(email: str, subject: str, message: str):
     except Exception as e:
         logger.error(f"Failed to send notification email: {str(e)}")
 
+# Create demo users if they don't exist
+async def create_demo_users():
+    """Create demo users if they don't exist"""
+    try:
+        # Check if demo user exists
+        demo_user = await db.users.find_one({"username": "demo"})
+        if not demo_user:
+            demo_user_doc = {
+                "_id": str(uuid.uuid4()),
+                "username": "demo",
+                "email": "demo@example.com",
+                "password": hash_password("demo123"),
+                "role": "user",
+                "credits": 1000,
+                "is_active": True,
+                "created_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow()
+            }
+            await db.users.insert_one(demo_user_doc)
+            logger.info("Demo user created successfully")
+        
+        # Check if test user exists
+        test_user = await db.users.find_one({"username": "testuser"})
+        if not test_user:
+            test_user_doc = {
+                "_id": str(uuid.uuid4()),
+                "username": "testuser",
+                "email": "testuser@example.com",
+                "password": hash_password("123456"),
+                "role": "user",
+                "credits": 500,
+                "is_active": True,
+                "created_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow()
+            }
+            await db.users.insert_one(test_user_doc)
+            logger.info("Test user created successfully")
+            
+    except Exception as e:
+        logger.error(f"Error creating demo users: {str(e)}")
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001, log_level="info")
