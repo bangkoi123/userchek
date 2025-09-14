@@ -731,31 +731,42 @@ async def process_bulk_validation(job_id: str):
                 
                 # Check cache first
                 cached_result = await db.validation_cache.find_one({"phone_number": phone})
-                if cached_result and (datetime.utcnow() - cached_result["cached_at"]).days < 7:
-                    whatsapp_result = cached_result["whatsapp"]
-                    telegram_result = cached_result["telegram"]
+                use_cache = cached_result and (datetime.utcnow() - cached_result["cached_at"]).days < 7
+                
+                if use_cache:
+                    whatsapp_result = cached_result["whatsapp"] if validate_whatsapp else None
+                    telegram_result = cached_result["telegram"] if validate_telegram else None
                     # Add identifier to cached results
-                    whatsapp_result["identifier"] = identifier
-                    telegram_result["identifier"] = identifier
+                    if whatsapp_result:
+                        whatsapp_result["identifier"] = identifier
+                    if telegram_result:
+                        telegram_result["identifier"] = identifier
                 else:
-                    # Perform validation with identifier support
-                    whatsapp_result = await validate_whatsapp_web_api(phone, identifier)
-                    telegram_result = await validate_telegram_number(phone)
-                    telegram_result["identifier"] = identifier
+                    # Perform validation based on platform selection
+                    whatsapp_result = None
+                    telegram_result = None
                     
-                    # Cache results
-                    cache_doc = {
-                        "phone_number": phone,
-                        "whatsapp": whatsapp_result,
-                        "telegram": telegram_result,
-                        "cached_at": datetime.utcnow()
-                    }
+                    if validate_whatsapp:
+                        whatsapp_result = await validate_whatsapp_web_api(phone, identifier)
                     
-                    await db.validation_cache.update_one(
-                        {"phone_number": phone},
-                        {"$set": cache_doc},
-                        upsert=True
-                    )
+                    if validate_telegram:
+                        telegram_result = await validate_telegram_number(phone)
+                        telegram_result["identifier"] = identifier
+                    
+                    # Cache results if both were validated (for optimal caching)
+                    if validate_whatsapp and validate_telegram:
+                        cache_doc = {
+                            "phone_number": phone,
+                            "whatsapp": whatsapp_result,
+                            "telegram": telegram_result,
+                            "cached_at": datetime.utcnow()
+                        }
+                        
+                        await db.validation_cache.update_one(
+                            {"phone_number": phone},
+                            {"$set": cache_doc},
+                            upsert=True
+                        )
                 
                 # Count results
                 if whatsapp_result["status"] == ValidationStatus.ACTIVE:
