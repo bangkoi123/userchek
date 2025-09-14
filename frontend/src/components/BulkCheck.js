@@ -205,10 +205,17 @@ Maya,+628111222333`;
         try {
           const formData = new FormData();
           formData.append('file', fileItem.file);
-          formData.append('validate_whatsapp', validateWhatsapp.toString());
-          formData.append('validate_telegram', validateTelegram.toString());
+          
+          // Send boolean values as strings for FastAPI Form parameters
+          formData.append('validate_whatsapp', validateWhatsapp ? 'true' : 'false');
+          formData.append('validate_telegram', validateTelegram ? 'true' : 'false');
 
           console.log('Starting upload for file:', fileItem.file.name);
+          console.log('Platform settings:', { validateWhatsapp, validateTelegram });
+          console.log('FormData entries:');
+          for (let [key, value] of formData.entries()) {
+            console.log(`${key}:`, value instanceof File ? `File(${value.name})` : value);
+          }
           
           const response = await apiCall('/api/validation/bulk-check', 'POST', formData, {
             onUploadProgress: (progressEvent) => {
@@ -239,7 +246,14 @@ Maya,+628111222333`;
           }
           
         } catch (error) {
-          console.error('Upload error for file:', fileItem.file.name, error);
+          console.error('Upload error for file:', fileItem.file.name);
+          console.error('Error details:', {
+            status: error.response?.status,
+            statusText: error.response?.statusText,
+            data: error.response?.data,
+            message: error.message,
+            config: error.config
+          });
           
           // Update file status to error
           setFiles(prev => prev.map(f => 
