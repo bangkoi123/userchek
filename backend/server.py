@@ -3295,6 +3295,27 @@ async def create_demo_users_endpoint(current_user = Depends(admin_required)):
     await create_demo_users()
     return {"message": "Demo users created successfully"}
 
+@app.post("/api/admin/clear-validation-cache")
+async def clear_validation_cache(current_user = Depends(admin_required)):
+    """Clear all validation cache data"""
+    try:
+        # Count documents before deletion
+        cache_count = await db.validation_cache.count_documents({})
+        
+        # Clear all validation cache
+        result = await db.validation_cache.delete_many({})
+        
+        print(f"🗑️ CACHE CLEARED: Deleted {result.deleted_count} cache entries by admin {current_user.get('username')}")
+        
+        return {
+            "message": "Validation cache cleared successfully",
+            "deleted_count": result.deleted_count,
+            "previous_count": cache_count
+        }
+    except Exception as e:
+        print(f"❌ ERROR clearing cache: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error clearing cache: {str(e)}")
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001, log_level="info")
