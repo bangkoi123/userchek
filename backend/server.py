@@ -197,6 +197,95 @@ async def validate_whatsapp_web_api(phone: str, identifier: str = None) -> Dict[
             'details': {}
         }
 
+async def validate_whatsapp_checknumber_api(phone: str, identifier: str = None) -> Dict[str, Any]:
+    """Accurate WhatsApp validation using CheckNumber.ai API"""
+    try:
+        # Get API configuration from environment
+        api_key = os.environ.get('CHECKNUMBER_API_KEY')
+        api_url = os.environ.get('CHECKNUMBER_API_URL', 'https://api.ekycpro.com/v1/whatsapp')
+        
+        if not api_key:
+            # Fallback to free method if no API key configured
+            return await validate_whatsapp_web_api(phone, identifier)
+        
+        # Determine country code from phone number
+        country_code = "ID"  # Default to Indonesia
+        if phone.startswith("1"):
+            country_code = "US"
+        elif phone.startswith("44"):
+            country_code = "GB"
+        elif phone.startswith("91"):
+            country_code = "IN"
+        elif phone.startswith("62"):
+            country_code = "ID"
+        elif phone.startswith("60"):
+            country_code = "MY"
+        elif phone.startswith("65"):
+            country_code = "SG"
+        
+        # Prepare request headers and data
+        headers = {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-API-Key': api_key
+        }
+        
+        data = {
+            'number': phone,
+            'country': country_code
+        }
+        
+        timeout = aiohttp.ClientTimeout(total=30)
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            async with session.post(api_url, headers=headers, data=data) as response:
+                if response.status != 200:
+                    # Log error and fallback to free method
+                    print(f"❌ CheckNumber.ai API Error {response.status}, falling back to free method")
+                    return await validate_whatsapp_web_api(phone, identifier)
+                
+                result = await response.json()
+                
+                # Parse CheckNumber.ai response
+                if result.get('status') == 'OK' and 'message' in result:
+                    message = result['message']
+                    whatsapp_status = message.get('whatsapp', 'no').lower()
+                    
+                    if whatsapp_status == 'yes':
+                        status = ValidationStatus.ACTIVE
+                        wa_type = 'personal'  # CheckNumber.ai doesn't distinguish business in basic API
+                    elif whatsapp_status == 'checking':
+                        # Still processing, treat as error for now
+                        status = ValidationStatus.ERROR
+                        wa_type = None
+                    else:
+                        status = ValidationStatus.INACTIVE
+                        wa_type = None
+                    
+                    return {
+                        'identifier': identifier,
+                        'phone_number': phone,
+                        'platform': 'whatsapp',
+                        'status': status,
+                        'validated_at': datetime.utcnow(),
+                        'details': {
+                            'type': wa_type,
+                            'provider': 'checknumber_ai',
+                            'api_response': whatsapp_status,
+                            'country': country_code,
+                            'confidence_score': 5 if whatsapp_status == 'yes' else 1
+                        }
+                    }
+                else:
+                    # Invalid response format, fallback to free method
+                    print(f"❌ Invalid CheckNumber.ai response format: {result}")
+                    return await validate_whatsapp_web_api(phone, identifier)
+                    
+    except asyncio.TimeoutError:
+        print(f"⏰ CheckNumber.ai API timeout for {phone}, falling back to free method")
+        return await validate_whatsapp_web_api(phone, identifier)
+    except Exception as e:
+        print(f"❌ CheckNumber.ai API error for {phone}: {str(e)}, falling back to free method")
+        return await validate_whatsapp_web_api(phone, identifier)
+
 # MongoDB connection
 MONGO_URL = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
 client = AsyncIOMotorClient(MONGO_URL)
