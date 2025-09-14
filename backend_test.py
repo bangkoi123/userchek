@@ -1403,6 +1403,19 @@ def main():
     tester.test_payment_status()
     tester.test_payment_transactions()
     
+    # Enhanced Bulk Check Tests
+    print("\n📋 ENHANCED BULK CHECK FUNCTIONALITY TESTS")
+    print("-" * 30)
+    tester.test_bulk_check_platform_selection_whatsapp_only()
+    tester.test_bulk_check_platform_selection_telegram_only()
+    tester.test_bulk_check_platform_selection_both_platforms()
+    tester.test_bulk_check_no_platform_selected()
+    tester.test_bulk_check_csv_format_phone_only()
+    tester.test_bulk_check_csv_format_alternative_headers()
+    tester.test_bulk_check_job_status_progression()
+    tester.test_bulk_check_invalid_file_format()
+    tester.test_bulk_check_oversized_file()
+    
     # Admin functionality tests
     print("\n👑 ADMIN FUNCTIONALITY TESTS")
     print("-" * 30)
