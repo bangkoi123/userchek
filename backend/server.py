@@ -258,9 +258,10 @@ async def validate_whatsapp_checknumber_api(phone: str, identifier: str = None, 
                         status = ValidationStatus.ACTIVE
                         wa_type = 'personal'  # CheckNumber.ai doesn't distinguish business in basic API
                     elif whatsapp_status == 'checking':
-                        # Still processing, treat as error for now
-                        status = ValidationStatus.ERROR
+                        # Still processing, wait a bit and try again or treat as unknown
+                        status = ValidationStatus.INACTIVE  # Conservative approach: treat as inactive
                         wa_type = None
+                        print(f"⏳ CheckNumber.ai still checking {phone}, treating as inactive for now")
                     else:
                         status = ValidationStatus.INACTIVE
                         wa_type = None
