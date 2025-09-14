@@ -113,11 +113,20 @@ async def validate_whatsapp_web_api(phone: str, identifier: str = None) -> Dict[
                 html_content = await response.text()
                 
                 # Pattern detection based on our analysis
+                # Check for error indicators in multiple languages
+                error_patterns = [
+                    'error', 'invalid', 'tidak valid', 'nomor tidak valid', 
+                    'phone number is invalid', 'number not found', 'not available',
+                    'tidak tersedia', 'tidak ditemukan', 'gagal', 'failed'
+                ]
+                
+                has_error_message = any(pattern in html_content.lower() for pattern in error_patterns)
+                
                 indicators = {
                     'has_send_link': 'web.whatsapp.com/send/' in html_content,
                     'main_block_visible': 'main_block' in html_content and 'style="display: none"' not in html_content,
                     'app_absent_0': 'app_absent=0' in html_content,
-                    'no_error_message': 'error' not in html_content.lower() and 'invalid' not in html_content.lower(),
+                    'no_error_message': not has_error_message,
                     'fallback_hidden': 'fallback_block' in html_content and 'style="display: none"' in html_content
                 }
                 
