@@ -11,7 +11,11 @@ import {
   Clock,
   AlertCircle,
   FileText,
-  ArrowUpRight
+  ArrowUpRight,
+  Users,
+  Activity,
+  UserCheck,
+  DollarSign
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
