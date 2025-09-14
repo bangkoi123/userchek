@@ -116,6 +116,11 @@ const JobHistory = () => {
     }
   };
 
+  const handleViewDetail = (job) => {
+    setSelectedJob(job);
+    setShowDetailModal(true);
+  };
+
   const filteredJobs = jobs
     .filter(job => {
       const matchesSearch = job.filename?.toLowerCase().includes(searchTerm.toLowerCase()) ||
