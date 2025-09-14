@@ -2367,6 +2367,47 @@ async def get_public_platform_settings():
         "telegram_enabled": settings.get("telegram_enabled", True)
     }
 
+@app.get("/api/admin/whatsapp-provider")
+async def get_whatsapp_provider_settings(current_user = Depends(admin_required)):
+    """Get WhatsApp provider configuration"""
+    settings = await db.admin_settings.find_one({"setting_type": "whatsapp_provider"}) or {
+        "provider": "free",
+        "api_key": "",
+        "api_url": "",
+        "enabled": True
+    }
+    return settings
+
+@app.put("/api/admin/whatsapp-provider") 
+async def update_whatsapp_provider_settings(
+    provider: str,
+    api_key: str = "",
+    api_url: str = "",
+    enabled: bool = True,
+    current_user = Depends(admin_required)
+):
+    """Update WhatsApp provider configuration"""
+    
+    await db.admin_settings.update_one(
+        {"setting_type": "whatsapp_provider"},
+        {"$set": {
+            "setting_type": "whatsapp_provider",
+            "provider": provider,
+            "api_key": api_key,
+            "api_url": api_url,
+            "enabled": enabled,
+            "updated_at": datetime.utcnow(),
+            "updated_by": current_user["_id"]
+        }},
+        upsert=True
+    )
+    
+    return {
+        "message": "WhatsApp provider settings updated successfully",
+        "provider": provider,
+        "enabled": enabled
+    }
+
 @app.get("/api/admin/credit-management")
 async def get_credit_management_stats(current_user = Depends(admin_required)):
     """Get credit management statistics"""
