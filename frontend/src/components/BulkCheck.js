@@ -36,6 +36,27 @@ const BulkCheck = () => {
   // Real-time job progress hook
   const { progress, isListening, startListening, stopListening } = useJobProgress(currentJobId);
 
+  useEffect(() => {
+    fetchPlatformSettings();
+  }, []);
+
+  const fetchPlatformSettings = async () => {
+    try {
+      const settings = await apiCall('/api/platform-settings');
+      setPlatformSettings(settings);
+      
+      // If platform is disabled, uncheck it
+      if (!settings.whatsapp_enabled) {
+        setValidateWhatsapp(false);
+      }
+      if (!settings.telegram_enabled) {
+        setValidateTelegram(false);
+      }
+    } catch (error) {
+      console.error('Error fetching platform settings:', error);
+    }
+  };
+
   // Handle real-time progress updates
   useEffect(() => {
     if (progress) {
