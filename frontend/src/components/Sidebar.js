@@ -105,7 +105,6 @@ const Sidebar = ({ isOpen, setSidebarOpen }) => {
       <div className={`
         fixed top-0 left-0 h-full w-64 bg-white dark:bg-gray-800 shadow-lg transform transition-transform duration-300 z-30
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-        lg:translate-x-0
       `}>
         {/* Logo */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
