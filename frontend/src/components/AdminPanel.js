@@ -166,20 +166,18 @@ const AdminPanel = () => {
     if (provider) {
       setEditingWhatsApp(provider);
       setWhatsAppForm({
-        name: provider.name || '',
-        api_endpoint: provider.api_endpoint || '',
+        provider: provider.provider_type || 'free',
         api_key: provider.api_key || '',
-        provider_type: provider.provider_type || 'twilio',
-        is_active: provider.is_active !== false
+        api_url: provider.api_endpoint || 'https://api.ekycpro.com/v1/whatsapp',
+        enabled: provider.is_active !== false
       });
     } else {
       setEditingWhatsApp(null);
       setWhatsAppForm({
-        name: '',
-        api_endpoint: '',
+        provider: 'free',
         api_key: '',
-        provider_type: 'twilio',
-        is_active: true
+        api_url: 'https://api.ekycpro.com/v1/whatsapp',
+        enabled: true
       });
     }
     setShowWhatsAppModal(true);
@@ -192,12 +190,16 @@ const AdminPanel = () => {
 
   const saveWhatsAppProvider = async () => {
     try {
-      if (editingWhatsApp) {
-        // Update existing provider
-        await apiCall(`/api/admin/whatsapp-providers/${editingWhatsApp._id}`, 'PUT', whatsAppForm);
-        toast.success('Provider WhatsApp berhasil diupdate');
-      } else {
-        // Create new provider
+      // Use query parameters format for the new endpoint
+      const params = new URLSearchParams({
+        provider: whatsAppForm.provider,
+        api_key: whatsAppForm.api_key || '',
+        api_url: whatsAppForm.api_url || '',
+        enabled: whatsAppForm.enabled
+      });
+      
+      await apiCall(`/api/admin/whatsapp-provider?${params.toString()}`, 'PUT');
+      toast.success('Pengaturan WhatsApp provider berhasil disimpan!');
         await apiCall('/api/admin/whatsapp-providers', 'POST', whatsAppForm);
         toast.success('Provider WhatsApp berhasil ditambahkan');
       }
