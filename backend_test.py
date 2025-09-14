@@ -794,6 +794,577 @@ class WebtoolsAPITester:
         
         return success
 
+    def test_bulk_check_platform_selection_whatsapp_only(self):
+        """Test bulk check with WhatsApp only validation"""
+        if not self.admin_token:
+            print("❌ Skipping bulk check WhatsApp only test - no admin token")
+            return False
+            
+        # Create test CSV content
+        csv_content = "name,phone_number\nTestUser1,+6281234567890\nTestUser2,+6282345678901"
+        
+        # Prepare multipart form data
+        files = {'file': ('test.csv', csv_content, 'text/csv')}
+        data = {
+            'validate_whatsapp': 'true',
+            'validate_telegram': 'false'
+        }
+        
+        url = f"{self.base_url}/api/validation/bulk-check"
+        headers = {'Authorization': f'Bearer {self.admin_token}'}
+        
+        print(f"\n🔍 Testing Bulk Check - WhatsApp Only...")
+        print(f"   Description: Test bulk validation with only WhatsApp enabled")
+        
+        try:
+            import requests
+            response = requests.post(url, files=files, data=data, headers=headers, timeout=30)
+            
+            success = response.status_code == 200
+            if success:
+                self.tests_passed += 1
+                print(f"✅ Passed - Status: {response.status_code}")
+                response_data = response.json()
+                
+                # Verify job creation and platform selection
+                if 'job_id' in response_data:
+                    job_id = response_data['job_id']
+                    print(f"   ✅ Job created with ID: {job_id}")
+                    
+                    # Check if validate_whatsapp and validate_telegram flags are properly set
+                    if 'validate_whatsapp' in response_data and 'validate_telegram' in response_data:
+                        if response_data['validate_whatsapp'] == True and response_data['validate_telegram'] == False:
+                            print(f"   ✅ Platform selection correct: WhatsApp=True, Telegram=False")
+                        else:
+                            print(f"   ⚠️  Platform selection incorrect: WhatsApp={response_data['validate_whatsapp']}, Telegram={response_data['validate_telegram']}")
+                    
+                    # Check credit calculation (should be 1 credit per number for WhatsApp only)
+                    if 'credits_used' in response_data:
+                        expected_credits = 2  # 2 numbers * 1 credit each for WhatsApp only
+                        if response_data['credits_used'] == expected_credits:
+                            print(f"   ✅ Credit calculation correct: {response_data['credits_used']} credits")
+                        else:
+                            print(f"   ⚠️  Credit calculation incorrect: expected {expected_credits}, got {response_data['credits_used']}")
+                    
+                    return True
+                else:
+                    print(f"   ⚠️  Missing job_id in response")
+            else:
+                print(f"❌ Failed - Expected 200, got {response.status_code}")
+                try:
+                    error_data = response.json()
+                    print(f"   Error: {error_data}")
+                except:
+                    print(f"   Raw response: {response.text[:200]}")
+            
+            self.tests_run += 1
+            return success
+            
+        except Exception as e:
+            print(f"❌ Failed - Error: {str(e)}")
+            self.tests_run += 1
+            return False
+
+    def test_bulk_check_platform_selection_telegram_only(self):
+        """Test bulk check with Telegram only validation"""
+        if not self.admin_token:
+            print("❌ Skipping bulk check Telegram only test - no admin token")
+            return False
+            
+        # Create test CSV content
+        csv_content = "name,phone_number\nTestUser3,+6283456789012\nTestUser4,+6284567890123"
+        
+        # Prepare multipart form data
+        files = {'file': ('test.csv', csv_content, 'text/csv')}
+        data = {
+            'validate_whatsapp': 'false',
+            'validate_telegram': 'true'
+        }
+        
+        url = f"{self.base_url}/api/validation/bulk-check"
+        headers = {'Authorization': f'Bearer {self.admin_token}'}
+        
+        print(f"\n🔍 Testing Bulk Check - Telegram Only...")
+        print(f"   Description: Test bulk validation with only Telegram enabled")
+        
+        try:
+            import requests
+            response = requests.post(url, files=files, data=data, headers=headers, timeout=30)
+            
+            success = response.status_code == 200
+            if success:
+                self.tests_passed += 1
+                print(f"✅ Passed - Status: {response.status_code}")
+                response_data = response.json()
+                
+                # Verify platform selection
+                if 'validate_whatsapp' in response_data and 'validate_telegram' in response_data:
+                    if response_data['validate_whatsapp'] == False and response_data['validate_telegram'] == True:
+                        print(f"   ✅ Platform selection correct: WhatsApp=False, Telegram=True")
+                    else:
+                        print(f"   ⚠️  Platform selection incorrect: WhatsApp={response_data['validate_whatsapp']}, Telegram={response_data['validate_telegram']}")
+                
+                # Check credit calculation (should be 1 credit per number for Telegram only)
+                if 'credits_used' in response_data:
+                    expected_credits = 2  # 2 numbers * 1 credit each for Telegram only
+                    if response_data['credits_used'] == expected_credits:
+                        print(f"   ✅ Credit calculation correct: {response_data['credits_used']} credits")
+                    else:
+                        print(f"   ⚠️  Credit calculation incorrect: expected {expected_credits}, got {response_data['credits_used']}")
+                
+                return True
+            else:
+                print(f"❌ Failed - Expected 200, got {response.status_code}")
+                try:
+                    error_data = response.json()
+                    print(f"   Error: {error_data}")
+                except:
+                    print(f"   Raw response: {response.text[:200]}")
+            
+            self.tests_run += 1
+            return success
+            
+        except Exception as e:
+            print(f"❌ Failed - Error: {str(e)}")
+            self.tests_run += 1
+            return False
+
+    def test_bulk_check_platform_selection_both_platforms(self):
+        """Test bulk check with both WhatsApp and Telegram validation"""
+        if not self.admin_token:
+            print("❌ Skipping bulk check both platforms test - no admin token")
+            return False
+            
+        # Create test CSV content
+        csv_content = "name,phone_number\nTestUser5,+6285678901234\nTestUser6,+6286789012345"
+        
+        # Prepare multipart form data
+        files = {'file': ('test.csv', csv_content, 'text/csv')}
+        data = {
+            'validate_whatsapp': 'true',
+            'validate_telegram': 'true'
+        }
+        
+        url = f"{self.base_url}/api/validation/bulk-check"
+        headers = {'Authorization': f'Bearer {self.admin_token}'}
+        
+        print(f"\n🔍 Testing Bulk Check - Both Platforms...")
+        print(f"   Description: Test bulk validation with both WhatsApp and Telegram enabled")
+        
+        try:
+            import requests
+            response = requests.post(url, files=files, data=data, headers=headers, timeout=30)
+            
+            success = response.status_code == 200
+            if success:
+                self.tests_passed += 1
+                print(f"✅ Passed - Status: {response.status_code}")
+                response_data = response.json()
+                
+                # Verify platform selection
+                if 'validate_whatsapp' in response_data and 'validate_telegram' in response_data:
+                    if response_data['validate_whatsapp'] == True and response_data['validate_telegram'] == True:
+                        print(f"   ✅ Platform selection correct: WhatsApp=True, Telegram=True")
+                    else:
+                        print(f"   ⚠️  Platform selection incorrect: WhatsApp={response_data['validate_whatsapp']}, Telegram={response_data['validate_telegram']}")
+                
+                # Check credit calculation (should be 2 credits per number for both platforms)
+                if 'credits_used' in response_data:
+                    expected_credits = 4  # 2 numbers * 2 credits each for both platforms
+                    if response_data['credits_used'] == expected_credits:
+                        print(f"   ✅ Credit calculation correct: {response_data['credits_used']} credits")
+                    else:
+                        print(f"   ⚠️  Credit calculation incorrect: expected {expected_credits}, got {response_data['credits_used']}")
+                
+                return True
+            else:
+                print(f"❌ Failed - Expected 200, got {response.status_code}")
+                try:
+                    error_data = response.json()
+                    print(f"   Error: {error_data}")
+                except:
+                    print(f"   Raw response: {response.text[:200]}")
+            
+            self.tests_run += 1
+            return success
+            
+        except Exception as e:
+            print(f"❌ Failed - Error: {str(e)}")
+            self.tests_run += 1
+            return False
+
+    def test_bulk_check_no_platform_selected(self):
+        """Test bulk check with no platform selected (should return error)"""
+        if not self.admin_token:
+            print("❌ Skipping bulk check no platform test - no admin token")
+            return False
+            
+        # Create test CSV content
+        csv_content = "name,phone_number\nTestUser7,+6287890123456"
+        
+        # Prepare multipart form data
+        files = {'file': ('test.csv', csv_content, 'text/csv')}
+        data = {
+            'validate_whatsapp': 'false',
+            'validate_telegram': 'false'
+        }
+        
+        url = f"{self.base_url}/api/validation/bulk-check"
+        headers = {'Authorization': f'Bearer {self.admin_token}'}
+        
+        print(f"\n🔍 Testing Bulk Check - No Platform Selected...")
+        print(f"   Description: Test bulk validation with no platform selected (should return error)")
+        
+        try:
+            import requests
+            response = requests.post(url, files=files, data=data, headers=headers, timeout=30)
+            
+            success = response.status_code == 400  # Expecting error
+            if success:
+                self.tests_passed += 1
+                print(f"✅ Passed - Status: {response.status_code}")
+                try:
+                    error_data = response.json()
+                    if 'detail' in error_data and 'platform' in error_data['detail'].lower():
+                        print(f"   ✅ Correct error message: {error_data['detail']}")
+                    else:
+                        print(f"   ⚠️  Unexpected error message: {error_data}")
+                except:
+                    print(f"   ⚠️  Could not parse error response")
+                return True
+            else:
+                print(f"❌ Failed - Expected 400, got {response.status_code}")
+                try:
+                    response_data = response.json()
+                    print(f"   Response: {response_data}")
+                except:
+                    print(f"   Raw response: {response.text[:200]}")
+            
+            self.tests_run += 1
+            return success
+            
+        except Exception as e:
+            print(f"❌ Failed - Error: {str(e)}")
+            self.tests_run += 1
+            return False
+
+    def test_bulk_check_csv_format_phone_only(self):
+        """Test bulk check with CSV containing only phone_number column"""
+        if not self.admin_token:
+            print("❌ Skipping bulk check phone only CSV test - no admin token")
+            return False
+            
+        # Create test CSV content with only phone_number column
+        csv_content = "phone_number\n+6288901234567\n+6289012345678"
+        
+        # Prepare multipart form data
+        files = {'file': ('test.csv', csv_content, 'text/csv')}
+        data = {
+            'validate_whatsapp': 'true',
+            'validate_telegram': 'false'
+        }
+        
+        url = f"{self.base_url}/api/validation/bulk-check"
+        headers = {'Authorization': f'Bearer {self.admin_token}'}
+        
+        print(f"\n🔍 Testing Bulk Check - Phone Only CSV...")
+        print(f"   Description: Test CSV with only phone_number column")
+        
+        try:
+            import requests
+            response = requests.post(url, files=files, data=data, headers=headers, timeout=30)
+            
+            success = response.status_code == 200
+            if success:
+                self.tests_passed += 1
+                print(f"✅ Passed - Status: {response.status_code}")
+                response_data = response.json()
+                
+                if 'job_id' in response_data:
+                    print(f"   ✅ Job created successfully with phone-only CSV")
+                    if 'total_numbers' in response_data and response_data['total_numbers'] == 2:
+                        print(f"   ✅ Correct number count: {response_data['total_numbers']}")
+                    else:
+                        print(f"   ⚠️  Unexpected number count: {response_data.get('total_numbers', 'N/A')}")
+                
+                return True
+            else:
+                print(f"❌ Failed - Expected 200, got {response.status_code}")
+                try:
+                    error_data = response.json()
+                    print(f"   Error: {error_data}")
+                except:
+                    print(f"   Raw response: {response.text[:200]}")
+            
+            self.tests_run += 1
+            return success
+            
+        except Exception as e:
+            print(f"❌ Failed - Error: {str(e)}")
+            self.tests_run += 1
+            return False
+
+    def test_bulk_check_csv_format_alternative_headers(self):
+        """Test bulk check with CSV containing alternative header names"""
+        if not self.admin_token:
+            print("❌ Skipping bulk check alternative headers test - no admin token")
+            return False
+            
+        # Create test CSV content with alternative headers
+        csv_content = "nama,identifier\nBudi Santoso,+6290123456789\nSari Dewi,+6291234567890"
+        
+        # Prepare multipart form data
+        files = {'file': ('test.csv', csv_content, 'text/csv')}
+        data = {
+            'validate_whatsapp': 'true',
+            'validate_telegram': 'false'
+        }
+        
+        url = f"{self.base_url}/api/validation/bulk-check"
+        headers = {'Authorization': f'Bearer {self.admin_token}'}
+        
+        print(f"\n🔍 Testing Bulk Check - Alternative Headers CSV...")
+        print(f"   Description: Test CSV with alternative header names (nama, identifier)")
+        
+        try:
+            import requests
+            response = requests.post(url, files=files, data=data, headers=headers, timeout=30)
+            
+            success = response.status_code == 200
+            if success:
+                self.tests_passed += 1
+                print(f"✅ Passed - Status: {response.status_code}")
+                response_data = response.json()
+                
+                if 'job_id' in response_data:
+                    print(f"   ✅ Job created successfully with alternative headers")
+                    if 'total_numbers' in response_data and response_data['total_numbers'] == 2:
+                        print(f"   ✅ Correct number count: {response_data['total_numbers']}")
+                    else:
+                        print(f"   ⚠️  Unexpected number count: {response_data.get('total_numbers', 'N/A')}")
+                
+                return True
+            else:
+                print(f"❌ Failed - Expected 200, got {response.status_code}")
+                try:
+                    error_data = response.json()
+                    print(f"   Error: {error_data}")
+                except:
+                    print(f"   Raw response: {response.text[:200]}")
+            
+            self.tests_run += 1
+            return success
+            
+        except Exception as e:
+            print(f"❌ Failed - Error: {str(e)}")
+            self.tests_run += 1
+            return False
+
+    def test_bulk_check_job_status_progression(self):
+        """Test bulk check job status progression and platform flags storage"""
+        if not self.admin_token:
+            print("❌ Skipping bulk check job status test - no admin token")
+            return False
+            
+        # Create test CSV content
+        csv_content = "name,phone_number\nStatusTest1,+6292345678901\nStatusTest2,+6293456789012"
+        
+        # Prepare multipart form data
+        files = {'file': ('test.csv', csv_content, 'text/csv')}
+        data = {
+            'validate_whatsapp': 'true',
+            'validate_telegram': 'true'
+        }
+        
+        url = f"{self.base_url}/api/validation/bulk-check"
+        headers = {'Authorization': f'Bearer {self.admin_token}'}
+        
+        print(f"\n🔍 Testing Bulk Check - Job Status Progression...")
+        print(f"   Description: Test job status progression and platform flags storage")
+        
+        try:
+            import requests
+            import time
+            
+            # Submit job
+            response = requests.post(url, files=files, data=data, headers=headers, timeout=30)
+            
+            if response.status_code == 200:
+                response_data = response.json()
+                job_id = response_data.get('job_id')
+                
+                if job_id:
+                    print(f"   ✅ Job submitted with ID: {job_id}")
+                    
+                    # Check job status immediately (should be pending or processing)
+                    job_url = f"{self.base_url}/api/jobs/{job_id}"
+                    job_response = requests.get(job_url, headers=headers, timeout=10)
+                    
+                    if job_response.status_code == 200:
+                        job_data = job_response.json()
+                        initial_status = job_data.get('status')
+                        print(f"   ✅ Initial job status: {initial_status}")
+                        
+                        # Check if platform flags are stored in job document
+                        if 'validate_whatsapp' in job_data and 'validate_telegram' in job_data:
+                            if job_data['validate_whatsapp'] == True and job_data['validate_telegram'] == True:
+                                print(f"   ✅ Platform flags stored correctly in job document")
+                            else:
+                                print(f"   ⚠️  Platform flags incorrect in job: WhatsApp={job_data['validate_whatsapp']}, Telegram={job_data['validate_telegram']}")
+                        else:
+                            print(f"   ⚠️  Platform flags missing from job document")
+                        
+                        # Wait a bit and check status again
+                        time.sleep(3)
+                        job_response2 = requests.get(job_url, headers=headers, timeout=10)
+                        
+                        if job_response2.status_code == 200:
+                            job_data2 = job_response2.json()
+                            final_status = job_data2.get('status')
+                            print(f"   ✅ Final job status: {final_status}")
+                            
+                            # Check if job progressed through expected statuses
+                            if initial_status in ['pending', 'processing'] and final_status in ['processing', 'completed']:
+                                print(f"   ✅ Job status progression working correctly")
+                                self.tests_passed += 1
+                                self.tests_run += 1
+                                return True
+                            else:
+                                print(f"   ⚠️  Unexpected status progression: {initial_status} -> {final_status}")
+                        else:
+                            print(f"   ⚠️  Could not check final job status")
+                    else:
+                        print(f"   ⚠️  Could not check initial job status")
+                else:
+                    print(f"   ❌ No job_id in response")
+            else:
+                print(f"❌ Failed to submit job - Status: {response.status_code}")
+                try:
+                    error_data = response.json()
+                    print(f"   Error: {error_data}")
+                except:
+                    print(f"   Raw response: {response.text[:200]}")
+            
+            self.tests_run += 1
+            return False
+            
+        except Exception as e:
+            print(f"❌ Failed - Error: {str(e)}")
+            self.tests_run += 1
+            return False
+
+    def test_bulk_check_invalid_file_format(self):
+        """Test bulk check with invalid file format"""
+        if not self.admin_token:
+            print("❌ Skipping bulk check invalid file test - no admin token")
+            return False
+            
+        # Create invalid file content (not CSV)
+        invalid_content = "This is not a CSV file content"
+        
+        # Prepare multipart form data
+        files = {'file': ('test.txt', invalid_content, 'text/plain')}
+        data = {
+            'validate_whatsapp': 'true',
+            'validate_telegram': 'false'
+        }
+        
+        url = f"{self.base_url}/api/validation/bulk-check"
+        headers = {'Authorization': f'Bearer {self.admin_token}'}
+        
+        print(f"\n🔍 Testing Bulk Check - Invalid File Format...")
+        print(f"   Description: Test with invalid file format (should return error)")
+        
+        try:
+            import requests
+            response = requests.post(url, files=files, data=data, headers=headers, timeout=30)
+            
+            success = response.status_code == 400  # Expecting error
+            if success:
+                self.tests_passed += 1
+                print(f"✅ Passed - Status: {response.status_code}")
+                try:
+                    error_data = response.json()
+                    print(f"   ✅ Error response: {error_data}")
+                except:
+                    print(f"   ⚠️  Could not parse error response")
+                return True
+            else:
+                print(f"❌ Failed - Expected 400, got {response.status_code}")
+                try:
+                    response_data = response.json()
+                    print(f"   Response: {response_data}")
+                except:
+                    print(f"   Raw response: {response.text[:200]}")
+            
+            self.tests_run += 1
+            return success
+            
+        except Exception as e:
+            print(f"❌ Failed - Error: {str(e)}")
+            self.tests_run += 1
+            return False
+
+    def test_bulk_check_oversized_file(self):
+        """Test bulk check with oversized file"""
+        if not self.admin_token:
+            print("❌ Skipping bulk check oversized file test - no admin token")
+            return False
+            
+        # Create oversized CSV content (simulate large file)
+        csv_lines = ["name,phone_number"]
+        for i in range(2000):  # Create 2000 lines to simulate large file
+            csv_lines.append(f"User{i},+628{i:010d}")
+        
+        oversized_content = "\n".join(csv_lines)
+        
+        # Prepare multipart form data
+        files = {'file': ('large_test.csv', oversized_content, 'text/csv')}
+        data = {
+            'validate_whatsapp': 'true',
+            'validate_telegram': 'false'
+        }
+        
+        url = f"{self.base_url}/api/validation/bulk-check"
+        headers = {'Authorization': f'Bearer {self.admin_token}'}
+        
+        print(f"\n🔍 Testing Bulk Check - Oversized File...")
+        print(f"   Description: Test with oversized file (2000 numbers, may hit limits)")
+        
+        try:
+            import requests
+            response = requests.post(url, files=files, data=data, headers=headers, timeout=60)
+            
+            # Could be 200 (accepted) or 400 (rejected due to size limits)
+            success = response.status_code in [200, 400]
+            if success:
+                self.tests_passed += 1
+                print(f"✅ Passed - Status: {response.status_code}")
+                try:
+                    response_data = response.json()
+                    if response.status_code == 200:
+                        print(f"   ✅ Large file accepted: {response_data.get('total_numbers', 'N/A')} numbers")
+                    else:
+                        print(f"   ✅ Large file rejected as expected: {response_data}")
+                except:
+                    print(f"   ⚠️  Could not parse response")
+                return True
+            else:
+                print(f"❌ Failed - Unexpected status: {response.status_code}")
+                try:
+                    response_data = response.json()
+                    print(f"   Response: {response_data}")
+                except:
+                    print(f"   Raw response: {response.text[:200]}")
+            
+            self.tests_run += 1
+            return success
+            
+        except Exception as e:
+            print(f"❌ Failed - Error: {str(e)}")
+            self.tests_run += 1
+            return False
+
 def main():
     print("🚀 Starting Webtools Validation API Tests")
     print("=" * 50)
