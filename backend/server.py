@@ -1720,7 +1720,13 @@ async def get_dashboard_stats(current_user = Depends(get_current_user)):
 
 # Bulk Validation Routes
 @app.post("/api/validation/bulk-check")
-async def bulk_check(background_tasks: BackgroundTasks, file: UploadFile = File(...), current_user = Depends(get_current_user)):
+async def bulk_check(
+    background_tasks: BackgroundTasks, 
+    file: UploadFile = File(...), 
+    validate_whatsapp: bool = Form(True),
+    validate_telegram: bool = Form(True),
+    current_user = Depends(get_current_user)
+):
     if not file.filename.endswith(('.csv', '.xlsx', '.xls')):
         raise HTTPException(status_code=400, detail="Format file tidak didukung. Gunakan CSV, XLS, atau XLSX")
     
