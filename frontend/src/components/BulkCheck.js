@@ -179,6 +179,11 @@ const BulkCheck = () => {
       return;
     }
 
+    if (!validateWhatsapp && !validateTelegram) {
+      toast.error('Pilih minimal satu platform untuk validasi');
+      return;
+    }
+
     const estimatedCredits = estimateCredits();
     if (user?.credits < estimatedCredits) {
       toast.error(`Kredit tidak mencukupi. Dibutuhkan ${estimatedCredits} kredit, tersisa ${user?.credits || 0}`);
