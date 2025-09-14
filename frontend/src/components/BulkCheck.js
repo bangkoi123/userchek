@@ -651,9 +651,9 @@ const BulkCheck = () => {
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
               📋 Format File
             </h3>
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div>
-                <p className="font-medium text-gray-900 dark:text-white mb-2">CSV Format:</p>
+                <p className="font-medium text-gray-900 dark:text-white mb-2">Format 1 - Hanya Nomor:</p>
                 <div className="bg-gray-100 dark:bg-gray-700 rounded p-2 text-sm font-mono">
                   phone_number<br/>
                   +628123456789<br/>
@@ -661,8 +661,20 @@ const BulkCheck = () => {
                   628345678901
                 </div>
               </div>
+              
+              <div>
+                <p className="font-medium text-gray-900 dark:text-white mb-2">Format 2 - Nama + Nomor:</p>
+                <div className="bg-gray-100 dark:bg-gray-700 rounded p-2 text-sm font-mono">
+                  name,phone_number<br/>
+                  Koi,+628123456789<br/>
+                  Budi,08234567890<br/>
+                  Sari,628345678901
+                </div>
+              </div>
+              
               <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
                 <p>• Header wajib: <code>phone_number</code></p>
+                <p>• Header opsional: <code>name</code>, <code>nama</code>, <code>identifier</code></p>
                 <p>• Format nomor akan dinormalisasi otomatis</p>
                 <p>• Duplikasi nomor akan dihapus</p>
                 <p>• Max 1000 nomor per file</p>
