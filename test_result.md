@@ -146,6 +146,18 @@ backend:
         agent: "testing"
         comment: "✅ Pydantic models working correctly. CreditTopupRequest, UserProfileUpdate, AdminUserUpdate models properly validate input data. Error handling for invalid requests working as expected."
 
+  - task: "Enhanced Bulk Check Functionality"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ COMPREHENSIVE BULK CHECK TESTING COMPLETED: All enhanced bulk check functionality working correctly. 1) PLATFORM SELECTION: WhatsApp-only (1 credit/number), Telegram-only (1 credit/number), both platforms (2 credits/number), and no platform selection (proper error) all tested successfully. 2) CSV FORMAT SUPPORT: Phone-only CSV, name+phone_number CSV, and alternative headers (nama, identifier, username) all processed correctly. 3) JOB PROCESSING: Status progression (pending->processing->completed) working correctly, platform flags (validate_whatsapp, validate_telegram) properly stored in job documents, results contain correct platform-specific data with null values for unselected platforms. 4) ERROR HANDLING: Invalid file formats rejected with proper error messages, oversized files handled appropriately, insufficient credits validation working, no platform selection returns correct error. 5) DOWNLOAD RESULTS: CSV download includes identifier column and works with platform-selective results. Job results structure verified: identifier, phone_number, original_phone, whatsapp, telegram, processed_at fields all present. CSV download header confirmed: identifier,phone_number,original_phone,whatsapp_status,telegram_status,whatsapp_details,telegram_details,processed_at. Real-time job progress updates reflect platform selection correctly. All credit calculations accurate based on platform selection."
+
 frontend:
   - task: "Credit Top-up System Frontend"
     implemented: true
