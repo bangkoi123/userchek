@@ -18,6 +18,8 @@ import UserProfile from './components/UserProfile';
 import AdminSettings from './components/AdminSettings';
 import PaymentManagement from './components/PaymentManagementClean';
 import SystemHealth from './components/SystemHealth';
+import AuditLogs from './components/AuditLogs';
+import BulkUserOperations from './components/BulkUserOperations';
 
 // Context
 import { AuthProvider, useAuth } from './context/AuthContext';
