@@ -325,6 +325,59 @@ const BulkCheck = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Upload Area */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Platform Selection */}
+          <div className="card p-6">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              Pilihan Platform
+            </h2>
+            
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="whatsapp-bulk"
+                  checked={validateWhatsapp}
+                  onChange={(e) => setValidateWhatsapp(e.target.checked)}
+                  disabled={!platformSettings.whatsapp_enabled}
+                  className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                />
+                <label htmlFor="whatsapp-bulk" className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+                  <span className="flex items-center">
+                    WhatsApp (1 credit per nomor)
+                    {!platformSettings.whatsapp_enabled && (
+                      <span className="ml-2 text-xs text-red-500">(Disabled)</span>
+                    )}
+                  </span>
+                </label>
+              </div>
+              
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="telegram-bulk"
+                  checked={validateTelegram}
+                  onChange={(e) => setValidateTelegram(e.target.checked)}
+                  disabled={!platformSettings.telegram_enabled}
+                  className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                />
+                <label htmlFor="telegram-bulk" className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+                  <span className="flex items-center">
+                    Telegram (1 credit per nomor)
+                    {!platformSettings.telegram_enabled && (
+                      <span className="ml-2 text-xs text-red-500">(Disabled)</span>
+                    )}
+                  </span>
+                </label>
+              </div>
+            </div>
+            
+            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                💡 <strong>Tips:</strong> Pilih platform yang ingin divalidasi. Biaya dihitung berdasarkan jumlah platform yang dipilih.
+              </p>
+            </div>
+          </div>
+
           {/* File Upload */}
           <div className="card p-6">
             <div className="flex justify-between items-center mb-4">
