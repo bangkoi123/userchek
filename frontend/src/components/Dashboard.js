@@ -203,59 +203,64 @@ const Dashboard = () => {
           </>
         )}
 
-        {/* Total Checks */}
-        <div className="card p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-              <Zap className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+        {user?.role !== 'admin' && (
+          /* User Additional Stats */
+          <>
+            {/* Total Checks */}
+            <div className="card p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                  <Zap className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                </div>
+                <ArrowUpRight className="h-4 w-4 text-blue-500" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {formatNumber(stats?.total_checks)}
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Total Validasi
+                </p>
+              </div>
             </div>
-            <ArrowUpRight className="h-4 w-4 text-blue-500" />
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">
-              {formatNumber(stats?.total_checks)}
-            </p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Total Validasi
-            </p>
-          </div>
-        </div>
 
-        {/* Monthly Checks */}
-        <div className="card p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
-              <Calendar className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+            {/* Monthly Checks */}
+            <div className="card p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
+                  <Calendar className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                </div>
+                <ArrowUpRight className="h-4 w-4 text-purple-500" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {formatNumber(stats?.monthly_checks)}
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Validasi Bulan Ini
+                </p>
+              </div>
             </div>
-            <ArrowUpRight className="h-4 w-4 text-purple-500" />
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">
-              {formatNumber(stats?.monthly_checks)}
-            </p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Validasi Bulan Ini
-            </p>
-          </div>
-        </div>
 
-        {/* Credits Used */}
-        <div className="card p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-2 bg-orange-100 dark:bg-orange-900 rounded-lg">
-              <TrendingUp className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+            {/* Credits Used */}
+            <div className="card p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-2 bg-orange-100 dark:bg-orange-900 rounded-lg">
+                  <TrendingUp className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+                </div>
+                <ArrowUpRight className="h-4 w-4 text-orange-500" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {formatNumber(stats?.total_credits_used)}
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Total Kredit Terpakai
+                </p>
+              </div>
             </div>
-            <ArrowUpRight className="h-4 w-4 text-orange-500" />
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">
-              {formatNumber(stats?.total_credits_used)}
-            </p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Total Kredit Terpakai
-            </p>
-          </div>
-        </div>
+          </>
+        )}
       </div>
 
       {/* Recent Jobs */}
