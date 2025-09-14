@@ -240,7 +240,7 @@ Maya,+628111222333`;
             // Start real-time monitoring
             setCurrentJobId(response.job_id);
             startListening();
-            toast.info('🔄 Mulai monitoring progress real-time...');
+            toast.success('🔄 Mulai monitoring progress real-time...');
           } else {
             throw new Error('Response tidak valid atau tidak ada job_id');
           }
