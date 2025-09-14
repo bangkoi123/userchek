@@ -1931,9 +1931,14 @@ async def download_job_result(job_id: str, current_user = Depends(get_current_us
         if "error" in detail:
             csv_content += f"\"{identifier}\",{phone_number},{original_phone},ERROR,ERROR,{detail['error']},,{detail['processed_at']}\n"
         else:
-            whatsapp_details = json.dumps(detail['whatsapp']['details']) if detail['whatsapp'].get('details') else ""
-            telegram_details = json.dumps(detail['telegram']['details']) if detail['telegram'].get('details') else ""
-            csv_content += f"\"{identifier}\",{phone_number},{original_phone},{detail['whatsapp']['status']},{detail['telegram']['status']},\"{whatsapp_details}\",\"{telegram_details}\",{detail['processed_at']}\n"
+            # Handle platform-specific results (can be None if platform wasn't validated)
+            whatsapp_status = detail['whatsapp']['status'] if detail.get('whatsapp') else "NOT_VALIDATED"
+            telegram_status = detail['telegram']['status'] if detail.get('telegram') else "NOT_VALIDATED"
+            
+            whatsapp_details = json.dumps(detail['whatsapp']['details']) if detail.get('whatsapp') and detail['whatsapp'].get('details') else ""
+            telegram_details = json.dumps(detail['telegram']['details']) if detail.get('telegram') and detail['telegram'].get('details') else ""
+            
+            csv_content += f"\"{identifier}\",{phone_number},{original_phone},{whatsapp_status},{telegram_status},\"{whatsapp_details}\",\"{telegram_details}\",{detail['processed_at']}\n"
     
     # Return CSV as response
     from fastapi.responses import Response
