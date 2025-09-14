@@ -32,7 +32,12 @@ const Dashboard = () => {
 
   const fetchDashboardStats = async () => {
     try {
-      const data = await apiCall('/api/dashboard/stats');
+      // Different endpoints for admin vs user
+      const endpoint = user?.role === 'admin' 
+        ? '/api/admin/analytics' 
+        : '/api/dashboard/stats';
+      
+      const data = await apiCall(endpoint);
       setStats(data);
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
