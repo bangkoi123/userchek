@@ -1,0 +1,372 @@
+{
+  "082253767671": {
+    "Fixed wa.me": {
+      "status": "inactive",
+      "confidence": "high",
+      "method": "wa.me_fixed",
+      "score": "5/8",
+      "indicators": {
+        "has_whatsapp_redirect": true,
+        "has_whatsapp_scheme": false,
+        "has_chat_button": true,
+        "no_error_indicators": false,
+        "has_phone_in_url": true,
+        "has_meta_tags": true,
+        "main_block_visible": true,
+        "fallback_not_displayed": false
+      },
+      "is_business": true,
+      "raw_response_length": 188014,
+      "has_error_patterns": true
+    },
+    "Fixed api.whatsapp": {
+      "status": "active",
+      "confidence": "medium",
+      "method": "api.whatsapp_fixed",
+      "score": "4/6",
+      "indicators": {
+        "has_send_redirect": true,
+        "main_visible": false,
+        "fallback_hidden": true,
+        "has_phone_param": true,
+        "no_indonesian_error": true,
+        "is_business_api": false
+      },
+      "has_indonesian_error": false,
+      "is_business_api": false,
+      "raw_response_length": 193308
+    },
+    "Browser simulation": {
+      "status": "inactive",
+      "confidence": "high",
+      "method": "browser_simulation",
+      "successful_endpoints": 0,
+      "total_endpoints": 3,
+      "results": [
+        {
+          "endpoint": "https://wa.me/6282253767671",
+          "status_code": 200,
+          "has_whatsapp_content": true,
+          "has_error_message": true,
+          "has_redirect": true,
+          "response_size": 193285,
+          "final_url": "https://api.whatsapp.com/send/?phone=6282253767671&text&type=phone_number&app_absent=0"
+        },
+        {
+          "endpoint": "https://wa.me/6282253767671?text=hello",
+          "status_code": 200,
+          "has_whatsapp_content": true,
+          "has_error_message": true,
+          "has_redirect": true,
+          "response_size": 193362,
+          "final_url": "https://api.whatsapp.com/send/?phone=6282253767671&text=hello&type=phone_number&app_absent=0"
+        },
+        {
+          "endpoint": "https://api.whatsapp.com/send/?phone=6282253767671",
+          "status_code": 200,
+          "has_whatsapp_content": true,
+          "has_error_message": true,
+          "has_redirect": true,
+          "response_size": 193063,
+          "final_url": "https://api.whatsapp.com/send/?phone=6282253767671"
+        }
+      ]
+    }
+  },
+  "089689547785": {
+    "Fixed wa.me": {
+      "status": "inactive",
+      "confidence": "high",
+      "method": "wa.me_fixed",
+      "score": "5/8",
+      "indicators": {
+        "has_whatsapp_redirect": true,
+        "has_whatsapp_scheme": false,
+        "has_chat_button": true,
+        "no_error_indicators": false,
+        "has_phone_in_url": true,
+        "has_meta_tags": true,
+        "main_block_visible": true,
+        "fallback_not_displayed": false
+      },
+      "is_business": true,
+      "raw_response_length": 193257,
+      "has_error_patterns": true
+    },
+    "Fixed api.whatsapp": {
+      "status": "active",
+      "confidence": "medium",
+      "method": "api.whatsapp_fixed",
+      "score": "4/6",
+      "indicators": {
+        "has_send_redirect": true,
+        "main_visible": false,
+        "fallback_hidden": true,
+        "has_phone_param": true,
+        "no_indonesian_error": true,
+        "is_business_api": false
+      },
+      "has_indonesian_error": false,
+      "is_business_api": false,
+      "raw_response_length": 193279
+    },
+    "Browser simulation": {
+      "status": "inactive",
+      "confidence": "high",
+      "method": "browser_simulation",
+      "successful_endpoints": 0,
+      "total_endpoints": 3,
+      "results": [
+        {
+          "endpoint": "https://wa.me/6289689547785",
+          "status_code": 200,
+          "has_whatsapp_content": true,
+          "has_error_message": true,
+          "has_redirect": true,
+          "response_size": 193256,
+          "final_url": "https://api.whatsapp.com/send/?phone=6289689547785&text&type=phone_number&app_absent=0"
+        },
+        {
+          "endpoint": "https://wa.me/6289689547785?text=hello",
+          "status_code": 200,
+          "has_whatsapp_content": true,
+          "has_error_message": true,
+          "has_redirect": true,
+          "response_size": 193330,
+          "final_url": "https://api.whatsapp.com/send/?phone=6289689547785&text=hello&type=phone_number&app_absent=0"
+        },
+        {
+          "endpoint": "https://api.whatsapp.com/send/?phone=6289689547785",
+          "status_code": 200,
+          "has_whatsapp_content": true,
+          "has_error_message": true,
+          "has_redirect": true,
+          "response_size": 193185,
+          "final_url": "https://api.whatsapp.com/send/?phone=6289689547785"
+        }
+      ]
+    }
+  },
+  "6285586712458": {
+    "Fixed wa.me": {
+      "status": "inactive",
+      "confidence": "high",
+      "method": "wa.me_fixed",
+      "score": "5/8",
+      "indicators": {
+        "has_whatsapp_redirect": true,
+        "has_whatsapp_scheme": false,
+        "has_chat_button": true,
+        "no_error_indicators": false,
+        "has_phone_in_url": true,
+        "has_meta_tags": true,
+        "main_block_visible": true,
+        "fallback_not_displayed": false
+      },
+      "is_business": true,
+      "raw_response_length": 193281,
+      "has_error_patterns": true
+    },
+    "Fixed api.whatsapp": {
+      "status": "active",
+      "confidence": "medium",
+      "method": "api.whatsapp_fixed",
+      "score": "4/6",
+      "indicators": {
+        "has_send_redirect": true,
+        "main_visible": false,
+        "fallback_hidden": true,
+        "has_phone_param": true,
+        "no_indonesian_error": true,
+        "is_business_api": false
+      },
+      "has_indonesian_error": false,
+      "is_business_api": false,
+      "raw_response_length": 193555
+    },
+    "Browser simulation": {
+      "status": "inactive",
+      "confidence": "high",
+      "method": "browser_simulation",
+      "successful_endpoints": 0,
+      "total_endpoints": 3,
+      "results": [
+        {
+          "endpoint": "https://wa.me/6285586712458",
+          "status_code": 200,
+          "has_whatsapp_content": true,
+          "has_error_message": true,
+          "has_redirect": true,
+          "response_size": 193281,
+          "final_url": "https://api.whatsapp.com/send/?phone=6285586712458&text&type=phone_number&app_absent=0"
+        },
+        {
+          "endpoint": "https://wa.me/6285586712458?text=hello",
+          "status_code": 200,
+          "has_whatsapp_content": true,
+          "has_error_message": true,
+          "has_redirect": true,
+          "response_size": 193360,
+          "final_url": "https://api.whatsapp.com/send/?phone=6285586712458&text=hello&type=phone_number&app_absent=0"
+        },
+        {
+          "endpoint": "https://api.whatsapp.com/send/?phone=6285586712458",
+          "status_code": 200,
+          "has_whatsapp_content": true,
+          "has_error_message": true,
+          "has_redirect": true,
+          "response_size": 193215,
+          "final_url": "https://api.whatsapp.com/send/?phone=6285586712458"
+        }
+      ]
+    }
+  },
+  "6281261623389": {
+    "Fixed wa.me": {
+      "status": "inactive",
+      "confidence": "high",
+      "method": "wa.me_fixed",
+      "score": "5/8",
+      "indicators": {
+        "has_whatsapp_redirect": true,
+        "has_whatsapp_scheme": false,
+        "has_chat_button": true,
+        "no_error_indicators": false,
+        "has_phone_in_url": true,
+        "has_meta_tags": true,
+        "main_block_visible": true,
+        "fallback_not_displayed": false
+      },
+      "is_business": true,
+      "raw_response_length": 193282,
+      "has_error_patterns": true
+    },
+    "Fixed api.whatsapp": {
+      "status": "active",
+      "confidence": "medium",
+      "method": "api.whatsapp_fixed",
+      "score": "4/6",
+      "indicators": {
+        "has_send_redirect": true,
+        "main_visible": false,
+        "fallback_hidden": true,
+        "has_phone_param": true,
+        "no_indonesian_error": true,
+        "is_business_api": false
+      },
+      "has_indonesian_error": false,
+      "is_business_api": false,
+      "raw_response_length": 193307
+    },
+    "Browser simulation": {
+      "status": "inactive",
+      "confidence": "high",
+      "method": "browser_simulation",
+      "successful_endpoints": 0,
+      "total_endpoints": 3,
+      "results": [
+        {
+          "endpoint": "https://wa.me/6281261623389",
+          "status_code": 200,
+          "has_whatsapp_content": true,
+          "has_error_message": true,
+          "has_redirect": true,
+          "response_size": 193282,
+          "final_url": "https://api.whatsapp.com/send/?phone=6281261623389&text&type=phone_number&app_absent=0"
+        },
+        {
+          "endpoint": "https://wa.me/6281261623389?text=hello",
+          "status_code": 200,
+          "has_whatsapp_content": true,
+          "has_error_message": true,
+          "has_redirect": true,
+          "response_size": 193362,
+          "final_url": "https://api.whatsapp.com/send/?phone=6281261623389&text=hello&type=phone_number&app_absent=0"
+        },
+        {
+          "endpoint": "https://api.whatsapp.com/send/?phone=6281261623389",
+          "status_code": 200,
+          "has_whatsapp_content": true,
+          "has_error_message": true,
+          "has_redirect": true,
+          "response_size": 193067,
+          "final_url": "https://api.whatsapp.com/send/?phone=6281261623389"
+        }
+      ]
+    }
+  },
+  "6282151118348": {
+    "Fixed wa.me": {
+      "status": "inactive",
+      "confidence": "high",
+      "method": "wa.me_fixed",
+      "score": "5/8",
+      "indicators": {
+        "has_whatsapp_redirect": true,
+        "has_whatsapp_scheme": false,
+        "has_chat_button": true,
+        "no_error_indicators": false,
+        "has_phone_in_url": true,
+        "has_meta_tags": true,
+        "main_block_visible": true,
+        "fallback_not_displayed": false
+      },
+      "is_business": true,
+      "raw_response_length": 193433,
+      "has_error_patterns": true
+    },
+    "Fixed api.whatsapp": {
+      "status": "active",
+      "confidence": "medium",
+      "method": "api.whatsapp_fixed",
+      "score": "4/6",
+      "indicators": {
+        "has_send_redirect": true,
+        "main_visible": false,
+        "fallback_hidden": true,
+        "has_phone_param": true,
+        "no_indonesian_error": true,
+        "is_business_api": false
+      },
+      "has_indonesian_error": false,
+      "is_business_api": false,
+      "raw_response_length": 193311
+    },
+    "Browser simulation": {
+      "status": "inactive",
+      "confidence": "high",
+      "method": "browser_simulation",
+      "successful_endpoints": 0,
+      "total_endpoints": 3,
+      "results": [
+        {
+          "endpoint": "https://wa.me/6282151118348",
+          "status_code": 200,
+          "has_whatsapp_content": true,
+          "has_error_message": true,
+          "has_redirect": true,
+          "response_size": 193282,
+          "final_url": "https://api.whatsapp.com/send/?phone=6282151118348&text&type=phone_number&app_absent=0"
+        },
+        {
+          "endpoint": "https://wa.me/6282151118348?text=hello",
+          "status_code": 200,
+          "has_whatsapp_content": true,
+          "has_error_message": true,
+          "has_redirect": true,
+          "response_size": 193361,
+          "final_url": "https://api.whatsapp.com/send/?phone=6282151118348&text=hello&type=phone_number&app_absent=0"
+        },
+        {
+          "endpoint": "https://api.whatsapp.com/send/?phone=6282151118348",
+          "status_code": 200,
+          "has_whatsapp_content": true,
+          "has_error_message": true,
+          "has_redirect": true,
+          "response_size": 193062,
+          "final_url": "https://api.whatsapp.com/send/?phone=6282151118348"
+        }
+      ]
+    }
+  }
+}
