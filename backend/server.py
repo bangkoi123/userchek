@@ -1804,8 +1804,14 @@ async def bulk_check(
         if len(unique_phone_data) > 1000:
             raise HTTPException(status_code=400, detail="Maksimal 1000 nomor unik per file")
         
-        # Check credits
-        required_credits = len(unique_phone_data) * 2
+        # Calculate credits based on platform selection
+        credits_per_number = 0
+        if validate_whatsapp:
+            credits_per_number += 1
+        if validate_telegram:
+            credits_per_number += 1
+        
+        required_credits = len(unique_phone_data) * credits_per_number
         if current_user.get("credits", 0) < required_credits:
             raise HTTPException(
                 status_code=400, 
