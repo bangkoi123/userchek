@@ -1,0 +1,92 @@
+{
+  "082253767671": {
+    "status": "active",
+    "confidence": "high",
+    "reason": "Chat button found without download prompt",
+    "method": "browser_automation",
+    "indicators": {
+      "redirected_to_chat": false,
+      "has_chat_button": true,
+      "has_error_message": false,
+      "has_download_prompt": false,
+      "has_whatsapp_title": true,
+      "phone_in_content": true,
+      "url_changed": true
+    },
+    "final_url": "https://api.whatsapp.com/send/?phone=6282253767671&text&type=phone_number&app_absent=0",
+    "page_title": "Share on WhatsApp",
+    "detected_error": null
+  },
+  "089689547785": {
+    "status": "active",
+    "confidence": "high",
+    "reason": "Chat button found without download prompt",
+    "method": "browser_automation",
+    "indicators": {
+      "redirected_to_chat": false,
+      "has_chat_button": true,
+      "has_error_message": false,
+      "has_download_prompt": false,
+      "has_whatsapp_title": true,
+      "phone_in_content": true,
+      "url_changed": true
+    },
+    "final_url": "https://api.whatsapp.com/send/?phone=6289689547785&text&type=phone_number&app_absent=0",
+    "page_title": "Share on WhatsApp",
+    "detected_error": null
+  },
+  "6285586712458": {
+    "status": "active",
+    "confidence": "high",
+    "reason": "Chat button found without download prompt",
+    "method": "browser_automation",
+    "indicators": {
+      "redirected_to_chat": false,
+      "has_chat_button": true,
+      "has_error_message": false,
+      "has_download_prompt": false,
+      "has_whatsapp_title": true,
+      "phone_in_content": true,
+      "url_changed": true
+    },
+    "final_url": "https://api.whatsapp.com/send/?phone=6285586712458&text&type=phone_number&app_absent=0",
+    "page_title": "Share on WhatsApp",
+    "detected_error": null
+  },
+  "6281261623389": {
+    "status": "active",
+    "confidence": "high",
+    "reason": "Chat button found without download prompt",
+    "method": "browser_automation",
+    "indicators": {
+      "redirected_to_chat": false,
+      "has_chat_button": true,
+      "has_error_message": false,
+      "has_download_prompt": false,
+      "has_whatsapp_title": true,
+      "phone_in_content": true,
+      "url_changed": true
+    },
+    "final_url": "https://api.whatsapp.com/send/?phone=6281261623389&text&type=phone_number&app_absent=0",
+    "page_title": "Share on WhatsApp",
+    "detected_error": null
+  },
+  "6282151118348": {
+    "status": "active",
+    "confidence": "high",
+    "reason": "Chat button found without download prompt",
+    "method": "browser_automation",
+    "indicators": {
+      "redirected_to_chat": false,
+      "has_chat_button": true,
+      "has_error_message": false,
+      "has_download_prompt": false,
+      "has_whatsapp_title": true,
+      "phone_in_content": true,
+      "url_changed": true
+    },
+    "final_url": "https://api.whatsapp.com/send/?phone=6282151118348&text&type=phone_number&app_absent=0",
+    "page_title": "Share on WhatsApp",
+    "detected_error": null
+  }
+}
