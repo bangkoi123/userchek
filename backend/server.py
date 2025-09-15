@@ -249,17 +249,29 @@ async def validate_whatsapp_checknumber_batch(phone_list: List[str], provider_se
                 headers = {'X-API-Key': api_key}
                 
                 async with session.post(api_url, headers=headers, data=data) as response:
+                    response_text = await response.text()
                     if response.status != 200:
                         print(f"❌ CheckNumber.ai batch submission failed: {response.status}")
-                        os.remove(temp_file_path)
+                        print(f"   Response: {response_text}")
+                        if os.path.exists(temp_file_path):
+                            os.remove(temp_file_path)
                         return {}
                     
-                    result = await response.json()
+                    try:
+                        result = await response.json()
+                    except:
+                        print(f"❌ Failed to parse CheckNumber.ai response as JSON: {response_text}")
+                        if os.path.exists(temp_file_path):
+                            os.remove(temp_file_path)
+                        return {}
+                    
                     task_id = result.get('task_id')
                     
                     if not task_id:
                         print(f"❌ No task_id received from CheckNumber.ai")
-                        os.remove(temp_file_path)
+                        print(f"   Response: {result}")
+                        if os.path.exists(temp_file_path):
+                            os.remove(temp_file_path)
                         return {}
                     
                     print(f"✅ CheckNumber.ai task submitted: {task_id}")
