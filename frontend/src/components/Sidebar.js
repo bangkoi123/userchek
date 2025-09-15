@@ -24,10 +24,9 @@ import {
   TrendingUp
 } from 'lucide-react';
 
-const Sidebar = ({ isOpen, setSidebarOpen }) => {
+const Sidebar = ({ isOpen, setSidebarOpen, isMinimized, setIsMinimized }) => {
   const location = useLocation();
   const { user } = useAuth();
-  const [isMinimized, setIsMinimized] = useState(false);
 
   const menuItems = [];
 
