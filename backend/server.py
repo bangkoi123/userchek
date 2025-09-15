@@ -13,6 +13,9 @@ import uuid
 import pandas as pd
 import io
 import json
+import csv
+import random
+from io import StringIO
 from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo import ASCENDING, DESCENDING
 import asyncio
@@ -24,6 +27,10 @@ import logging
 from email_service import email_service
 import socketio
 from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutStatusResponse, CheckoutSessionRequest
+
+# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv()
 
 # Load environment variables from .env file
 from dotenv import load_dotenv
