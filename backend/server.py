@@ -341,7 +341,8 @@ async def validate_whatsapp_checknumber_batch(phone_list: List[str], provider_se
                     continue
         
         # Cleanup
-        os.remove(temp_file_path)
+        if os.path.exists(temp_file_path):
+            os.remove(temp_file_path)
         print(f"⏰ CheckNumber.ai task timeout or failed")
         return {}
         
