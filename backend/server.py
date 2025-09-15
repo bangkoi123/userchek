@@ -928,50 +928,111 @@ async def process_bulk_validation(job_id: str):
             "details": []
         }
         
-        # Process each phone data entry
-        for i, phone_data in enumerate(phone_data_list):
-            try:
+        # Optimize WhatsApp validation using batch API
+        whatsapp_batch_results = {}
+        if validate_whatsapp:
+            # Collect all non-cached WhatsApp numbers for batch processing
+            phones_to_validate = []
+            phone_to_data_map = {}
+            
+            for phone_data in phone_data_list:
                 phone = phone_data["phone_number"]
                 identifier = phone_data.get("identifier")
+                phone_to_data_map[phone] = phone_data
                 
                 # Check cache first
                 cached_result = await db.validation_cache.find_one({"phone_number": phone})
                 use_cache = cached_result and (datetime.utcnow() - cached_result["cached_at"]).days < 7
                 
-                if use_cache:
-                    whatsapp_result = cached_result["whatsapp"] if validate_whatsapp else None
-                    telegram_result = cached_result["telegram"] if validate_telegram else None
-                    # Add identifier to cached results
-                    if whatsapp_result:
-                        whatsapp_result["identifier"] = identifier
-                    if telegram_result:
-                        telegram_result["identifier"] = identifier
+                if use_cache and validate_whatsapp:
+                    whatsapp_result = cached_result["whatsapp"]
+                    whatsapp_result["identifier"] = identifier
+                    whatsapp_batch_results[phone] = whatsapp_result
                 else:
-                    # Perform validation based on platform selection
-                    whatsapp_result = None
-                    telegram_result = None
+                    phones_to_validate.append(phone)
+            
+            # Batch validate non-cached numbers
+            if phones_to_validate:
+                print(f"🚀 Starting batch validation for {len(phones_to_validate)} WhatsApp numbers")
+                provider_settings = await db.admin_settings.find_one({"setting_type": "whatsapp_provider"})
+                
+                if provider_settings and provider_settings.get("provider") == "checknumber_ai" and provider_settings.get("enabled"):
+                    # Use CheckNumber.ai batch API
+                    batch_results = await validate_whatsapp_checknumber_batch(phones_to_validate, provider_settings)
                     
-                    if validate_whatsapp:
+                    # Convert batch results to individual results format
+                    for phone in phones_to_validate:
+                        identifier = phone_to_data_map[phone].get("identifier")
+                        clean_phone = phone.replace('+', '')
+                        
+                        if clean_phone in batch_results:
+                            result = batch_results[clean_phone]
+                            status = ValidationStatus.ACTIVE if result['status'] == 'active' else ValidationStatus.INACTIVE
+                            
+                            whatsapp_result = {
+                                'identifier': identifier,
+                                'phone_number': phone,
+                                'platform': 'whatsapp',
+                                'status': status,
+                                'validated_at': datetime.utcnow(),
+                                'details': {
+                                    'type': 'personal' if status == ValidationStatus.ACTIVE else None,
+                                    'provider': 'checknumber_ai',
+                                    'api_response': result['api_response'],
+                                    'confidence_score': 5 if status == ValidationStatus.ACTIVE else 1
+                                }
+                            }
+                        else:
+                            # Fallback to free method for failed batch items
+                            whatsapp_result = await validate_whatsapp_web_api(phone, identifier)
+                        
+                        whatsapp_batch_results[phone] = whatsapp_result
+                else:
+                    # Fallback to individual validation for non-CheckNumber.ai providers
+                    for phone in phones_to_validate:
+                        identifier = phone_to_data_map[phone].get("identifier")
                         whatsapp_result = await validate_whatsapp_number_smart(phone, identifier)
+                        whatsapp_batch_results[phone] = whatsapp_result
+        
+        # Process each phone data entry with optimized results
+        for i, phone_data in enumerate(phone_data_list):
+            try:
+                phone = phone_data["phone_number"]
+                identifier = phone_data.get("identifier")
+                
+                # Get WhatsApp result from batch or cache
+                whatsapp_result = whatsapp_batch_results.get(phone) if validate_whatsapp else None
+                
+                # Handle Telegram validation (still individual for now)
+                telegram_result = None
+                if validate_telegram:
+                    # Check cache first
+                    cached_result = await db.validation_cache.find_one({"phone_number": phone})
+                    use_cache = cached_result and (datetime.utcnow() - cached_result["cached_at"]).days < 7
                     
-                    if validate_telegram:
+                    if use_cache:
+                        telegram_result = cached_result["telegram"]
+                        telegram_result["identifier"] = identifier
+                    else:
                         telegram_result = await validate_telegram_number(phone)
                         telegram_result["identifier"] = identifier
+                
+                # Cache results
+                if whatsapp_result or telegram_result:
+                    cache_doc = {
+                        "phone_number": phone,
+                        "cached_at": datetime.utcnow()
+                    }
+                    if whatsapp_result:
+                        cache_doc["whatsapp"] = whatsapp_result
+                    if telegram_result:
+                        cache_doc["telegram"] = telegram_result
                     
-                    # Cache results if both were validated (for optimal caching)
-                    if validate_whatsapp and validate_telegram:
-                        cache_doc = {
-                            "phone_number": phone,
-                            "whatsapp": whatsapp_result,
-                            "telegram": telegram_result,
-                            "cached_at": datetime.utcnow()
-                        }
-                        
-                        await db.validation_cache.update_one(
-                            {"phone_number": phone},
-                            {"$set": cache_doc},
-                            upsert=True
-                        )
+                    await db.validation_cache.update_one(
+                        {"phone_number": phone},
+                        {"$set": cache_doc},
+                        upsert=True
+                    )
                 
                 # Count results
                 if whatsapp_result and whatsapp_result["status"] == ValidationStatus.ACTIVE:
