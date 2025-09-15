@@ -196,6 +196,10 @@ const QuickCheck = () => {
 
       setResult(data);
       
+      // Update persistent stats and history
+      updatePersistentStats(data);
+      addToValidationHistory(data);
+      
       // Update user credits
       const newCredits = user.credits - creditsNeeded;
       updateUser({ ...user, credits: newCredits });
