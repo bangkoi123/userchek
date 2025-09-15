@@ -35,11 +35,21 @@ const BulkCheck = () => {
   });
 
   // Progress Modal States
-  const [showProgressModal, setShowProgressModal] = useState(false);
-  const [currentJob, setCurrentJob] = useState(null);
+  const [showProgressModal, setShowProgressModal] = useState(() => {
+    const saved = localStorage.getItem('bulk_check_progress_modal');
+    return saved ? JSON.parse(saved) : false;
+  });
+  const [currentJob, setCurrentJob] = useState(() => {
+    const saved = localStorage.getItem('bulk_check_current_job');
+    return saved ? JSON.parse(saved) : null;
+  });
   const [showResultsModal, setShowResultsModal] = useState(false);
   const [jobResults, setJobResults] = useState(null);
   const [resultsPage, setResultsPage] = useState(1);
+  const [completedJobs, setCompletedJobs] = useState(() => {
+    const saved = localStorage.getItem('bulk_check_completed_jobs');
+    return saved ? JSON.parse(saved) : [];
+  });
   const RESULTS_PER_PAGE = 100;
   
   // Real-time job progress hook
