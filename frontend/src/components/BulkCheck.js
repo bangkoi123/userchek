@@ -32,6 +32,14 @@ const BulkCheck = () => {
     whatsapp_enabled: true,
     telegram_enabled: true
   });
+
+  // Progress Modal States
+  const [showProgressModal, setShowProgressModal] = useState(false);
+  const [currentJob, setCurrentJob] = useState(null);
+  const [showResultsModal, setShowResultsModal] = useState(false);
+  const [jobResults, setJobResults] = useState(null);
+  const [resultsPage, setResultsPage] = useState(1);
+  const RESULTS_PER_PAGE = 100;
   
   // Real-time job progress hook
   const { progress, isListening, startListening, stopListening } = useJobProgress(currentJobId);
