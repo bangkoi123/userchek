@@ -51,6 +51,27 @@ const BulkCheck = () => {
     return saved ? JSON.parse(saved) : [];
   });
   const RESULTS_PER_PAGE = 100;
+
+  // Persistence effects
+  useEffect(() => {
+    localStorage.setItem('bulk_check_progress_modal', JSON.stringify(showProgressModal));
+  }, [showProgressModal]);
+
+  useEffect(() => {
+    localStorage.setItem('bulk_check_current_job', JSON.stringify(currentJob));
+  }, [currentJob]);
+
+  useEffect(() => {
+    localStorage.setItem('bulk_check_completed_jobs', JSON.stringify(completedJobs));
+  }, [completedJobs]);
+
+  // Recovery effect - resume monitoring if there's an active job
+  useEffect(() => {
+    if (currentJob && !realTimeProgress) {
+      setCurrentJobId(currentJob.job_id);
+      startListening();
+    }
+  }, []);
   
   // Real-time job progress hook
   const { progress, isListening, startListening, stopListening } = useJobProgress(currentJobId);
