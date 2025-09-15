@@ -199,60 +199,19 @@ const JobHistory = () => {
         </div>
       </div>
 
-      {/* Filters and Controls */}
-      <div className="card p-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0 md:space-x-4">
-          {/* Search */}
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Cari berdasarkan nama file atau ID..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="input-field pl-10"
-            />
+      {/* Simple Controls */}
+      <div className="card p-4">
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-gray-600 dark:text-gray-400">
+            Total: {filteredJobs.length} riwayat
           </div>
-
-          {/* Filters */}
-          <div className="flex items-center space-x-4">
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="input-field"
-            >
-              <option value="all">Semua Status</option>
-              <option value="pending">Menunggu</option>
-              <option value="processing">Memproses</option>
-              <option value="completed">Selesai</option>
-              <option value="failed">Gagal</option>
-            </select>
-
-            <select
-              value={`${sortBy}-${sortOrder}`}
-              onChange={(e) => {
-                const [field, order] = e.target.value.split('-');
-                setSortBy(field);
-                setSortOrder(order);
-              }}
-              className="input-field"
-            >
-              <option value="created_at-desc">Terbaru</option>
-              <option value="created_at-asc">Terlama</option>
-              <option value="filename-asc">Nama A-Z</option>
-              <option value="filename-desc">Nama Z-A</option>
-              <option value="total_numbers-desc">Jumlah Nomor ↓</option>
-              <option value="total_numbers-asc">Jumlah Nomor ↑</option>
-            </select>
-
-            <button
-              onClick={fetchJobs}
-              className="p-2 btn-secondary"
-              title="Refresh"
-            >
-              <RefreshCw className="h-5 w-5" />
-            </button>
-          </div>
+          <button
+            onClick={fetchJobs}
+            className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+            title="Refresh"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </button>
         </div>
       </div>
 
