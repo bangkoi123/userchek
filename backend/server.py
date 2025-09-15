@@ -995,14 +995,23 @@ async def process_bulk_validation(job_id: str):
                     # Use CheckNumber.ai batch API
                     batch_results = await validate_whatsapp_checknumber_batch(phones_to_validate, provider_settings)
                     
+                    print(f"📊 CheckNumber.ai batch results for {len(phones_to_validate)} phones:")
+                    print(f"   - Batch returned results for {len(batch_results)} phones")
+                    print(f"   - Input phones: {phones_to_validate}")
+                    print(f"   - Result keys: {list(batch_results.keys()) if batch_results else 'None'}")
+                    
                     # Convert batch results to individual results format
                     for phone in phones_to_validate:
                         identifier = phone_to_data_map[phone].get("identifier")
                         clean_phone = phone.replace('+', '')
                         
+                        print(f"🔍 Processing phone: {phone} -> clean: {clean_phone}")
+                        
                         if clean_phone in batch_results:
                             result = batch_results[clean_phone]
                             status = ValidationStatus.ACTIVE if result['status'] == 'active' else ValidationStatus.INACTIVE
+                            
+                            print(f"   ✅ Found CheckNumber.ai result: {result['status']}")
                             
                             whatsapp_result = {
                                 'identifier': identifier,
@@ -1019,6 +1028,7 @@ async def process_bulk_validation(job_id: str):
                             }
                         else:
                             # Fallback to free method for failed batch items
+                            print(f"   ❌ No CheckNumber.ai result found, falling back to free method")
                             whatsapp_result = await validate_whatsapp_web_api(phone, identifier)
                         
                         whatsapp_batch_results[phone] = whatsapp_result
