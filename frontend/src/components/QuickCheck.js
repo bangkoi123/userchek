@@ -647,36 +647,6 @@ const QuickCheck = () => {
           </div>
 
           {/* Recent History */}
-          {history.length > 0 && (
-            <div className="card p-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                Riwayat Terbaru
-              </h3>
-              <div className="space-y-3">
-                {history.map((item, index) => (
-                  <div key={index} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-gray-900 dark:text-white">
-                        {item.summary?.total_processed || 1} nomor divalidasi
-                      </span>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                        {format(new Date(item.checked_at), 'HH:mm', { locale: id })}
-                      </span>
-                    </div>
-                    <div className="flex items-center space-x-2 text-xs">
-                      <span className="px-2 py-1 rounded bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                        WA: {item.summary?.whatsapp_active || 0}
-                      </span>
-                      <span className="px-2 py-1 rounded bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                        TG: {item.summary?.telegram_active || 0}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* Tips */}
           <div className="card p-6">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
