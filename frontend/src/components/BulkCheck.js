@@ -406,31 +406,23 @@ Maya,+628111222333`;
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-green-600 to-green-700 rounded-lg p-6 text-white">
-        <div className="flex items-center mb-4">
-          <div className="p-2 bg-white/20 rounded-lg mr-4">
-            <Upload className="h-6 w-6" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold">Bulk Check</h1>
-            <p className="text-green-100">
-              Upload file CSV/Excel untuk validasi massal nomor telepon
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center space-x-4 text-sm">
+      {/* Compact Header */}
+      <div className="bg-gradient-to-r from-primary-600 to-primary-700 rounded-lg p-4 text-white mb-4">
+        <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <span className="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
-            Format: CSV, XLS, XLSX
+            <div className="p-2 bg-white/20 rounded-lg mr-3">
+              <FileText className="h-6 w-6" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold">Bulk Check - Validasi Massal</h1>
+              <p className="text-primary-100 text-sm">
+                Upload CSV untuk validasi banyak nomor sekaligus
+              </p>
+            </div>
           </div>
-          <div className="flex items-center">
-            <span className="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
-            Max: 10MB per file
-          </div>
-          <div className="flex items-center">
-            <span className="w-2 h-2 bg-yellow-400 rounded-full mr-2"></span>
-            Kredit: {user?.credits || 0}
+          <div className="text-right">
+            <div className="text-2xl font-bold">{user?.credits || 0}</div>
+            <div className="text-primary-100 text-xs">kredit tersisa</div>
           </div>
         </div>
       </div>
