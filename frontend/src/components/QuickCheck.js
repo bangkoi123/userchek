@@ -57,8 +57,67 @@ const QuickCheck = () => {
   const [persistentStats, setPersistentStats] = useState(() => initializePersistentData().stats);
   const [validationHistory, setValidationHistory] = useState(() => initializePersistentData().history);
 
+  // Save to localStorage whenever states change
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.VALIDATION_STATS, JSON.stringify(persistentStats));
+  }, [persistentStats]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.VALIDATION_HISTORY, JSON.stringify(validationHistory));
+  }, [validationHistory]);
+
   useEffect(() => {
     fetchPlatformSettings();
+  }, []);
+
+  // Update persistent stats with new validation results
+  const updatePersistentStats = useCallback((newResult) => {
+    setPersistentStats(prevStats => ({
+      whatsapp_active: prevStats.whatsapp_active + (newResult.summary.whatsapp_active || 0),
+      telegram_active: prevStats.telegram_active + (newResult.summary.telegram_active || 0),
+      whatsapp_business: prevStats.whatsapp_business + (newResult.summary.whatsapp_business || 0),
+      total_processed: prevStats.total_processed + (newResult.summary.total_processed || 0)
+    }));
+  }, []);
+
+  // Add new validations to history (newest first)
+  const addToValidationHistory = useCallback((newResult) => {
+    const timestamp = new Date().toISOString();
+    const newEntries = newResult.details.map(detail => ({
+      id: `${timestamp}-${detail.phone_number}`,
+      phone_number: detail.phone_number,
+      identifier: detail.identifier,
+      whatsapp: detail.whatsapp,
+      telegram: detail.telegram,
+      validated_at: timestamp
+    }));
+
+    setValidationHistory(prevHistory => {
+      const updatedHistory = [...newEntries, ...prevHistory];
+      // Keep only last 100 entries for performance
+      return updatedHistory.slice(0, 100);
+    });
+  }, []);
+
+  // Copy individual phone number
+  const copyPhoneNumber = useCallback((phoneNumber) => {
+    navigator.clipboard.writeText(phoneNumber).then(() => {
+      toast.success(`Nomor ${phoneNumber} berhasil disalin!`);
+    }).catch(() => {
+      toast.error('Gagal menyalin nomor');
+    });
+  }, []);
+
+  // Clear persistent data
+  const clearPersistentData = useCallback(() => {
+    setPersistentStats({
+      whatsapp_active: 0,
+      telegram_active: 0,
+      whatsapp_business: 0,
+      total_processed: 0
+    });
+    setValidationHistory([]);
+    toast.success('Data riwayat berhasil dibersihkan');
   }, []);
 
   const fetchPlatformSettings = async () => {
