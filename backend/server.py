@@ -318,8 +318,10 @@ async def validate_whatsapp_checknumber_batch(phone_list: List[str], provider_se
                                                     'provider': 'checknumber_ai'
                                                 }
                                             
-                                            os.remove(temp_result_path)
-                                            os.remove(temp_file_path)
+                                            if os.path.exists(temp_result_path):
+                                                os.remove(temp_result_path)
+                                            if os.path.exists(temp_file_path):
+                                                os.remove(temp_file_path)
                                             print(f"✅ CheckNumber.ai batch completed: {len(results)} results")
                                             return results
                                             
