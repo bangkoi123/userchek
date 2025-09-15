@@ -33,6 +33,7 @@ function AppContent() {
   const { user, loading } = useAuth();
   const { darkMode } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarMinimized, setSidebarMinimized] = useState(false);
 
   useEffect(() => {
     if (darkMode) {
