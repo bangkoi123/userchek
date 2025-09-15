@@ -76,6 +76,30 @@ const BulkCheck = () => {
   // Real-time job progress hook
   const { progress, isListening, startListening, stopListening } = useJobProgress(currentJobId);
 
+  // Update realTimeProgress when progress changes
+  useEffect(() => {
+    if (progress) {
+      setRealTimeProgress(progress);
+      
+      // Check if job is completed and add to completed jobs
+      if (progress.status === 'completed' && currentJob) {
+        const completedJob = {
+          ...currentJob,
+          completed_at: new Date().toISOString(),
+          results: progress.results || {}
+        };
+        
+        setCompletedJobs(prev => {
+          const existing = prev.find(job => job.job_id === currentJob.job_id);
+          if (!existing) {
+            return [completedJob, ...prev].slice(0, 10); // Keep last 10 completed jobs
+          }
+          return prev;
+        });
+      }
+    }
+  }, [progress, currentJob]);
+
   useEffect(() => {
     fetchPlatformSettings();
   }, []);
