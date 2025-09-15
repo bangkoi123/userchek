@@ -817,52 +817,65 @@ Maya,+628111222333`;
 
               {/* Progress Display */}
               <div className="mb-6">
-                {progress ? (
+                {realTimeProgress ? (
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Progress</span>
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Progress Validasi</span>
                       <span className="text-sm text-gray-600 dark:text-gray-400">
-                        {progress.processed_numbers || 0} / {progress.total_numbers || 0}
+                        {realTimeProgress.processed_numbers || 0} / {realTimeProgress.total_numbers || currentJob.total_numbers}
                       </span>
                     </div>
                     
                     {/* Progress Bar */}
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 mb-4">
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 mb-4 overflow-hidden">
                       <div 
-                        className="bg-gradient-to-r from-primary-500 to-primary-600 h-3 rounded-full transition-all duration-300"
+                        className="bg-gradient-to-r from-blue-500 via-primary-500 to-green-500 h-4 rounded-full transition-all duration-500 relative"
                         style={{ 
-                          width: `${progress.total_numbers > 0 ? (progress.processed_numbers / progress.total_numbers) * 100 : 0}%` 
+                          width: `${(realTimeProgress.total_numbers || currentJob.total_numbers) > 0 ? 
+                            ((realTimeProgress.processed_numbers || 0) / (realTimeProgress.total_numbers || currentJob.total_numbers)) * 100 : 0}%` 
                         }}
-                      ></div>
+                      >
+                        <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
+                      </div>
                     </div>
 
                     <div className="text-center mb-4">
-                      <span className="text-2xl font-bold text-primary-600 dark:text-primary-400">
-                        {progress.total_numbers > 0 ? Math.round((progress.processed_numbers / progress.total_numbers) * 100) : 0}%
+                      <span className="text-3xl font-bold text-primary-600 dark:text-primary-400">
+                        {(realTimeProgress.total_numbers || currentJob.total_numbers) > 0 ? 
+                          Math.round(((realTimeProgress.processed_numbers || 0) / (realTimeProgress.total_numbers || currentJob.total_numbers)) * 100) : 0}%
                       </span>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        {realTimeProgress.processed_numbers || 0} dari {realTimeProgress.total_numbers || currentJob.total_numbers} nomor diproses
+                      </p>
                     </div>
 
-                    {/* Status */}
+                    {/* Status dengan animasi */}
                     <div className="text-center">
-                      {progress.status === 'completed' ? (
-                        <div className="flex items-center justify-center text-green-600 dark:text-green-400">
-                          <CheckCircle className="h-5 w-5 mr-2" />
-                          <span className="font-medium">Validasi Selesai!</span>
+                      {realTimeProgress.status === 'completed' ? (
+                        <div className="flex items-center justify-center text-green-600 dark:text-green-400 animate-bounce">
+                          <CheckCircle className="h-6 w-6 mr-2" />
+                          <span className="font-semibold text-lg">🎉 Validasi Selesai!</span>
                         </div>
-                      ) : (
+                      ) : realTimeProgress.status === 'processing' ? (
                         <div className="flex items-center justify-center text-primary-600 dark:text-primary-400">
                           <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                          <span className="font-medium">
-                            {progress.status === 'processing' ? 'Sedang Memproses...' : 'Menunggu...'}
-                          </span>
+                          <span className="font-medium">Sedang Memproses Nomor...</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-center text-yellow-600 dark:text-yellow-400">
+                          <Clock className="h-5 w-5 mr-2" />
+                          <span className="font-medium">Menunggu Proses...</span>
                         </div>
                       )}
                     </div>
                   </div>
                 ) : (
                   <div className="text-center py-8">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary-600 dark:text-primary-400 mx-auto mb-4" />
-                    <p className="text-gray-600 dark:text-gray-400">Memuat progress...</p>
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-100 dark:bg-primary-900/30 rounded-full mb-4">
+                      <Loader2 className="h-8 w-8 animate-spin text-primary-600 dark:text-primary-400" />
+                    </div>
+                    <p className="text-gray-600 dark:text-gray-400 font-medium">Memuat progress validasi...</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">Sistem sedang memproses permintaan Anda</p>
                   </div>
                 )}
               </div>
