@@ -215,45 +215,64 @@ const JobHistory = () => {
         </div>
       </div>
 
-      {/* Jobs List */}
+      {/* Jobs List - Minimalist */}
       {filteredJobs.length > 0 ? (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {filteredJobs.map((job) => (
-            <div key={job._id} className="card p-6">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-start space-x-4">
-                  <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                    <FileText className="h-6 w-6 text-gray-600 dark:text-gray-400" />
+            <div key={job._id} className="card p-4 hover:shadow-lg transition-shadow">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="p-1.5 bg-primary-100 dark:bg-primary-900/30 rounded-lg">
+                    {job.type === 'quick' ? (
+                      <Zap className="h-4 w-4 text-primary-600 dark:text-primary-400" />
+                    ) : (
+                      <FileText className="h-4 w-4 text-primary-600 dark:text-primary-400" />
+                    )}
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                      {job.filename || 'Unnamed Job'}
-                    </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      ID: {job._id}
-                    </p>
-                    <div className="flex items-center space-x-4 mt-2 text-sm text-gray-600 dark:text-gray-400">
-                      <span className="flex items-center">
-                        <Calendar className="h-4 w-4 mr-1" />
-                        {format(new Date(job.created_at), 'dd MMM yyyy HH:mm', { locale: id })}
+                    <div className="flex items-center space-x-2">
+                      <h3 className="font-medium text-gray-900 dark:text-white">
+                        {job.type === 'quick' ? 'Quick Check' : (job.filename || 'Bulk Check')}
+                      </h3>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadgeClass(job.status)}`}>
+                        {getStatusText(job.status)}
                       </span>
-                      <span>
-                        {formatNumber(job.total_numbers || 0)} nomor
-                      </span>
-                      <span>
-                        {job.credits_used || 0} kredit
-                      </span>
+                    </div>
+                    <div className="flex items-center space-x-3 mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      <span>{format(new Date(job.created_at), 'dd/MM HH:mm', { locale: id })}</span>
+                      <span>•</span>
+                      <span>{formatNumber(job.total_numbers || 0)} nomor</span>
+                      <span>•</span>
+                      <span>{job.credits_used || 0} kredit</span>
                     </div>
                   </div>
                 </div>
 
                 <div className="flex items-center space-x-2">
-                  {getStatusIcon(job.status)}
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadgeClass(job.status)}`}>
-                    {getStatusText(job.status)}
-                  </span>
+                  {job.results && (
+                    <div className="flex items-center space-x-2 text-xs">
+                      <span className="text-green-600 dark:text-green-400">
+                        ✓ {job.results.whatsapp_active || 0}
+                      </span>
+                      <span className="text-blue-600 dark:text-blue-400">
+                        ✓ {job.results.telegram_active || 0}
+                      </span>
+                    </div>
+                  )}
+                  <button
+                    onClick={() => {
+                      setSelectedJob(job);
+                      setShowDetailModal(true);
+                    }}
+                    className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                    title="Lihat detail"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </button>
                 </div>
               </div>
+            </div>
+          ))}
 
               {/* Progress Bar */}
               {(job.status === 'processing' || job.status === 'completed') && (
