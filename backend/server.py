@@ -249,64 +249,81 @@ async def validate_whatsapp_checknumber_batch(phone_list: List[str], provider_se
                     
                     print(f"✅ CheckNumber.ai task submitted: {task_id}")
         
-        # Poll for task completion
-        max_wait_time = 300  # 5 minutes max
-        poll_interval = 10   # Check every 10 seconds
+        # Poll for task completion with immediate check for already completed tasks
+        max_wait_time = 180  # 3 minutes max
+        poll_interval = 5    # Check every 5 seconds
         waited_time = 0
         
-        while waited_time < max_wait_time:
-            await asyncio.sleep(poll_interval)
-            waited_time += poll_interval
-            
-            async with aiohttp.ClientSession(timeout=timeout) as session:
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            while waited_time < max_wait_time:
+                if waited_time > 0:  # Don't sleep on first iteration
+                    await asyncio.sleep(poll_interval)
+                waited_time += poll_interval
+                
                 status_url = f"{api_url}/{task_id}?user_id={user_id}"
                 headers = {'X-API-Key': api_key}
                 
-                async with session.get(status_url, headers=headers) as response:
-                    if response.status != 200:
-                        print(f"❌ Error checking task status: {response.status}")
-                        continue
-                    
-                    status_result = await response.json()
-                    task_status = status_result.get('status')
-                    
-                    print(f"🔄 Task {task_id} status: {task_status}")
-                    
-                    if task_status == 'completed':
-                        # Download results
-                        result_url = status_result.get('result_url')
-                        if result_url:
-                            async with session.get(result_url) as result_response:
-                                if result_response.status == 200:
-                                    result_content = await result_response.text()
-                                    
-                                    # Parse CSV results
-                                    results = {}
-                                    lines = result_content.strip().split('\n')
-                                    
-                                    # Skip header if exists
-                                    start_idx = 1 if lines[0].lower().startswith('number') or lines[0].lower().startswith('whatsapp') else 0
-                                    
-                                    for line in lines[start_idx:]:
-                                        if ',' in line:
-                                            parts = line.split(',')
-                                            if len(parts) >= 2:
-                                                phone = parts[0].strip().replace('+', '')
-                                                whatsapp_status = parts[1].strip().lower()
+                try:
+                    async with session.get(status_url, headers=headers) as response:
+                        if response.status != 200:
+                            print(f"❌ Error checking task status: {response.status}")
+                            continue
+                        
+                        status_result = await response.json()
+                        task_status = status_result.get('status')
+                        
+                        print(f"🔄 Task {task_id} status: {task_status} (waited: {waited_time}s)")
+                        
+                        if task_status in ['completed', 'exported']:
+                            # Download results
+                            result_url = status_result.get('result_url')
+                            if result_url:
+                                async with session.get(result_url) as result_response:
+                                    if result_response.status == 200:
+                                        # CheckNumber.ai returns Excel file, we need to handle it properly
+                                        result_content = await result_response.read()
+                                        
+                                        # Save to temporary file and parse with pandas
+                                        temp_result_path = f"/tmp/checknumber_result_{task_id}.xlsx"
+                                        with open(temp_result_path, 'wb') as f:
+                                            f.write(result_content)
+                                        
+                                        try:
+                                            import pandas as pd
+                                            df = pd.read_excel(temp_result_path)
+                                            
+                                            results = {}
+                                            for _, row in df.iterrows():
+                                                phone = str(row.iloc[0]).replace('+', '')  # First column is phone
+                                                whatsapp_status = str(row.iloc[1]).lower()  # Second column is yes/no
                                                 
                                                 results[phone] = {
                                                     'status': 'active' if whatsapp_status == 'yes' else 'inactive',
                                                     'api_response': whatsapp_status,
                                                     'provider': 'checknumber_ai'
                                                 }
-                                    
-                                    os.remove(temp_file_path)
-                                    print(f"✅ CheckNumber.ai batch completed: {len(results)} results")
-                                    return results
-                        break
-                    elif task_status == 'failed':
-                        print(f"❌ CheckNumber.ai task failed")
-                        break
+                                            
+                                            os.remove(temp_result_path)
+                                            os.remove(temp_file_path)
+                                            print(f"✅ CheckNumber.ai batch completed: {len(results)} results")
+                                            return results
+                                            
+                                        except Exception as e:
+                                            print(f"❌ Error parsing Excel result: {str(e)}")
+                                            if os.path.exists(temp_result_path):
+                                                os.remove(temp_result_path)
+                                            break
+                            else:
+                                print(f"❌ No result_url in response")
+                                break
+                        elif task_status == 'failed':
+                            print(f"❌ CheckNumber.ai task failed")
+                            break
+                        # Continue polling for pending/processing status
+                        
+                except Exception as e:
+                    print(f"❌ Error polling task status: {str(e)}")
+                    continue
         
         # Cleanup
         os.remove(temp_file_path)
