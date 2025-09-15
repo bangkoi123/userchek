@@ -25,6 +25,10 @@ from email_service import email_service
 import socketio
 from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutStatusResponse, CheckoutSessionRequest
 
+# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv()
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
