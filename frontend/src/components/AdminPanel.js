@@ -512,7 +512,7 @@ const AdminPanel = () => {
                       value={whatsAppForm.api_url}
                       onChange={(e) => setWhatsAppForm({ ...whatsAppForm, api_url: e.target.value })}
                       className="input-field"
-                      placeholder="https://api.ekycpro.com/v1/whatsapp"
+                      placeholder="https://api.checknumber.ai/wa/api/simple/tasks"
                     />
                     <p className="text-xs text-gray-500 mt-1">
                       URL endpoint API CheckNumber.ai (gunakan default jika tidak yakin)
