@@ -197,99 +197,159 @@ async def validate_whatsapp_web_api(phone: str, identifier: str = None) -> Dict[
             'details': {}
         }
 
-async def validate_whatsapp_checknumber_api(phone: str, identifier: str = None, provider_settings: dict = None) -> Dict[str, Any]:
-    """Accurate WhatsApp validation using CheckNumber.ai API"""
+async def validate_whatsapp_checknumber_batch(phone_list: List[str], provider_settings: dict = None) -> Dict[str, Dict[str, Any]]:
+    """Batch WhatsApp validation using CheckNumber.ai Simple API"""
     try:
-        # Get API configuration from provider settings or environment fallback
+        # Get API configuration
         if provider_settings:
             api_key = provider_settings.get('api_key')
-            api_url = provider_settings.get('api_url', 'https://api.ekycpro.com/v1/whatsapp')
+            api_url = provider_settings.get('api_url', 'https://api.checknumber.ai/wa/api/simple/tasks')
         else:
             api_key = os.environ.get('CHECKNUMBER_API_KEY')
-            api_url = os.environ.get('CHECKNUMBER_API_URL', 'https://api.ekycpro.com/v1/whatsapp')
+            api_url = os.environ.get('CHECKNUMBER_API_URL', 'https://api.checknumber.ai/wa/api/simple/tasks')
         
         if not api_key:
-            # Fallback to free method if no API key configured
-            print(f"⚠️ No API key found for CheckNumber.ai, falling back to free method")
-            return await validate_whatsapp_web_api(phone, identifier)
+            print(f"⚠️ No API key found for CheckNumber.ai")
+            return {}
         
-        # Determine country code from phone number
-        country_code = "ID"  # Default to Indonesia
-        if phone.startswith("1"):
-            country_code = "US"
-        elif phone.startswith("44"):
-            country_code = "GB"
-        elif phone.startswith("91"):
-            country_code = "IN"
-        elif phone.startswith("62"):
-            country_code = "ID"
-        elif phone.startswith("60"):
-            country_code = "MY"
-        elif phone.startswith("65"):
-            country_code = "SG"
+        # Generate user_id (required by API)
+        user_id = f"webtools_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
         
-        # Prepare request headers and data
-        headers = {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'X-API-Key': api_key
-        }
+        # Create temporary file with phone numbers
+        temp_file_path = f"/tmp/checknumber_batch_{user_id}.txt"
+        with open(temp_file_path, 'w') as f:
+            for phone in phone_list:
+                # Format phone to E.164 if needed
+                formatted_phone = phone if phone.startswith('+') else f"+{phone}"
+                f.write(f"{formatted_phone}\n")
         
-        data = {
-            'number': phone,
-            'country': country_code
-        }
-        
-        timeout = aiohttp.ClientTimeout(total=30)
+        # Submit batch task
+        timeout = aiohttp.ClientTimeout(total=60)
         async with aiohttp.ClientSession(timeout=timeout) as session:
-            async with session.post(api_url, headers=headers, data=data) as response:
-                if response.status != 200:
-                    # Log error and fallback to free method
-                    print(f"❌ CheckNumber.ai API Error {response.status}, falling back to free method")
-                    return await validate_whatsapp_web_api(phone, identifier)
+            with open(temp_file_path, 'rb') as file:
+                data = aiohttp.FormData()
+                data.add_field('user_id', user_id)
+                data.add_field('file', file, filename='numbers.txt', content_type='text/plain')
                 
-                result = await response.json()
+                headers = {'X-API-Key': api_key}
                 
-                # Parse CheckNumber.ai response
-                if result.get('status') == 'OK' and 'message' in result:
-                    message = result['message']
-                    whatsapp_status = message.get('whatsapp', 'no').lower()
+                async with session.post(api_url, headers=headers, data=data) as response:
+                    if response.status != 200:
+                        print(f"❌ CheckNumber.ai batch submission failed: {response.status}")
+                        os.remove(temp_file_path)
+                        return {}
                     
-                    if whatsapp_status == 'yes':
-                        status = ValidationStatus.ACTIVE
-                        wa_type = 'personal'  # CheckNumber.ai doesn't distinguish business in basic API
-                    elif whatsapp_status == 'checking':
-                        # Still processing, wait a bit and try again or treat as unknown
-                        status = ValidationStatus.INACTIVE  # Conservative approach: treat as inactive
-                        wa_type = None
-                        print(f"⏳ CheckNumber.ai still checking {phone}, treating as inactive for now")
-                    else:
-                        status = ValidationStatus.INACTIVE
-                        wa_type = None
+                    result = await response.json()
+                    task_id = result.get('task_id')
                     
-                    return {
-                        'identifier': identifier,
-                        'phone_number': phone,
-                        'platform': 'whatsapp',
-                        'status': status,
-                        'validated_at': datetime.utcnow(),
-                        'details': {
-                            'type': wa_type,
-                            'provider': 'checknumber_ai',
-                            'api_response': whatsapp_status,
-                            'country': country_code,
-                            'confidence_score': 5 if whatsapp_status == 'yes' else 1
-                        }
-                    }
-                else:
-                    # Invalid response format, fallback to free method
-                    print(f"❌ Invalid CheckNumber.ai response format: {result}")
-                    return await validate_whatsapp_web_api(phone, identifier)
+                    if not task_id:
+                        print(f"❌ No task_id received from CheckNumber.ai")
+                        os.remove(temp_file_path)
+                        return {}
                     
-    except asyncio.TimeoutError:
-        print(f"⏰ CheckNumber.ai API timeout for {phone}, falling back to free method")
-        return await validate_whatsapp_web_api(phone, identifier)
+                    print(f"✅ CheckNumber.ai task submitted: {task_id}")
+        
+        # Poll for task completion
+        max_wait_time = 300  # 5 minutes max
+        poll_interval = 10   # Check every 10 seconds
+        waited_time = 0
+        
+        while waited_time < max_wait_time:
+            await asyncio.sleep(poll_interval)
+            waited_time += poll_interval
+            
+            async with aiohttp.ClientSession(timeout=timeout) as session:
+                status_url = f"{api_url}/{task_id}?user_id={user_id}"
+                headers = {'X-API-Key': api_key}
+                
+                async with session.get(status_url, headers=headers) as response:
+                    if response.status != 200:
+                        print(f"❌ Error checking task status: {response.status}")
+                        continue
+                    
+                    status_result = await response.json()
+                    task_status = status_result.get('status')
+                    
+                    print(f"🔄 Task {task_id} status: {task_status}")
+                    
+                    if task_status == 'completed':
+                        # Download results
+                        result_url = status_result.get('result_url')
+                        if result_url:
+                            async with session.get(result_url) as result_response:
+                                if result_response.status == 200:
+                                    result_content = await result_response.text()
+                                    
+                                    # Parse CSV results
+                                    results = {}
+                                    lines = result_content.strip().split('\n')
+                                    
+                                    # Skip header if exists
+                                    start_idx = 1 if lines[0].lower().startswith('number') or lines[0].lower().startswith('whatsapp') else 0
+                                    
+                                    for line in lines[start_idx:]:
+                                        if ',' in line:
+                                            parts = line.split(',')
+                                            if len(parts) >= 2:
+                                                phone = parts[0].strip().replace('+', '')
+                                                whatsapp_status = parts[1].strip().lower()
+                                                
+                                                results[phone] = {
+                                                    'status': 'active' if whatsapp_status == 'yes' else 'inactive',
+                                                    'api_response': whatsapp_status,
+                                                    'provider': 'checknumber_ai'
+                                                }
+                                    
+                                    os.remove(temp_file_path)
+                                    print(f"✅ CheckNumber.ai batch completed: {len(results)} results")
+                                    return results
+                        break
+                    elif task_status == 'failed':
+                        print(f"❌ CheckNumber.ai task failed")
+                        break
+        
+        # Cleanup
+        os.remove(temp_file_path)
+        print(f"⏰ CheckNumber.ai task timeout or failed")
+        return {}
+        
     except Exception as e:
-        print(f"❌ CheckNumber.ai API error for {phone}: {str(e)}, falling back to free method")
+        print(f"❌ CheckNumber.ai batch error: {str(e)}")
+        if 'temp_file_path' in locals() and os.path.exists(temp_file_path):
+            os.remove(temp_file_path)
+        return {}
+
+async def validate_whatsapp_checknumber_api(phone: str, identifier: str = None, provider_settings: dict = None) -> Dict[str, Any]:
+    """Single WhatsApp validation using CheckNumber.ai - calls batch API with single number"""
+    try:
+        batch_results = await validate_whatsapp_checknumber_batch([phone], provider_settings)
+        
+        # Clean phone format to match batch result key
+        clean_phone = phone.replace('+', '')
+        
+        if clean_phone in batch_results:
+            result = batch_results[clean_phone]
+            status = ValidationStatus.ACTIVE if result['status'] == 'active' else ValidationStatus.INACTIVE
+            
+            return {
+                'identifier': identifier,
+                'phone_number': phone,
+                'platform': 'whatsapp',
+                'status': status,
+                'validated_at': datetime.utcnow(),
+                'details': {
+                    'type': 'personal' if status == ValidationStatus.ACTIVE else None,
+                    'provider': 'checknumber_ai',
+                    'api_response': result['api_response'],
+                    'confidence_score': 5 if status == ValidationStatus.ACTIVE else 1
+                }
+            }
+        else:
+            print(f"❌ No result found for {phone} in CheckNumber.ai batch")
+            return await validate_whatsapp_web_api(phone, identifier)
+            
+    except Exception as e:
+        print(f"❌ CheckNumber.ai single validation error: {str(e)}")
         return await validate_whatsapp_web_api(phone, identifier)
 
 async def validate_whatsapp_number_smart(phone: str, identifier: str = None) -> Dict[str, Any]:
