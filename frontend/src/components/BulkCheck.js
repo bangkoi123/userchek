@@ -777,6 +777,77 @@ Maya,+628111222333`;
             </div>
           </div>
 
+          {/* Completed Jobs Section */}
+          {completedJobs.length > 0 && (
+            <div className="card p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  📋 Hasil Validasi Terbaru
+                </h3>
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  {completedJobs.length} hasil
+                </span>
+              </div>
+              
+              <div className="space-y-3">
+                {completedJobs.map((job, index) => (
+                  <div key={job.job_id} className={`bg-gray-50 dark:bg-gray-700 rounded-lg p-4 ${index === 0 ? 'ring-2 ring-green-200 dark:ring-green-800' : ''}`}>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center space-x-2">
+                        <span className="font-medium text-gray-900 dark:text-white">
+                          {job.fileName}
+                        </span>
+                        {index === 0 && (
+                          <span className="px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full text-xs font-medium">
+                            Terbaru
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        {format(new Date(job.completed_at), 'HH:mm:ss', { locale: id })}
+                      </span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4 text-sm">
+                        <span className="text-gray-600 dark:text-gray-400">
+                          {job.total_numbers} nomor
+                        </span>
+                        <div className="flex items-center space-x-2">
+                          {job.platforms.whatsapp && (
+                            <span className="px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded text-xs">
+                              WA: {job.results.whatsapp_active || 0}
+                            </span>
+                          )}
+                          {job.platforms.telegram && (
+                            <span className="px-2 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded text-xs">
+                              TG: {job.results.telegram_active || 0}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <button
+                        onClick={async () => {
+                          try {
+                            const jobData = await apiCall(`/api/jobs/${job.job_id}`);
+                            setJobResults(jobData);
+                            setShowResultsModal(true);
+                          } catch (error) {
+                            toast.error('Gagal memuat hasil');
+                          }
+                        }}
+                        className="px-3 py-1.5 bg-primary-100 hover:bg-primary-200 dark:bg-primary-900 dark:hover:bg-primary-800 text-primary-700 dark:text-primary-300 rounded text-xs font-medium transition-colors"
+                      >
+                        📋 Detail
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Tips */}
           <div className="card p-6">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
