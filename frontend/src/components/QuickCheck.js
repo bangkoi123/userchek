@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { apiCall } from '../utils/api';
 import { 
@@ -12,24 +12,50 @@ import {
   Loader2,
   Plus,
   Minus,
-  Settings
+  Settings,
+  RefreshCw
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
+
+// LocalStorage keys
+const STORAGE_KEYS = {
+  VALIDATION_STATS: 'quickcheck_validation_stats',
+  VALIDATION_HISTORY: 'quickcheck_validation_history'
+};
+
+// Initialize persistent data
+const initializePersistentData = () => {
+  const savedStats = localStorage.getItem(STORAGE_KEYS.VALIDATION_STATS);
+  const savedHistory = localStorage.getItem(STORAGE_KEYS.VALIDATION_HISTORY);
+  
+  return {
+    stats: savedStats ? JSON.parse(savedStats) : {
+      whatsapp_active: 0,
+      telegram_active: 0,
+      whatsapp_business: 0,
+      total_processed: 0
+    },
+    history: savedHistory ? JSON.parse(savedHistory) : []
+  };
+};
 
 const QuickCheck = () => {
   const { user, updateUser } = useAuth();
   const [phoneInputs, setPhoneInputs] = useState(['']);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
-  const [history, setHistory] = useState([]);
   const [validateWhatsapp, setValidateWhatsapp] = useState(true);
   const [validateTelegram, setValidateTelegram] = useState(true);
   const [platformSettings, setPlatformSettings] = useState({
     whatsapp_enabled: true,
     telegram_enabled: true
   });
+
+  // Persistent data states
+  const [persistentStats, setPersistentStats] = useState(() => initializePersistentData().stats);
+  const [validationHistory, setValidationHistory] = useState(() => initializePersistentData().history);
 
   useEffect(() => {
     fetchPlatformSettings();
