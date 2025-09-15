@@ -176,7 +176,7 @@ const AdminPanel = () => {
       setWhatsAppForm({
         provider: 'free',
         api_key: '',
-        api_url: 'https://api.ekycpro.com/v1/whatsapp',
+        api_url: 'https://api.checknumber.ai/wa/api/simple/tasks',
         enabled: true
       });
     }
