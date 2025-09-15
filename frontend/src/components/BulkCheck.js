@@ -452,81 +452,94 @@ Maya,+628111222333`;
         </div>
         
         {completedJobs.length > 0 ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {completedJobs.map((job, index) => (
-              <div key={job.job_id} className={`bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 rounded-lg p-4 border-l-4 ${index === 0 ? 'border-green-500 shadow-lg' : 'border-blue-300'} transition-all hover:shadow-md`}>
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-                      <FileText className="h-4 w-4 text-primary-600 dark:text-primary-400" />
-                    </div>
-                    <div>
-                      <div className="flex items-center space-x-2">
-                        <span className="font-semibold text-gray-900 dark:text-white">
-                          {job.fileName}
-                        </span>
-                        {index === 0 && (
-                          <span className="px-2 py-1 bg-gradient-to-r from-green-100 to-green-200 text-green-800 dark:from-green-900 dark:to-green-800 dark:text-green-200 rounded-full text-xs font-medium animate-pulse">
-                            🆕 Terbaru
+          <div className="overflow-x-auto">
+            <div className="flex space-x-4 pb-4" style={{ minWidth: 'max-content' }}>
+              {completedJobs.map((job, index) => (
+                <div key={job.job_id} className={`bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 rounded-lg p-4 border-l-4 ${index === 0 ? 'border-green-500 shadow-lg' : 'border-blue-300'} transition-all hover:shadow-md flex-shrink-0 w-80`}>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-3 flex-1 min-w-0">
+                      <div className="p-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+                        <FileText className="h-4 w-4 text-primary-600 dark:text-primary-400" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-2">
+                          <span className="font-semibold text-gray-900 dark:text-white truncate">
+                            {job.fileName}
                           </span>
-                        )}
-                      </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        {format(new Date(job.completed_at), 'dd/MM HH:mm', { locale: id })} • {job.total_numbers} nomor
+                          {index === 0 && (
+                            <span className="px-2 py-1 bg-gradient-to-r from-green-100 to-green-200 text-green-800 dark:from-green-900 dark:to-green-800 dark:text-green-200 rounded-full text-xs font-medium animate-pulse flex-shrink-0">
+                              🆕 Terbaru
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          {format(new Date(job.completed_at), 'dd/MM HH:mm', { locale: id })} • {job.total_numbers} nomor
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    {job.platforms.whatsapp && (
-                      <span className="px-3 py-1 bg-gradient-to-r from-green-100 to-green-200 text-green-800 dark:from-green-900 dark:to-green-800 dark:text-green-200 rounded-full text-xs font-semibold">
-                        ✅ WA: {job.results.whatsapp_active || 0}
-                      </span>
-                    )}
-                    {job.platforms.telegram && (
-                      <span className="px-3 py-1 bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 dark:from-blue-900 dark:to-blue-800 dark:text-blue-200 rounded-full text-xs font-semibold">
-                        ✅ TG: {job.results.telegram_active || 0}
-                      </span>
-                    )}
+                    <button
+                      onClick={() => {
+                        const updatedJobs = completedJobs.filter(j => j.job_id !== job.job_id);
+                        setCompletedJobs(updatedJobs);
+                        toast.success('Hasil validasi berhasil dihapus');
+                      }}
+                      className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 flex-shrink-0 ml-2"
+                      title="Hapus hasil ini"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
                   </div>
                   
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={async () => {
-                        try {
-                          const jobData = await apiCall(`/api/jobs/${job.job_id}`);
-                          const csvContent = generateCSV(jobData.results?.details || []);
-                          downloadCSV(csvContent, `validation-results-${job.fileName}-${job.completed_at.slice(0,10)}.csv`);
-                          toast.success('File CSV berhasil didownload!');
-                        } catch (error) {
-                          toast.error('Gagal mendownload hasil');
-                        }
-                      }}
-                      className="px-3 py-1.5 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white text-xs font-medium rounded transition-all"
-                      title="Download CSV"
-                    >
-                      📥
-                    </button>
-                    <button
-                      onClick={async () => {
-                        try {
-                          const jobData = await apiCall(`/api/jobs/${job.job_id}`);
-                          setJobResults(jobData);
-                          setShowResultsModal(true);
-                        } catch (error) {
-                          toast.error('Gagal memuat hasil');
-                        }
-                      }}
-                      className="px-3 py-1.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white text-xs font-medium rounded transition-all"
-                    >
-                      📋 Detail
-                    </button>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2 flex-wrap">
+                      {job.platforms.whatsapp && (
+                        <span className="px-3 py-1 bg-gradient-to-r from-green-100 to-green-200 text-green-800 dark:from-green-900 dark:to-green-800 dark:text-green-200 rounded-full text-xs font-semibold">
+                          ✅ WA: {job.results.whatsapp_active || 0}
+                        </span>
+                      )}
+                      {job.platforms.telegram && (
+                        <span className="px-3 py-1 bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 dark:from-blue-900 dark:to-blue-800 dark:text-blue-200 rounded-full text-xs font-semibold">
+                          ✅ TG: {job.results.telegram_active || 0}
+                        </span>
+                      )}
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={async () => {
+                          try {
+                            const jobData = await apiCall(`/api/jobs/${job.job_id}`);
+                            const csvContent = generateCSV(jobData.results?.details || []);
+                            downloadCSV(csvContent, `validation-results-${job.fileName}-${job.completed_at.slice(0,10)}.csv`);
+                            toast.success('File CSV berhasil didownload!');
+                          } catch (error) {
+                            toast.error('Gagal mendownload hasil');
+                          }
+                        }}
+                        className="px-3 py-1.5 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white text-xs font-medium rounded transition-all"
+                        title="Download CSV"
+                      >
+                        📥
+                      </button>
+                      <button
+                        onClick={async () => {
+                          try {
+                            const jobData = await apiCall(`/api/jobs/${job.job_id}`);
+                            setJobResults(jobData);
+                            setShowResultsModal(true);
+                          } catch (error) {
+                            toast.error('Gagal memuat hasil');
+                          }
+                        }}
+                        className="px-3 py-1.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white text-xs font-medium rounded transition-all"
+                      >
+                        📋 Detail
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         ) : (
           <div className="text-center py-6 bg-gray-50 dark:bg-gray-800 rounded-lg">
