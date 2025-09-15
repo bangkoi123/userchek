@@ -168,7 +168,7 @@ const AdminPanel = () => {
       setWhatsAppForm({
         provider: provider.provider_type || 'free',
         api_key: provider.api_key || '',
-        api_url: provider.api_endpoint || 'https://api.ekycpro.com/v1/whatsapp',
+        api_url: provider.api_endpoint || 'https://api.checknumber.ai/wa/api/simple/tasks',
         enabled: provider.is_active !== false
       });
     } else {
