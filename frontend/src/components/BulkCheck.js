@@ -15,7 +15,8 @@ import {
   Loader2,
   Info,
   Wifi,
-  WifiOff
+  WifiOff,
+  Clock
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
