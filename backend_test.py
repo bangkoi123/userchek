@@ -1786,6 +1786,19 @@ def main():
     tester.test_invalid_login()
     tester.test_unauthorized_access()
     
+    # ========== WHATSAPP VALIDATION ACCURACY INVESTIGATION ==========
+    print("\n🔍 WHATSAPP VALIDATION ACCURACY INVESTIGATION")
+    print("-" * 50)
+    print("🎯 INVESTIGATING: User reports validation results not accurate")
+    print("🎯 INVESTIGATING: Results seem to use free method instead of CheckNumber.ai")
+    print("-" * 50)
+    
+    tester.test_whatsapp_validation_accuracy_quick_check()
+    tester.test_admin_whatsapp_provider_settings()
+    tester.test_bulk_validation_checknumber_usage()
+    tester.test_backend_logs_checknumber_calls()
+    tester.test_whatsapp_provider_configuration_verification()
+    
     # User functionality tests
     print("\n👤 USER FUNCTIONALITY TESTS")
     print("-" * 30)
@@ -1840,6 +1853,12 @@ def main():
     print(f"Tests passed: {tester.tests_passed}")
     print(f"Tests failed: {tester.tests_run - tester.tests_passed}")
     print(f"Success rate: {(tester.tests_passed/tester.tests_run)*100:.1f}%")
+    
+    # Special focus on WhatsApp validation accuracy results
+    print("\n" + "🔍" * 50)
+    print("WHATSAPP VALIDATION ACCURACY INVESTIGATION SUMMARY")
+    print("🔍" * 50)
+    print("Key findings will be reported to main agent for analysis...")
     
     if tester.tests_passed == tester.tests_run:
         print("\n🎉 All tests passed!")
