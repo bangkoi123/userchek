@@ -1083,35 +1083,47 @@ Maya,+628111222333`;
 
               {/* Action Buttons */}
               {progress?.status === 'completed' && (
-                <div className="flex space-x-3">
+                <div className="space-y-3">
+                  <div className="flex space-x-3">
+                    <button
+                      onClick={async () => {
+                        try {
+                          const jobData = await apiCall(`/api/jobs/${currentJob.job_id}`);
+                          setJobResults(jobData);
+                          setShowResultsModal(true);
+                        } catch (error) {
+                          toast.error('Gagal memuat hasil');
+                        }
+                      }}
+                      className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center"
+                    >
+                      📋 Lihat Detail Tabel
+                    </button>
+                    <button
+                      onClick={async () => {
+                        try {
+                          const jobData = await apiCall(`/api/jobs/${currentJob.job_id}`);
+                          const csvContent = generateCSV(jobData.results?.details || []);
+                          downloadCSV(csvContent, `validation-results-${currentJob.job_id}.csv`);
+                          toast.success('File CSV berhasil didownload!');
+                        } catch (error) {
+                          toast.error('Gagal mendownload hasil');
+                        }
+                      }}
+                      className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center"
+                    >
+                      📥 Download CSV
+                    </button>
+                  </div>
+                  
                   <button
-                    onClick={async () => {
-                      try {
-                        const jobData = await apiCall(`/api/jobs/${currentJob.job_id}`);
-                        setJobResults(jobData);
-                        setShowResultsModal(true);
-                      } catch (error) {
-                        toast.error('Gagal memuat hasil');
-                      }
+                    onClick={() => {
+                      // Keep modal open but mark as accessible for later
+                      toast.success('Hasil telah tersimpan! Anda dapat mengaksesnya kapan saja di bagian "Hasil Validasi Terbaru" di bawah.');
                     }}
-                    className="flex-1 btn-primary"
+                    className="w-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium py-2 px-4 rounded-lg transition-all duration-200"
                   >
-                    📋 Lihat Detail
-                  </button>
-                  <button
-                    onClick={async () => {
-                      try {
-                        const jobData = await apiCall(`/api/jobs/${currentJob.job_id}`);
-                        const csvContent = generateCSV(jobData.results?.details || []);
-                        downloadCSV(csvContent, `validation-results-${currentJob.job_id}.csv`);
-                        toast.success('File CSV berhasil didownload!');
-                      } catch (error) {
-                        toast.error('Gagal mendownload hasil');
-                      }
-                    }}
-                    className="flex-1 btn-secondary"
-                  >
-                    📥 Download
+                    ✅ Tutup - Hasil Tersimpan
                   </button>
                 </div>
               )}
