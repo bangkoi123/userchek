@@ -833,76 +833,126 @@ Maya,+628111222333`;
             </div>
           </div>
 
-          {/* Completed Jobs Section */}
-          {completedJobs.length > 0 && (
-            <div className="card p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  📋 Hasil Validasi Terbaru
-                </h3>
+          {/* Completed Jobs Section - Always Visible */}
+          <div className="card p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                🎯 Hasil Validasi Terbaru
+              </h3>
+              <div className="flex items-center space-x-2">
                 <span className="text-sm text-gray-500 dark:text-gray-400">
-                  {completedJobs.length} hasil
+                  {completedJobs.length} hasil tersimpan
                 </span>
+                {completedJobs.length > 0 && (
+                  <button
+                    onClick={() => {
+                      setCompletedJobs([]);
+                      toast.success('Riwayat hasil berhasil dibersihkan');
+                    }}
+                    className="text-xs text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20"
+                  >
+                    Hapus Semua
+                  </button>
+                )}
               </div>
-              
+            </div>
+            
+            {completedJobs.length > 0 ? (
               <div className="space-y-3">
                 {completedJobs.map((job, index) => (
-                  <div key={job.job_id} className={`bg-gray-50 dark:bg-gray-700 rounded-lg p-4 ${index === 0 ? 'ring-2 ring-green-200 dark:ring-green-800' : ''}`}>
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center space-x-2">
-                        <span className="font-medium text-gray-900 dark:text-white">
-                          {job.fileName}
-                        </span>
-                        {index === 0 && (
-                          <span className="px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full text-xs font-medium">
-                            Terbaru
-                          </span>
-                        )}
+                  <div key={job.job_id} className={`bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 rounded-lg p-4 border-l-4 ${index === 0 ? 'border-green-500 shadow-lg' : 'border-blue-300'} transition-all hover:shadow-md`}>
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center space-x-3">
+                        <div className="p-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+                          <FileText className="h-4 w-4 text-primary-600 dark:text-primary-400" />
+                        </div>
+                        <div>
+                          <div className="flex items-center space-x-2">
+                            <span className="font-semibold text-gray-900 dark:text-white">
+                              {job.fileName}
+                            </span>
+                            {index === 0 && (
+                              <span className="px-2 py-1 bg-gradient-to-r from-green-100 to-green-200 text-green-800 dark:from-green-900 dark:to-green-800 dark:text-green-200 rounded-full text-xs font-medium animate-pulse">
+                                🆕 Terbaru
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            Selesai: {format(new Date(job.completed_at), 'dd/MM/yyyy HH:mm:ss', { locale: id })}
+                          </div>
+                        </div>
                       </div>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                        {format(new Date(job.completed_at), 'HH:mm:ss', { locale: id })}
-                      </span>
                     </div>
                     
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4 text-sm">
-                        <span className="text-gray-600 dark:text-gray-400">
-                          {job.total_numbers} nomor
+                      <div className="flex items-center space-x-4">
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          📊 {job.total_numbers} nomor
                         </span>
                         <div className="flex items-center space-x-2">
                           {job.platforms.whatsapp && (
-                            <span className="px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded text-xs">
-                              WA: {job.results.whatsapp_active || 0}
+                            <span className="px-3 py-1 bg-gradient-to-r from-green-100 to-green-200 text-green-800 dark:from-green-900 dark:to-green-800 dark:text-green-200 rounded-full text-xs font-semibold">
+                              ✅ WA: {job.results.whatsapp_active || 0}
                             </span>
                           )}
                           {job.platforms.telegram && (
-                            <span className="px-2 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded text-xs">
-                              TG: {job.results.telegram_active || 0}
+                            <span className="px-3 py-1 bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 dark:from-blue-900 dark:to-blue-800 dark:text-blue-200 rounded-full text-xs font-semibold">
+                              ✅ TG: {job.results.telegram_active || 0}
                             </span>
                           )}
                         </div>
                       </div>
                       
-                      <button
-                        onClick={async () => {
-                          try {
-                            const jobData = await apiCall(`/api/jobs/${job.job_id}`);
-                            setJobResults(jobData);
-                            setShowResultsModal(true);
-                          } catch (error) {
-                            toast.error('Gagal memuat hasil');
-                          }
-                        }}
-                        className="px-3 py-1.5 bg-primary-100 hover:bg-primary-200 dark:bg-primary-900 dark:hover:bg-primary-800 text-primary-700 dark:text-primary-300 rounded text-xs font-medium transition-colors"
-                      >
-                        📋 Detail
-                      </button>
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={async () => {
+                            try {
+                              const jobData = await apiCall(`/api/jobs/${job.job_id}`);
+                              const csvContent = generateCSV(jobData.results?.details || []);
+                              downloadCSV(csvContent, `validation-results-${job.fileName}-${job.completed_at.slice(0,10)}.csv`);
+                              toast.success('File CSV berhasil didownload!');
+                            } catch (error) {
+                              toast.error('Gagal mendownload hasil');
+                            }
+                          }}
+                          className="px-3 py-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white text-xs font-medium rounded-lg transition-all duration-200 flex items-center"
+                          title="Download CSV"
+                        >
+                          📥 CSV
+                        </button>
+                        <button
+                          onClick={async () => {
+                            try {
+                              const jobData = await apiCall(`/api/jobs/${job.job_id}`);
+                              setJobResults(jobData);
+                              setShowResultsModal(true);
+                            } catch (error) {
+                              toast.error('Gagal memuat hasil');
+                            }
+                          }}
+                          className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white text-xs font-medium rounded-lg transition-all duration-200 flex items-center"
+                        >
+                          📋 Lihat Detail Tabel
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+            ) : (
+              <div className="text-center py-8">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full mb-4">
+                  <FileText className="h-8 w-8 text-gray-400" />
+                </div>
+                <p className="text-gray-500 dark:text-gray-400 font-medium">
+                  Belum ada hasil validasi tersimpan
+                </p>
+                <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+                  Upload dan validasi file CSV untuk melihat hasil di sini
+                </p>
+              </div>
+            )}
+          </div>
 
           {/* Tips */}
           <div className="card p-6">
