@@ -494,89 +494,120 @@ const QuickCheck = () => {
               </div>
             </div>
 
-              {/* Results Table */}
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="border-b border-gray-200 dark:border-gray-600">
-                      <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Username</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Nomor</th>
-                      {result.platforms_validated.whatsapp && (
-                        <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">WhatsApp</th>
-                      )}
-                      {result.platforms_validated.telegram && (
-                        <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Telegram</th>
-                      )}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {result.details.map((detail, index) => (
-                      <tr key={index} className="border-b border-gray-100 dark:border-gray-700">
-                        <td className="py-3 px-4">
-                          {detail.identifier ? (
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-200">
-                              📝 {detail.identifier}
-                            </span>
-                          ) : (
-                            <span className="text-gray-400 text-sm">—</span>
-                          )}
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className="font-mono text-sm">{detail.phone_number}</span>
-                        </td>
-                        {result.platforms_validated.whatsapp && (
-                          <td className="py-3 px-4">
-                            {detail.whatsapp ? (
-                              <div className="flex items-center space-x-2">
-                                {getStatusIcon(detail.whatsapp.status)}
-                                <div>
-                                  <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusBadgeClass(detail.whatsapp.status)}`}>
-                                    {detail.whatsapp.status === 'active' 
-                                      ? getWhatsAppType(detail.whatsapp.details)
-                                      : getStatusText(detail.whatsapp.status)
-                                    }
-                                  </span>
-                                </div>
-                              </div>
-                            ) : (
-                              <span className="text-gray-400">N/A</span>
-                            )}
-                          </td>
-                        )}
-                        {result.platforms_validated.telegram && (
-                          <td className="py-3 px-4">
-                            {detail.telegram ? (
-                              <div className="flex items-center space-x-2">
-                                {getStatusIcon(detail.telegram.status)}
-                                <div>
-                                  <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusBadgeClass(detail.telegram.status)}`}>
-                                    {detail.telegram.status === 'active' && detail.telegram.details?.username
-                                      ? `@${detail.telegram.details.username}`
-                                      : getStatusText(detail.telegram.status)
-                                    }
-                                  </span>
-                                </div>
-                              </div>
-                            ) : (
-                              <span className="text-gray-400">N/A</span>
-                            )}
-                          </td>
-                        )}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+            {/* Validation History */}
+            <div className="mt-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  📋 Riwayat Validasi ({validationHistory.length})
+                </h3>
+                {loading && (
+                  <div className="flex items-center text-primary-600 dark:text-primary-400">
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <span className="text-sm">Memproses...</span>
+                  </div>
+                )}
               </div>
 
-              {result.summary.duplicates_removed > 0 && (
-                <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-                  <p className="text-sm text-yellow-700 dark:text-yellow-300">
-                    ℹ️ {result.summary.duplicates_removed} nomor duplikat dihapus untuk menghemat kredit
+              {validationHistory.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <div className="max-h-96 overflow-y-auto">
+                    <table className="w-full border-collapse">
+                      <thead className="sticky top-0 bg-white dark:bg-gray-800 z-10">
+                        <tr className="border-b-2 border-gray-200 dark:border-gray-600">
+                          <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Nomor</th>
+                          <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Nama</th>
+                          <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">WhatsApp</th>
+                          <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Telegram</th>
+                          <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Waktu</th>
+                          <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Aksi</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {validationHistory.map((entry, index) => (
+                          <tr key={entry.id} className={`border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${index === 0 ? 'bg-green-50/50 dark:bg-green-900/10' : ''}`}>
+                            <td className="py-3 px-4">
+                              <div className="flex items-center space-x-2">
+                                <span className="font-mono text-sm text-gray-900 dark:text-white">
+                                  {entry.phone_number}
+                                </span>
+                                {index === 0 && (
+                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                    Baru
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="py-3 px-4">
+                              {entry.identifier ? (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                  {entry.identifier}
+                                </span>
+                              ) : (
+                                <span className="text-gray-400 text-sm">—</span>
+                              )}
+                            </td>
+                            <td className="py-3 px-4">
+                              {entry.whatsapp ? (
+                                <div className="flex items-center space-x-2">
+                                  {getStatusIcon(entry.whatsapp.status)}
+                                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadgeClass(entry.whatsapp.status)}`}>
+                                    {entry.whatsapp.status === 'active' 
+                                      ? getWhatsAppType(entry.whatsapp.details)
+                                      : getStatusText(entry.whatsapp.status)
+                                    }
+                                  </span>
+                                </div>
+                              ) : (
+                                <span className="text-gray-400 text-xs">—</span>
+                              )}
+                            </td>
+                            <td className="py-3 px-4">
+                              {entry.telegram ? (
+                                <div className="flex items-center space-x-2">
+                                  {getStatusIcon(entry.telegram.status)}
+                                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadgeClass(entry.telegram.status)}`}>
+                                    {entry.telegram.status === 'active' && entry.telegram.details?.username
+                                      ? `@${entry.telegram.details.username}`
+                                      : getStatusText(entry.telegram.status)
+                                    }
+                                  </span>
+                                </div>
+                              ) : (
+                                <span className="text-gray-400 text-xs">—</span>
+                              )}
+                            </td>
+                            <td className="py-3 px-4">
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
+                                {format(new Date(entry.validated_at), 'HH:mm:ss', { locale: id })}
+                              </span>
+                            </td>
+                            <td className="py-3 px-4">
+                              <button
+                                onClick={() => copyPhoneNumber(entry.phone_number)}
+                                className="p-1.5 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"
+                                title="Salin nomor"
+                              >
+                                <Copy className="h-3.5 w-3.5" />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full mb-4">
+                    <Smartphone className="h-8 w-8 text-gray-400" />
+                  </div>
+                  <p className="text-gray-500 dark:text-gray-400">
+                    Belum ada riwayat validasi. Mulai validasi nomor untuk melihat riwayat.
                   </p>
                 </div>
               )}
             </div>
-          )}
+          </div>
         </div>
 
         {/* Sidebar */}
