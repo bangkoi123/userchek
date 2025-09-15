@@ -243,12 +243,20 @@ Maya,+628111222333`;
               f.id === fileItem.id ? { ...f, status: 'success' } : f
             ));
 
-            toast.success(`File ${fileItem.file.name} berhasil diupload dan diproses`);
+            toast.success(`File ${fileItem.file.name} berhasil diupload!`);
+            
+            // Set current job and show progress modal
+            setCurrentJob({
+              job_id: response.job_id,
+              total_numbers: response.total_numbers || 0,
+              fileName: fileItem.file.name,
+              platforms: { whatsapp: validateWhatsapp, telegram: validateTelegram }
+            });
+            setShowProgressModal(true);
             
             // Start real-time monitoring
             setCurrentJobId(response.job_id);
             startListening();
-            toast.success('🔄 Mulai monitoring progress real-time...');
           } else {
             throw new Error('Response tidak valid atau tidak ada job_id');
           }
