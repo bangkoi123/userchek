@@ -439,61 +439,60 @@ const QuickCheck = () => {
             </form>
           </div>
 
-          {/* Results */}
-          {result && (
-            <div className="card p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Hasil Validasi
-                </h2>
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={downloadResults}
-                    className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                    title="Download CSV"
-                  >
-                    <Download className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => copyToClipboard(JSON.stringify(result, null, 2))}
-                    className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                    title="Salin hasil"
-                  >
-                    <Copy className="h-4 w-4" />
-                  </button>
-                </div>
+          {/* Persistent Results & Stats */}
+          <div className="card p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                📊 Statistik Validasi
+              </h2>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={downloadResults}
+                  className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                  title="Download CSV"
+                >
+                  <Download className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={clearPersistentData}
+                  className="p-2 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-200 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
+                  title="Bersihkan Data"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                </button>
               </div>
+            </div>
 
-              {/* Summary Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 text-center">
-                  <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                    {result.summary.whatsapp_active}
-                  </p>
-                  <p className="text-sm text-green-600 dark:text-green-400">WhatsApp Aktif</p>
-                </div>
-                
-                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 text-center">
-                  <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                    {result.summary.telegram_active}
-                  </p>
-                  <p className="text-sm text-blue-600 dark:text-blue-400">Telegram Aktif</p>
-                </div>
-                
-                <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 text-center">
-                  <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                    {result.summary.whatsapp_business}
-                  </p>
-                  <p className="text-sm text-purple-600 dark:text-purple-400">WA Business</p>
-                </div>
-                
-                <div className="bg-gray-50 dark:bg-gray-700/20 rounded-lg p-4 text-center">
-                  <p className="text-2xl font-bold text-gray-600 dark:text-gray-400">
-                    {result.summary.total_processed}
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Total Diproses</p>
-                </div>
+            {/* Persistent Summary Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-xl p-4 text-center border border-green-200 dark:border-green-800">
+                <p className="text-3xl font-bold text-green-600 dark:text-green-400">
+                  {persistentStats.whatsapp_active}
+                </p>
+                <p className="text-sm font-medium text-green-600 dark:text-green-400">WhatsApp Aktif</p>
               </div>
+              
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl p-4 text-center border border-blue-200 dark:border-blue-800">
+                <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                  {persistentStats.telegram_active}
+                </p>
+                <p className="text-sm font-medium text-blue-600 dark:text-blue-400">Telegram Aktif</p>
+              </div>
+              
+              <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-xl p-4 text-center border border-purple-200 dark:border-purple-800">
+                <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">
+                  {persistentStats.whatsapp_business}
+                </p>
+                <p className="text-sm font-medium text-purple-600 dark:text-purple-400">WA Business</p>
+              </div>
+              
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700/20 dark:to-gray-600/20 rounded-xl p-4 text-center border border-gray-200 dark:border-gray-600">
+                <p className="text-3xl font-bold text-gray-600 dark:text-gray-400">
+                  {persistentStats.total_processed}
+                </p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Diproses</p>
+              </div>
+            </div>
 
               {/* Results Table */}
               <div className="overflow-x-auto">
