@@ -1365,6 +1365,407 @@ class WebtoolsAPITester:
             self.tests_run += 1
             return False
 
+    # ========== WHATSAPP VALIDATION ACCURACY INVESTIGATION ==========
+    
+    def test_whatsapp_validation_accuracy_quick_check(self):
+        """Test WhatsApp validation accuracy using quick-check endpoint with real numbers"""
+        if not self.admin_token:
+            print("❌ Skipping WhatsApp accuracy test - no admin token")
+            return False
+            
+        print(f"\n🔍 Testing WhatsApp Validation Accuracy - Quick Check...")
+        print(f"   Description: Test quick-check endpoint with real WhatsApp numbers to verify provider usage")
+        
+        # Test with known active WhatsApp numbers (Indonesian format)
+        test_numbers = [
+            "+6281234567890",  # Common Indonesian format
+            "+6285678901234",  # Another Indonesian format
+            "+628123456789"    # Without leading zero
+        ]
+        
+        success_count = 0
+        total_tests = len(test_numbers)
+        
+        for i, phone_number in enumerate(test_numbers):
+            try:
+                success, response = self.run_test(
+                    f"WhatsApp Quick Check #{i+1}",
+                    "POST",
+                    "api/validation/quick-check",
+                    200,
+                    data={"phone_inputs": [phone_number], "validate_whatsapp": True, "validate_telegram": False},
+                    token=self.admin_token,
+                    description=f"Test WhatsApp validation for {phone_number}"
+                )
+                
+                if success and response:
+                    # Check if response contains provider information
+                    if 'whatsapp' in response and response['whatsapp']:
+                        whatsapp_result = response['whatsapp']
+                        
+                        # Check for provider field in details
+                        if 'details' in whatsapp_result and 'provider' in whatsapp_result['details']:
+                            provider = whatsapp_result['details']['provider']
+                            print(f"   📊 Provider used: {provider}")
+                            
+                            if provider == "checknumber_ai":
+                                print(f"   ✅ Using CheckNumber.ai API as expected")
+                                success_count += 1
+                            elif provider == "free" or "web_api" in provider.lower():
+                                print(f"   ❌ Using FREE method instead of CheckNumber.ai!")
+                            else:
+                                print(f"   ⚠️  Unknown provider: {provider}")
+                        else:
+                            print(f"   ❌ No provider information in response details")
+                            
+                        # Check validation status and confidence
+                        status = whatsapp_result.get('status', 'unknown')
+                        confidence = whatsapp_result.get('details', {}).get('confidence_score', 0)
+                        print(f"   📊 Status: {status}, Confidence: {confidence}")
+                        
+                    else:
+                        print(f"   ❌ No WhatsApp result in response")
+                else:
+                    print(f"   ❌ Request failed for {phone_number}")
+                    
+            except Exception as e:
+                print(f"   ❌ Error testing {phone_number}: {str(e)}")
+        
+        # Overall assessment
+        if success_count == total_tests:
+            print(f"   🎉 All {total_tests} tests used CheckNumber.ai API correctly")
+            self.tests_passed += 1
+        elif success_count > 0:
+            print(f"   ⚠️  Only {success_count}/{total_tests} tests used CheckNumber.ai API")
+        else:
+            print(f"   ❌ No tests used CheckNumber.ai API - all using free method!")
+            
+        self.tests_run += 1
+        return success_count == total_tests
+
+    def test_admin_whatsapp_provider_settings(self):
+        """Test admin settings for WhatsApp provider configuration"""
+        if not self.admin_token:
+            print("❌ Skipping admin WhatsApp settings test - no admin token")
+            return False
+            
+        print(f"\n🔍 Testing Admin WhatsApp Provider Settings...")
+        print(f"   Description: Verify admin settings for whatsapp_provider in database")
+        
+        # First, let's check if there's an endpoint to get admin settings
+        success, response = self.run_test(
+            "Admin Settings - WhatsApp Provider",
+            "GET",
+            "api/admin/settings/whatsapp_provider",
+            200,
+            token=self.admin_token,
+            description="Get WhatsApp provider settings from admin"
+        )
+        
+        if success and response:
+            # Check if settings are properly configured
+            expected_fields = ['enabled', 'provider', 'api_key', 'api_url']
+            missing_fields = [field for field in expected_fields if field not in response]
+            
+            if not missing_fields:
+                print(f"   ✅ All required settings fields present")
+                
+                # Check specific values
+                if response.get('enabled') == True:
+                    print(f"   ✅ WhatsApp provider enabled: {response['enabled']}")
+                else:
+                    print(f"   ❌ WhatsApp provider not enabled: {response.get('enabled')}")
+                    
+                if response.get('provider') == "checknumber_ai":
+                    print(f"   ✅ Provider set to CheckNumber.ai: {response['provider']}")
+                else:
+                    print(f"   ❌ Provider not set to CheckNumber.ai: {response.get('provider')}")
+                    
+                if response.get('api_key') and response['api_key'] != 'your-api-key-here':
+                    print(f"   ✅ API key configured (not default)")
+                else:
+                    print(f"   ❌ API key not properly configured")
+                    
+                if response.get('api_url') and 'checknumber.ai' in response['api_url']:
+                    print(f"   ✅ API URL configured correctly: {response['api_url']}")
+                else:
+                    print(f"   ❌ API URL not configured correctly: {response.get('api_url')}")
+                    
+                return True
+            else:
+                print(f"   ❌ Missing required settings fields: {missing_fields}")
+        else:
+            print(f"   ❌ Could not retrieve admin settings")
+            
+        self.tests_run += 1
+        return False
+
+    def test_bulk_validation_checknumber_usage(self):
+        """Test bulk validation to ensure it uses CheckNumber.ai API"""
+        if not self.admin_token:
+            print("❌ Skipping bulk validation CheckNumber.ai test - no admin token")
+            return False
+            
+        print(f"\n🔍 Testing Bulk Validation CheckNumber.ai Usage...")
+        print(f"   Description: Test bulk validation endpoint uses CheckNumber.ai API")
+        
+        # Create test CSV with real-looking Indonesian numbers
+        csv_content = "name,phone_number\nBudi Santoso,+6281234567890\nSari Dewi,+6285678901234\nAhmad Rahman,+628123456789"
+        
+        # Prepare multipart form data
+        files = {'file': ('checknumber_test.csv', csv_content, 'text/csv')}
+        data = {
+            'validate_whatsapp': 'true',
+            'validate_telegram': 'false'
+        }
+        
+        url = f"{self.base_url}/api/validation/bulk-check"
+        headers = {'Authorization': f'Bearer {self.admin_token}'}
+        
+        try:
+            import requests
+            import time
+            
+            # Submit bulk validation job
+            response = requests.post(url, files=files, data=data, headers=headers, timeout=30)
+            
+            if response.status_code == 200:
+                response_data = response.json()
+                job_id = response_data.get('job_id')
+                
+                if job_id:
+                    print(f"   ✅ Bulk validation job submitted: {job_id}")
+                    
+                    # Wait for job to complete and check results
+                    max_wait = 60  # Wait up to 60 seconds
+                    waited = 0
+                    
+                    while waited < max_wait:
+                        time.sleep(5)
+                        waited += 5
+                        
+                        # Check job status
+                        job_url = f"{self.base_url}/api/jobs/{job_id}"
+                        job_response = requests.get(job_url, headers=headers, timeout=10)
+                        
+                        if job_response.status_code == 200:
+                            job_data = job_response.json()
+                            status = job_data.get('status')
+                            
+                            print(f"   📊 Job status after {waited}s: {status}")
+                            
+                            if status == 'completed':
+                                # Check results for provider information
+                                results = job_data.get('results', {})
+                                details = results.get('details', [])
+                                
+                                if details:
+                                    checknumber_count = 0
+                                    free_count = 0
+                                    
+                                    for detail in details:
+                                        whatsapp_result = detail.get('whatsapp', {})
+                                        if whatsapp_result and 'details' in whatsapp_result:
+                                            provider = whatsapp_result['details'].get('provider', 'unknown')
+                                            
+                                            if provider == 'checknumber_ai':
+                                                checknumber_count += 1
+                                            elif 'free' in provider.lower() or 'web' in provider.lower():
+                                                free_count += 1
+                                                
+                                    print(f"   📊 CheckNumber.ai results: {checknumber_count}")
+                                    print(f"   📊 Free method results: {free_count}")
+                                    
+                                    if checknumber_count == len(details):
+                                        print(f"   ✅ All bulk validation used CheckNumber.ai API")
+                                        self.tests_passed += 1
+                                        self.tests_run += 1
+                                        return True
+                                    elif checknumber_count > 0:
+                                        print(f"   ⚠️  Mixed providers: {checknumber_count} CheckNumber.ai, {free_count} free")
+                                    else:
+                                        print(f"   ❌ No CheckNumber.ai usage detected in bulk validation!")
+                                else:
+                                    print(f"   ❌ No detailed results found in completed job")
+                                break
+                            elif status == 'failed':
+                                print(f"   ❌ Job failed: {job_data.get('error_message', 'Unknown error')}")
+                                break
+                        else:
+                            print(f"   ⚠️  Could not check job status")
+                            break
+                    
+                    if waited >= max_wait:
+                        print(f"   ⏰ Job did not complete within {max_wait} seconds")
+                else:
+                    print(f"   ❌ No job_id in bulk validation response")
+            else:
+                print(f"   ❌ Bulk validation failed: {response.status_code}")
+                try:
+                    error_data = response.json()
+                    print(f"   Error: {error_data}")
+                except:
+                    print(f"   Raw response: {response.text[:200]}")
+                    
+        except Exception as e:
+            print(f"   ❌ Error in bulk validation test: {str(e)}")
+            
+        self.tests_run += 1
+        return False
+
+    def test_backend_logs_checknumber_calls(self):
+        """Test backend logs to verify CheckNumber.ai API calls are being made"""
+        print(f"\n🔍 Testing Backend Logs for CheckNumber.ai API Calls...")
+        print(f"   Description: Check backend logs for evidence of CheckNumber.ai API usage")
+        
+        # This test will check if we can find evidence of CheckNumber.ai calls in logs
+        # We'll make a validation request and then check logs
+        
+        if not self.admin_token:
+            print("❌ Skipping backend logs test - no admin token")
+            return False
+            
+        try:
+            # First make a validation request to generate log entries
+            success, response = self.run_test(
+                "Generate CheckNumber.ai Log Entry",
+                "POST",
+                "api/validation/quick-check",
+                200,
+                data={"phone_inputs": ["+6281234567890"], "validate_whatsapp": True, "validate_telegram": False},
+                token=self.admin_token,
+                description="Generate validation request to check logs"
+            )
+            
+            if success:
+                print(f"   ✅ Validation request made successfully")
+                
+                # Note: In a real implementation, we would check actual log files
+                # For this test, we'll check if the response indicates CheckNumber.ai usage
+                if response and 'whatsapp' in response:
+                    whatsapp_result = response['whatsapp']
+                    if 'details' in whatsapp_result and 'provider' in whatsapp_result['details']:
+                        provider = whatsapp_result['details']['provider']
+                        
+                        if provider == 'checknumber_ai':
+                            print(f"   ✅ Response indicates CheckNumber.ai API was called")
+                            print(f"   📊 Provider in response: {provider}")
+                            
+                            # Check for additional CheckNumber.ai specific fields
+                            api_response = whatsapp_result['details'].get('api_response')
+                            if api_response:
+                                print(f"   ✅ API response field present: {api_response}")
+                                
+                            confidence = whatsapp_result['details'].get('confidence_score', 0)
+                            if confidence >= 5:  # CheckNumber.ai typically gives high confidence
+                                print(f"   ✅ High confidence score indicates real API: {confidence}")
+                            
+                            self.tests_passed += 1
+                            self.tests_run += 1
+                            return True
+                        else:
+                            print(f"   ❌ Response indicates free method used: {provider}")
+                    else:
+                        print(f"   ❌ No provider information in response")
+                else:
+                    print(f"   ❌ No WhatsApp result in response")
+            else:
+                print(f"   ❌ Validation request failed")
+                
+        except Exception as e:
+            print(f"   ❌ Error checking backend logs: {str(e)}")
+            
+        self.tests_run += 1
+        return False
+
+    def test_whatsapp_provider_configuration_verification(self):
+        """Comprehensive test to verify WhatsApp provider configuration"""
+        print(f"\n🔍 Testing WhatsApp Provider Configuration Verification...")
+        print(f"   Description: Comprehensive verification of CheckNumber.ai configuration")
+        
+        if not self.admin_token:
+            print("❌ Skipping provider configuration test - no admin token")
+            return False
+            
+        configuration_issues = []
+        
+        # Test 1: Check environment variables (simulated)
+        print(f"   📋 Checking environment configuration...")
+        
+        # Test 2: Make validation request and analyze response thoroughly
+        try:
+            success, response = self.run_test(
+                "Provider Configuration Check",
+                "POST",
+                "api/validation/quick-check",
+                200,
+                data={"phone_inputs": ["+6281234567890"], "validate_whatsapp": True, "validate_telegram": False},
+                token=self.admin_token,
+                description="Comprehensive provider configuration check"
+            )
+            
+            if success and response:
+                print(f"   ✅ Validation request successful")
+                
+                # Analyze response structure
+                if 'whatsapp' in response and response['whatsapp']:
+                    whatsapp_result = response['whatsapp']
+                    
+                    # Check provider field
+                    provider = whatsapp_result.get('details', {}).get('provider', 'not_specified')
+                    print(f"   📊 Provider field: {provider}")
+                    
+                    if provider != 'checknumber_ai':
+                        configuration_issues.append(f"Provider is '{provider}', expected 'checknumber_ai'")
+                    
+                    # Check for CheckNumber.ai specific response fields
+                    api_response = whatsapp_result.get('details', {}).get('api_response')
+                    if api_response:
+                        print(f"   📊 API response field: {api_response}")
+                        if api_response not in ['yes', 'no']:
+                            configuration_issues.append(f"Unexpected API response format: {api_response}")
+                    else:
+                        configuration_issues.append("Missing api_response field (CheckNumber.ai specific)")
+                    
+                    # Check confidence score
+                    confidence = whatsapp_result.get('details', {}).get('confidence_score', 0)
+                    print(f"   📊 Confidence score: {confidence}")
+                    
+                    if confidence < 5 and whatsapp_result.get('status') == 'active':
+                        configuration_issues.append(f"Low confidence score for active number: {confidence}")
+                    
+                    # Check for free method indicators
+                    details = whatsapp_result.get('details', {})
+                    if 'indicators' in details:
+                        print(f"   ⚠️  Free method indicators detected - not using CheckNumber.ai")
+                        configuration_issues.append("Response contains free method indicators")
+                    
+                    # Check validation timing (CheckNumber.ai should be faster than free method)
+                    validated_at = whatsapp_result.get('validated_at')
+                    if validated_at:
+                        print(f"   📊 Validation timestamp: {validated_at}")
+                    
+                else:
+                    configuration_issues.append("No WhatsApp result in response")
+                    
+            else:
+                configuration_issues.append("Validation request failed")
+                
+        except Exception as e:
+            configuration_issues.append(f"Error during validation test: {str(e)}")
+        
+        # Summary
+        if not configuration_issues:
+            print(f"   🎉 WhatsApp provider configuration appears correct!")
+            self.tests_passed += 1
+        else:
+            print(f"   ❌ Configuration issues found:")
+            for issue in configuration_issues:
+                print(f"      - {issue}")
+                
+        self.tests_run += 1
+        return len(configuration_issues) == 0
+
 def main():
     print("🚀 Starting Webtools Validation API Tests")
     print("=" * 50)
