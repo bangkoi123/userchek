@@ -283,7 +283,7 @@ const QuickCheck = () => {
       csvContent += `"${identifier}","${phone}","${waStatus}","${waType}","${tgStatus}","${tgUsername}"\n`;
     });
 
-    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const blob = new Blob([csvContent], { type: 'text/csv' }); // eslint-disable-line no-undef
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
