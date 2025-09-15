@@ -850,15 +850,31 @@ Maya,+628111222333`;
 
           {/* Tips */}
           <div className="card p-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              💡 Tips
-            </h3>
-            <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-2">
-              <li>• Gunakan format CSV untuk performa terbaik</li>
-              <li>• Pastikan koneksi internet stabil</li>
-              <li>• Progress akan ditampilkan real-time</li>
-              <li>• Hasil dapat diunduh setelah selesai</li>
-              <li>• Notifikasi akan dikirim saat selesai</li>
+            <div className="flex items-center mb-4">
+              <Info className="h-5 w-5 text-primary-600 dark:text-primary-400 mr-2" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Tips Penggunaan</h3>
+            </div>
+            <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+              <li className="flex items-start">
+                <span className="inline-block w-2 h-2 bg-primary-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                Format CSV yang didukung: <code className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-xs mx-1">phone_number</code>
+              </li>
+              <li className="flex items-start">
+                <span className="inline-block w-2 h-2 bg-primary-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                Opsional: Tambahkan kolom <code className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-xs mx-1">name</code> untuk identifikasi
+              </li>
+              <li className="flex items-start">
+                <span className="inline-block w-2 h-2 bg-primary-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                Sistem akan otomatis menghapus nomor duplikat
+              </li>
+              <li className="flex items-start">
+                <span className="inline-block w-2 h-2 bg-primary-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                Hasil dapat diunduh dalam format CSV atau dilihat detail
+              </li>
+              <li className="flex items-start">
+                <span className="inline-block w-2 h-2 bg-primary-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                Progress akan tersimpan meski halaman di-refresh
+              </li>
             </ul>
           </div>
 
