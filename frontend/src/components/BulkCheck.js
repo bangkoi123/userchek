@@ -102,6 +102,62 @@ const BulkCheck = () => {
     }
   }, [progress, currentJob]);
 
+  // FALLBACK: Polling job status if WebSocket fails
+  useEffect(() => {
+    let pollingInterval;
+    
+    if (currentJobId && showProgressModal && !realTimeProgress) {
+      // Start polling after 10 seconds if no WebSocket data
+      const startPolling = setTimeout(() => {
+        pollingInterval = setInterval(async () => {
+          try {
+            const jobData = await apiCall(`/api/jobs/${currentJobId}`);
+            if (jobData) {
+              const progressData = {
+                job_id: currentJobId,
+                status: jobData.status,
+                total_numbers: jobData.total_numbers,
+                processed_numbers: jobData.processed_numbers,
+                results: jobData.results
+              };
+              
+              setRealTimeProgress(progressData);
+              
+              // Stop polling when completed
+              if (jobData.status === 'completed') {
+                clearInterval(pollingInterval);
+                
+                // Add to completed jobs
+                const completedJob = {
+                  ...currentJob,
+                  completed_at: new Date().toISOString(),
+                  results: jobData.results || {}
+                };
+                
+                setCompletedJobs(prev => {
+                  const existing = prev.find(job => job.job_id === currentJob.job_id);
+                  if (!existing) {
+                    return [completedJob, ...prev].slice(0, 10);
+                  }
+                  return prev;
+                });
+              }
+            }
+          } catch (error) {
+            console.error('Polling error:', error);
+          }
+        }, 2000); // Poll every 2 seconds
+      }, 10000); // Start after 10 seconds
+      
+      return () => {
+        clearTimeout(startPolling);
+        if (pollingInterval) {
+          clearInterval(pollingInterval);
+        }
+      };
+    }
+  }, [currentJobId, showProgressModal, realTimeProgress, currentJob]);
+
   useEffect(() => {
     fetchPlatformSettings();
   }, []);
