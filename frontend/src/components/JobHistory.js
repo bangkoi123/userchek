@@ -14,7 +14,8 @@ import {
   Calendar,
   Filter,
   Search,
-  RefreshCw
+  RefreshCw,
+  Zap
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
