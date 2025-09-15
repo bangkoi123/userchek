@@ -766,8 +766,315 @@ Maya,+628111222333`;
           </div>
         </div>
       </div>
+
+      {/* Progress Modal */}
+      {showProgressModal && currentJob && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-600">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  📊 Progress Validasi
+                </h3>
+                <button
+                  onClick={() => setShowProgressModal(false)}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6">
+              {/* Job Info */}
+              <div className="mb-6">
+                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400">File</span>
+                    <span className="text-sm text-gray-900 dark:text-white">{currentJob.fileName}</span>
+                  </div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Nomor</span>
+                    <span className="text-sm text-gray-900 dark:text-white">{currentJob.total_numbers}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Platform</span>
+                    <div className="flex space-x-2">
+                      {currentJob.platforms.whatsapp && (
+                        <span className="px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded text-xs">
+                          WhatsApp
+                        </span>
+                      )}
+                      {currentJob.platforms.telegram && (
+                        <span className="px-2 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded text-xs">
+                          Telegram
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Progress Display */}
+              <div className="mb-6">
+                {progress ? (
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Progress</span>
+                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                        {progress.processed_numbers || 0} / {progress.total_numbers || 0}
+                      </span>
+                    </div>
+                    
+                    {/* Progress Bar */}
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 mb-4">
+                      <div 
+                        className="bg-gradient-to-r from-primary-500 to-primary-600 h-3 rounded-full transition-all duration-300"
+                        style={{ 
+                          width: `${progress.total_numbers > 0 ? (progress.processed_numbers / progress.total_numbers) * 100 : 0}%` 
+                        }}
+                      ></div>
+                    </div>
+
+                    <div className="text-center mb-4">
+                      <span className="text-2xl font-bold text-primary-600 dark:text-primary-400">
+                        {progress.total_numbers > 0 ? Math.round((progress.processed_numbers / progress.total_numbers) * 100) : 0}%
+                      </span>
+                    </div>
+
+                    {/* Status */}
+                    <div className="text-center">
+                      {progress.status === 'completed' ? (
+                        <div className="flex items-center justify-center text-green-600 dark:text-green-400">
+                          <CheckCircle className="h-5 w-5 mr-2" />
+                          <span className="font-medium">Validasi Selesai!</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-center text-primary-600 dark:text-primary-400">
+                          <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                          <span className="font-medium">
+                            {progress.status === 'processing' ? 'Sedang Memproses...' : 'Menunggu...'}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary-600 dark:text-primary-400 mx-auto mb-4" />
+                    <p className="text-gray-600 dark:text-gray-400">Memuat progress...</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              {progress?.status === 'completed' && (
+                <div className="flex space-x-3">
+                  <button
+                    onClick={async () => {
+                      try {
+                        const jobData = await apiCall(`/api/jobs/${currentJob.job_id}`);
+                        setJobResults(jobData);
+                        setShowResultsModal(true);
+                      } catch (error) {
+                        toast.error('Gagal memuat hasil');
+                      }
+                    }}
+                    className="flex-1 btn-primary"
+                  >
+                    📋 Lihat Detail
+                  </button>
+                  <button
+                    onClick={async () => {
+                      try {
+                        const jobData = await apiCall(`/api/jobs/${currentJob.job_id}`);
+                        const csvContent = generateCSV(jobData.results?.details || []);
+                        downloadCSV(csvContent, `validation-results-${currentJob.job_id}.csv`);
+                        toast.success('File CSV berhasil didownload!');
+                      } catch (error) {
+                        toast.error('Gagal mendownload hasil');
+                      }
+                    }}
+                    className="flex-1 btn-secondary"
+                  >
+                    📥 Download
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Results Detail Modal */}
+      {showResultsModal && jobResults && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-6xl w-full mx-4 max-h-[90vh] overflow-hidden">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-600">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  📋 Detail Hasil Validasi
+                </h3>
+                <button
+                  onClick={() => setShowResultsModal(false)}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6">
+              {/* Summary Stats */}
+              <div className="grid grid-cols-4 gap-4 mb-6">
+                <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 text-center">
+                  <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                    {jobResults.results?.whatsapp_active || 0}
+                  </p>
+                  <p className="text-sm text-green-600 dark:text-green-400">WA Aktif</p>
+                </div>
+                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 text-center">
+                  <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                    {jobResults.results?.telegram_active || 0}
+                  </p>
+                  <p className="text-sm text-blue-600 dark:text-blue-400">TG Aktif</p>
+                </div>
+                <div className="bg-gray-50 dark:bg-gray-700/20 rounded-lg p-3 text-center">
+                  <p className="text-2xl font-bold text-gray-600 dark:text-gray-400">
+                    {jobResults.total_numbers || 0}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Total</p>
+                </div>
+                <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3 text-center">
+                  <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                    {jobResults.credits_used || 0}
+                  </p>
+                  <p className="text-sm text-purple-600 dark:text-purple-400">Kredit</p>
+                </div>
+              </div>
+
+              {/* Results Table */}
+              <div className="overflow-x-auto">
+                <div className="max-h-96 overflow-y-auto">
+                  <table className="w-full border-collapse">
+                    <thead className="sticky top-0 bg-white dark:bg-gray-800 z-10">
+                      <tr className="border-b-2 border-gray-200 dark:border-gray-600">
+                        <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">No.</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Nama</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Nomor</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">WhatsApp</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Telegram</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(jobResults.results?.details || [])
+                        .slice((resultsPage - 1) * RESULTS_PER_PAGE, resultsPage * RESULTS_PER_PAGE)
+                        .map((detail, index) => (
+                          <tr key={index} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                            <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400">
+                              {(resultsPage - 1) * RESULTS_PER_PAGE + index + 1}
+                            </td>
+                            <td className="py-3 px-4">
+                              {detail.identifier ? (
+                                <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                  {detail.identifier}
+                                </span>
+                              ) : (
+                                <span className="text-gray-400 text-sm">—</span>
+                              )}
+                            </td>
+                            <td className="py-3 px-4 font-mono text-sm">
+                              {detail.phone_number}
+                            </td>
+                            <td className="py-3 px-4">
+                              {detail.whatsapp ? (
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                  detail.whatsapp.status === 'active' 
+                                    ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                    : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                                }`}>
+                                  {detail.whatsapp.status === 'active' ? 'Aktif' : 'Tidak Aktif'}
+                                </span>
+                              ) : (
+                                <span className="text-gray-400 text-xs">—</span>
+                              )}
+                            </td>
+                            <td className="py-3 px-4">
+                              {detail.telegram ? (
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                  detail.telegram.status === 'active' 
+                                    ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                    : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                                }`}>
+                                  {detail.telegram.status === 'active' ? 'Aktif' : 'Tidak Aktif'}
+                                </span>
+                              ) : (
+                                <span className="text-gray-400 text-xs">—</span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Pagination */}
+              {(jobResults.results?.details || []).length > RESULTS_PER_PAGE && (
+                <div className="flex items-center justify-between mt-4">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Menampilkan {(resultsPage - 1) * RESULTS_PER_PAGE + 1} - {Math.min(resultsPage * RESULTS_PER_PAGE, (jobResults.results?.details || []).length)} dari {(jobResults.results?.details || []).length} hasil
+                  </div>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => setResultsPage(prev => Math.max(1, prev - 1))}
+                      disabled={resultsPage === 1}
+                      className="px-3 py-1 border rounded text-sm disabled:opacity-50"
+                    >
+                      Sebelumnya
+                    </button>
+                    <button
+                      onClick={() => setResultsPage(prev => prev + 1)}
+                      disabled={resultsPage * RESULTS_PER_PAGE >= (jobResults.results?.details || []).length}
+                      className="px-3 py-1 border rounded text-sm disabled:opacity-50"
+                    >
+                      Berikutnya
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
+};
+
+// Helper functions for CSV download
+const generateCSV = (details) => {
+  const headers = ['No', 'Nama', 'Nomor', 'WhatsApp', 'Telegram'];
+  const rows = details.map((detail, index) => [
+    index + 1,
+    detail.identifier || '',
+    detail.phone_number,
+    detail.whatsapp ? (detail.whatsapp.status === 'active' ? 'Aktif' : 'Tidak Aktif') : '',
+    detail.telegram ? (detail.telegram.status === 'active' ? 'Aktif' : 'Tidak Aktif') : ''
+  ]);
+  
+  return [headers, ...rows].map(row => row.join(',')).join('\n');
+};
+
+const downloadCSV = (csvContent, fileName) => {
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.setAttribute('href', url);
+  link.setAttribute('download', fileName);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 };
 
 export default BulkCheck;
