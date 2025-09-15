@@ -56,6 +56,7 @@ const QuickCheck = () => {
   // Persistent data states
   const [persistentStats, setPersistentStats] = useState(() => initializePersistentData().stats);
   const [validationHistory, setValidationHistory] = useState(() => initializePersistentData().history);
+  const [history, setHistory] = useState([]);
 
   // Save to localStorage whenever states change
   useEffect(() => {
