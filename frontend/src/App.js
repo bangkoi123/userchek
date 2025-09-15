@@ -70,10 +70,21 @@ function AppContent() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="flex">
         {/* Sidebar */}
-        <Sidebar isOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+        <Sidebar 
+          isOpen={sidebarOpen} 
+          setSidebarOpen={setSidebarOpen}
+          isMinimized={sidebarMinimized}
+          setIsMinimized={setSidebarMinimized}
+        />
         
         {/* Main Content */}
-        <div className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'lg:ml-64' : 'ml-0'}`}>
+        <div className={`flex-1 transition-all duration-300 ${
+          sidebarOpen 
+            ? sidebarMinimized 
+              ? 'lg:ml-16' 
+              : 'lg:ml-64' 
+            : 'ml-0'
+        }`}>
           {/* Header */}
           <Header 
             sidebarOpen={sidebarOpen}
