@@ -1657,7 +1657,7 @@ async def create_whatsapp_account(
     account_data: dict,
     current_user: dict = Depends(get_current_user)
 ):
-    """Create new WhatsApp account"""
+    """Create new WhatsApp account with optional containerization"""
     if current_user.get("role") != "admin":
         raise HTTPException(status_code=403, detail="Admin access required")
     
@@ -1666,10 +1666,35 @@ async def create_whatsapp_account(
         if not account_data.get(field):
             raise HTTPException(status_code=400, detail=f"Field '{field}' is required")
     
-    manager = WhatsAppAccountManager(db)
-    account = await manager.create_account(account_data)
-    
-    return {"message": "WhatsApp account created successfully", "account": account}
+    try:
+        manager = WhatsAppAccountManager(db)
+        account = await manager.create_account(account_data)
+        
+        # Check if we're running in container mode
+        container_mode = os.environ.get('CONTAINER_MODE', 'false').lower() == 'true'
+        
+        if container_mode:
+            # Create container for this account
+            orchestrator = get_orchestrator(db)
+            container_result = await orchestrator.create_account_container(account)
+            
+            if container_result["success"]:
+                return {
+                    "message": "WhatsApp account created successfully with container",
+                    "account": account,
+                    "container_info": container_result["container_info"]
+                }
+            else:
+                return {
+                    "message": "Account created but container creation failed",
+                    "account": account,
+                    "container_error": container_result.get("error")
+                }
+        else:
+            return {"message": "WhatsApp account created successfully", "account": account}
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Account creation failed: {str(e)}")
 
 @app.post("/api/admin/whatsapp-accounts/{account_id}/login")
 async def login_whatsapp_account(
