@@ -4049,42 +4049,70 @@ async def send_notification_email(email: str, subject: str, message: str):
 async def create_demo_users():
     """Create demo users if they don't exist"""
     try:
-        # Check if demo user exists
-        demo_user = await db.users.find_one({"username": "demo"})
-        if not demo_user:
-            demo_user_doc = {
-                "_id": str(uuid.uuid4()),
-                "username": "demo",
-                "email": "demo@example.com",
-                "password": hash_password("demo123"),
-                "role": "user",
-                "credits": 1000,
-                "is_active": True,
-                "created_at": datetime.utcnow(),
-                "updated_at": datetime.utcnow()
-            }
-            await db.users.insert_one(demo_user_doc)
-            logger.info("Demo user created successfully")
+        # Check if admin user already exists
+        admin_user = await db.users.find_one({"username": "admin"})
+        if admin_user:
+            print("Demo users already exist")
+            return
         
-        # Check if test user exists
-        test_user = await db.users.find_one({"username": "testuser"})
-        if not test_user:
-            test_user_doc = {
-                "_id": str(uuid.uuid4()),
-                "username": "testuser",
-                "email": "testuser@example.com",
-                "password": hash_password("123456"),
-                "role": "user",
-                "credits": 500,
-                "is_active": True,
-                "created_at": datetime.utcnow(),
-                "updated_at": datetime.utcnow()
-            }
-            await db.users.insert_one(test_user_doc)
-            logger.info("Test user created successfully")
-            
+        # Create admin user
+        admin_user_data = {
+            "_id": generate_id(),
+            "username": "admin",
+            "email": "admin@webtools.com",
+            "password": hash_password("admin123"),
+            "role": UserRole.ADMIN,
+            "tenant_id": generate_id(),
+            "credits": 1000,
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow(),
+            "is_active": True
+        }
+        
+        await db.users.insert_one(admin_user_data)
+        
+        # Create demo user
+        demo_user_data = {
+            "_id": generate_id(),
+            "username": "demo",
+            "email": "demo@webtools.com",
+            "password": hash_password("demo123"),
+            "role": UserRole.USER,
+            "tenant_id": admin_user_data["tenant_id"],  # Same tenant for demo
+            "credits": 100,
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow(),
+            "is_active": True
+        }
+        
+        await db.users.insert_one(demo_user_data)
+        
+        print("Demo users created successfully")
+        
     except Exception as e:
-        logger.error(f"Error creating demo users: {str(e)}")
+        print(f"Error creating demo users: {e}")
+
+async def create_unique_indexes():
+    """Create unique indexes for data integrity"""
+    try:
+        # Create unique index for WhatsApp accounts phone numbers
+        await db.whatsapp_accounts.create_index(
+            [("phone_number", 1)], 
+            unique=True,
+            partialFilterExpression={"is_active": True}
+        )
+        print("Unique index created on WhatsApp accounts phone_number field")
+        
+        # Create unique index for usernames
+        await db.users.create_index([("username", 1)], unique=True)
+        print("Unique index created on users username field")
+        
+        # Create unique index for emails
+        await db.users.create_index([("email", 1)], unique=True)
+        print("Unique index created on users email field")
+        
+    except Exception as e:
+        print(f"Error creating unique indexes: {e}")
 
 @app.post("/api/admin/create-demo-users")
 async def create_demo_users_endpoint(current_user = Depends(admin_required)):
