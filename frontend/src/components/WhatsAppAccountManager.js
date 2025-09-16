@@ -363,11 +363,20 @@ const WhatsAppAccountManager = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      {getStatusIcon(account.status)}
-                      <span className={`ml-2 px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(account.status)}`}>
-                        {account.status.replace('_', ' ').toUpperCase()}
-                      </span>
+                    <div className="flex items-center space-x-2">
+                      <div className="flex items-center">
+                        {getStatusIcon(account.status)}
+                        <span className={`ml-2 px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(account.status)}`}>
+                          {account.status.replace('_', ' ').toUpperCase()}
+                        </span>
+                      </div>
+                      {account.proxy_config?.enabled && (
+                        <div className="flex items-center">
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                            🌐 Proxy
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
