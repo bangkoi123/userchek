@@ -110,8 +110,34 @@ const WhatsAppAccountManager = () => {
     
     try {
       if (editingAccount) {
-        // Update existing account (not implemented in backend yet)
-        toast.info('Account update functionality coming soon');
+        // Update existing account
+        console.log('📝 Updating WhatsApp account:', editingAccount._id);
+        
+        const updateData = {
+          name: accountForm.name,
+          phone_number: accountForm.phone_number,
+          login_method: accountForm.login_method,
+          max_daily_requests: accountForm.max_daily_requests,
+          notes: accountForm.notes
+        };
+
+        // Add proxy configuration only if enabled
+        if (accountForm.proxy_enabled) {
+          updateData.proxy_config = {
+            enabled: true,
+            type: accountForm.proxy_type,
+            url: accountForm.proxy_url,
+            username: accountForm.proxy_username || null,
+            password: accountForm.proxy_password || null
+          };
+        }
+
+        const result = await apiCall(`/api/admin/whatsapp-accounts/${editingAccount._id}`, 'PUT', updateData);
+        console.log('✅ Account update successful:', result);
+        
+        toast.success('WhatsApp account updated successfully');
+        await fetchData();
+        closeModal();
       } else {
         // Prepare account data with proxy configuration
         const accountData = {
