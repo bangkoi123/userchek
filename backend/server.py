@@ -2368,7 +2368,8 @@ async def bulk_check(
         # Calculate credits based on platform selection
         credits_per_number = 0
         if validate_whatsapp:
-            credits_per_number += 1
+            # Standard method: 1 credit, Deep Link Profile: 3 credits
+            credits_per_number += 3 if validation_method == 'deeplink_profile' else 1
         if validate_telegram:
             credits_per_number += 1
         
