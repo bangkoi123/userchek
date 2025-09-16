@@ -1091,6 +1091,39 @@ async def process_bulk_validation(job_id: str):
                             whatsapp_result = await validate_whatsapp_web_api(phone, identifier)
                         
                         whatsapp_batch_results[phone] = whatsapp_result
+                
+                elif provider_settings and provider_settings.get("provider") == "deeplink" and provider_settings.get("enabled"):
+                    # Use Deep Link batch validation
+                    print(f"🔗 Using Deep Link batch validation for {len(phones_to_validate)} numbers")
+                    batch_results = await validate_whatsapp_deeplink_batch(phones_to_validate)
+                    
+                    # Convert batch results to individual results format
+                    for phone in phones_to_validate:
+                        identifier = phone_to_data_map[phone].get("identifier")
+                        clean_phone = phone.replace('+', '')
+                        
+                        if clean_phone in batch_results:
+                            result = batch_results[clean_phone]
+                            status = ValidationStatus.ACTIVE if result['status'] == 'active' else ValidationStatus.INACTIVE
+                            
+                            whatsapp_result = {
+                                'identifier': identifier,
+                                'phone_number': phone,
+                                'platform': 'whatsapp', 
+                                'status': status,
+                                'validated_at': datetime.utcnow(),
+                                'details': {
+                                    'type': 'personal' if status == ValidationStatus.ACTIVE else None,
+                                    'provider': 'whatsapp_deeplink',
+                                    'api_response': result['api_response'],
+                                    'confidence_score': int(result.get('confidence', 0) * 5)  # Convert to 1-5 scale
+                                }
+                            }
+                        else:
+                            # Fallback for failed batch items
+                            whatsapp_result = await validate_whatsapp_web_api(phone, identifier)
+                        
+                        whatsapp_batch_results[phone] = whatsapp_result
                 else:
                     # Fallback to individual validation for non-CheckNumber.ai providers
                     for phone in phones_to_validate:
