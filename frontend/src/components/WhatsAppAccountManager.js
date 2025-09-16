@@ -720,6 +720,19 @@ const WhatsAppAccountManager = () => {
                 </p>
               </div>
               
+              {/* Troubleshooting */}
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-3 text-left">
+                <p className="text-xs text-yellow-700 dark:text-yellow-300">
+                  <strong>⚠️ Jika scan gagal:</strong>
+                </p>
+                <ul className="text-xs text-yellow-600 dark:text-yellow-400 mt-1 space-y-1">
+                  <li>• Tunggu 10-15 menit sebelum coba lagi</li>
+                  <li>• Pastikan WhatsApp mobile up-to-date</li>
+                  <li>• Coba gunakan nomor WhatsApp yang berbeda</li>
+                  <li>• Pastikan device limit tidak terlampaui (max 4 linked devices)</li>
+                </ul>
+              </div>
+              
               {/* Close Button */}
               <div className="flex justify-center pt-4">
                 <button
