@@ -29,15 +29,6 @@ class WhatsAppAccountManager:
         """Create new WhatsApp account entry with phone number uniqueness validation"""
         phone_number = account_data.get("phone_number", "").strip()
         
-        # Check if phone number already exists
-        existing_account = await self.db.whatsapp_accounts.find_one({
-            "phone_number": phone_number,
-            "is_active": True
-        })
-        
-        if existing_account:
-            raise ValueError(f"WhatsApp account with phone number {phone_number} already exists")
-        
         account = {
             "name": account_data.get("name", "").strip(),
             "phone_number": phone_number,
@@ -69,9 +60,12 @@ class WhatsAppAccountManager:
                     "password": proxy_config.get("password", "").strip() or None
                 }
         
-        result = await self.db.whatsapp_accounts.insert_one(account)
-        account["_id"] = str(result.inserted_id)
-        return account
+        try:
+            result = await self.db.whatsapp_accounts.insert_one(account)
+            account["_id"] = str(result.inserted_id)
+            return account
+        except DuplicateKeyError:
+            raise ValueError(f"WhatsApp account with phone number {phone_number} already exists")
     
     async def get_all_accounts(self) -> List[Dict]:
         """Get all WhatsApp accounts"""
