@@ -2412,6 +2412,27 @@ def main():
     tester.test_admin_jobs()
     tester.test_admin_access_with_user_token()
     
+    # ========== NEW WHATSAPP VALIDATION METHOD TESTS ==========
+    print("\n🔗 NEW WHATSAPP VALIDATION METHOD TESTS")
+    print("-" * 50)
+    print("🎯 TESTING: New WhatsApp validation methods and account management")
+    print("🎯 TESTING: Standard vs Deep Link Profile validation methods")
+    print("🎯 TESTING: Credit calculation for different methods")
+    print("🎯 TESTING: WhatsApp account management endpoints")
+    print("-" * 50)
+    
+    tester.test_quick_check_standard_method()
+    tester.test_quick_check_deeplink_profile_method()
+    tester.test_bulk_check_validation_method_parameter()
+    tester.test_credit_calculation_validation_methods()
+    tester.test_whatsapp_accounts_list()
+    tester.test_whatsapp_accounts_create()
+    tester.test_whatsapp_account_login()
+    tester.test_whatsapp_accounts_stats()
+    tester.test_deep_link_validation_with_accounts()
+    tester.test_validation_method_parameter_validation()
+    tester.test_error_handling_missing_accounts()
+    
     # Print results
     print("\n" + "=" * 50)
     print("📊 TEST RESULTS SUMMARY")
