@@ -550,6 +550,7 @@ app.add_middleware(
 async def startup_event():
     """Initialize application on startup"""
     await create_demo_users()
+    await create_unique_indexes()
 
 # Security
 security = HTTPBearer()
