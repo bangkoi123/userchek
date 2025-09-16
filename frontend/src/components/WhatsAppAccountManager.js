@@ -527,6 +527,90 @@ const WhatsAppAccountManager = () => {
                 />
               </div>
               
+              {/* Proxy Configuration Section */}
+              <div className="border-t border-gray-200 dark:border-gray-600 pt-4">
+                <div className="flex items-center mb-4">
+                  <input
+                    type="checkbox"
+                    id="proxy_enabled"
+                    checked={accountForm.proxy_enabled}
+                    onChange={(e) => setAccountForm({ ...accountForm, proxy_enabled: e.target.checked })}
+                    className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"
+                  />
+                  <label htmlFor="proxy_enabled" className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                    🌐 Enable Proxy (Optional)
+                    <span className="block text-xs text-gray-500">Use proxy for IP diversity and security</span>
+                  </label>
+                </div>
+                
+                {accountForm.proxy_enabled && (
+                  <div className="space-y-4 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          Proxy Type
+                        </label>
+                        <select
+                          value={accountForm.proxy_type}
+                          onChange={(e) => setAccountForm({ ...accountForm, proxy_type: e.target.value })}
+                          className="input-field"
+                        >
+                          <option value="http">HTTP/HTTPS</option>
+                          <option value="socks5">SOCKS5</option>
+                          <option value="socks4">SOCKS4</option>
+                        </select>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          Proxy URL *
+                        </label>
+                        <input
+                          type="text"
+                          required={accountForm.proxy_enabled}
+                          value={accountForm.proxy_url}
+                          onChange={(e) => setAccountForm({ ...accountForm, proxy_url: e.target.value })}
+                          className="input-field"
+                          placeholder="http://proxy-server:port"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          Username (Optional)
+                        </label>
+                        <input
+                          type="text"
+                          value={accountForm.proxy_username}
+                          onChange={(e) => setAccountForm({ ...accountForm, proxy_username: e.target.value })}
+                          className="input-field"
+                          placeholder="proxy username"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          Password (Optional)
+                        </label>
+                        <input
+                          type="password"
+                          value={accountForm.proxy_password}
+                          onChange={(e) => setAccountForm({ ...accountForm, proxy_password: e.target.value })}
+                          className="input-field"
+                          placeholder="proxy password"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      💡 <strong>Tips:</strong> Gunakan proxy dari provider berbeda untuk setiap account agar IP lebih diverse dan mengurangi risiko detection.
+                    </div>
+                  </div>
+                )}
+              </div>
+              
               <div className="flex justify-end space-x-2 pt-4">
                 <button
                   type="button"
