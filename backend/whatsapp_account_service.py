@@ -122,7 +122,8 @@ class WhatsAppAccountService:
         try:
             # Connect to MongoDB
             mongo_client = AsyncIOMotorClient(self.mongo_url)
-            self.db = mongo_client.webtools_validation
+            db_name = os.environ.get('DB_NAME', 'webtools_validation')
+            self.db = mongo_client[db_name]
             
             # Connect to Redis
             self.redis_client = redis.from_url("redis://redis:6379")
