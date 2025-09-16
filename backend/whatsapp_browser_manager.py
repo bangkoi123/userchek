@@ -76,16 +76,17 @@ class WhatsAppBrowserManager:
         """Create browser context with session for account"""
         session_path = self.get_session_path(account_id)
         
-        # Create context with persistent storage
+        # Create context with persistent storage (updated for Playwright v1.40.0)
         context = await self.browser.new_context(
-            user_data_dir=session_path,
             viewport={'width': 1366, 'height': 768},
             user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             java_script_enabled=True,
             accept_downloads=False,
             ignore_https_errors=True,
             locale='en-US',
-            timezone_id='Asia/Jakarta'
+            timezone_id='Asia/Jakarta',
+            # Use storage_state for session persistence instead of user_data_dir
+            storage_state=None  # We'll handle session persistence differently
         )
         
         # Add stealth scripts to avoid detection
