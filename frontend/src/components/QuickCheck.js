@@ -438,33 +438,6 @@ const QuickCheck = () => {
                 </label>
               </div>
             </div>
-                    WhatsApp (1 credit)
-                    {!platformSettings.whatsapp_enabled && (
-                      <span className="ml-2 text-xs text-red-500">(Disabled)</span>
-                    )}
-                  </span>
-                </label>
-              </div>
-              
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="telegram"
-                  checked={validateTelegram}
-                  onChange={(e) => setValidateTelegram(e.target.checked)}
-                  disabled={!platformSettings.telegram_enabled}
-                  className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                />
-                <label htmlFor="telegram" className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
-                  <span className="flex items-center">
-                    Telegram (1 credit)
-                    {!platformSettings.telegram_enabled && (
-                      <span className="ml-2 text-xs text-red-500">(Disabled)</span>
-                    )}
-                  </span>
-                </label>
-              </div>
-            </div>
 
             <h3 className="text-md font-semibold text-gray-900 dark:text-white mb-4">
               Masukkan Nomor Telepon (Max 20)
