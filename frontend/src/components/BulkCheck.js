@@ -334,9 +334,10 @@ Maya,+628111222333`;
           // Send boolean values as strings for FastAPI Form parameters
           formData.append('validate_whatsapp', validateWhatsapp ? 'true' : 'false');
           formData.append('validate_telegram', validateTelegram ? 'true' : 'false');
+          formData.append('validation_method', validationMethod);
 
           console.log('Starting upload for file:', fileItem.file.name);
-          console.log('Platform settings:', { validateWhatsapp, validateTelegram });
+          console.log('Platform settings:', { validateWhatsapp, validateTelegram, validationMethod });
           console.log('FormData entries:');
           for (let [key, value] of formData.entries()) {
             console.log(`${key}:`, value && value.constructor && value.constructor.name === 'File' ? `File(${value.name})` : value);
