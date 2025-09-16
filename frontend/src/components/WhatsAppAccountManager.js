@@ -771,10 +771,18 @@ const WhatsAppAccountManager = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 text-center">
-              📱 Scan QR Code untuk Login WhatsApp
+              📷 WhatsApp Web - Direct Screenshot
             </h3>
             
             <div className="text-center space-y-4">
+              {/* Method Info */}
+              <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3">
+                <p className="text-sm text-green-700 dark:text-green-300">
+                  ✅ <strong>Direct Screenshot Method</strong><br/>
+                  Ini persis sama dengan yang Anda lihat di web.whatsapp.com
+                </p>
+              </div>
+              
               {/* QR Code Image */}
               <div className="flex justify-center">
                 <img 
