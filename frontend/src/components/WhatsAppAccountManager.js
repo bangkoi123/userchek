@@ -131,11 +131,32 @@ const WhatsAppAccountManager = () => {
           };
         }
 
-        // Create new account
+        // Create new account using direct fetch (workaround for apiCall issue)
         console.log('🚀 Creating WhatsApp account with data:', accountData);
         
-        const result = await apiCall('/api/admin/whatsapp-accounts', 'POST', accountData);
+        // Get token from localStorage
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('Authentication token not found');
+        }
         
+        // Use direct fetch instead of apiCall
+        const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+        const response = await fetch(`${backendUrl}/api/admin/whatsapp-accounts`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(accountData)
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(`API Error ${response.status}: ${errorData.detail || response.statusText}`);
+        }
+        
+        const result = await response.json();
         console.log('✅ Account creation successful:', result);
         
         toast.success('WhatsApp account created successfully');
