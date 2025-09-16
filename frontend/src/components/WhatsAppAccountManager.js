@@ -672,6 +672,60 @@ const WhatsAppAccountManager = () => {
           </div>
         </div>
       )}
+
+      {/* QR Code Modal */}
+      {qrCodeModal && qrCodeData && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 text-center">
+              📱 Scan QR Code untuk Login WhatsApp
+            </h3>
+            
+            <div className="text-center space-y-4">
+              {/* QR Code Image */}
+              <div className="flex justify-center">
+                <img 
+                  src={qrCodeData} 
+                  alt="WhatsApp QR Code"
+                  className="border-2 border-gray-300 rounded-lg bg-white p-2"
+                  style={{ maxWidth: '300px', maxHeight: '300px' }}
+                />
+              </div>
+              
+              {/* Instructions */}
+              <div className="text-sm text-gray-600 dark:text-gray-400 space-y-2">
+                <p className="font-medium">📋 Langkah-langkah:</p>
+                <ol className="text-left space-y-1">
+                  <li>1. Buka WhatsApp di HP Anda</li>
+                  <li>2. Tap Menu (⋮) → Linked Devices</li>
+                  <li>3. Tap "Link a Device"</li>
+                  <li>4. Scan QR code di atas</li>
+                </ol>
+              </div>
+              
+              {/* Status */}
+              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
+                <p className="text-sm text-blue-700 dark:text-blue-300">
+                  ⏳ Menunggu scan... QR code akan expired dalam 5 menit
+                </p>
+              </div>
+              
+              {/* Close Button */}
+              <div className="flex justify-center pt-4">
+                <button
+                  onClick={() => {
+                    setQrCodeModal(null);
+                    setQrCodeData(null);
+                  }}
+                  className="btn-secondary"
+                >
+                  Tutup
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
