@@ -161,8 +161,15 @@ const QuickCheck = () => {
   const calculateCredits = () => {
     const validInputs = phoneInputs.filter(input => input.trim()).length;
     let creditsPerNumber = 0;
-    if (validateWhatsapp) creditsPerNumber += 1;
-    if (validateTelegram) creditsPerNumber += 1;
+    
+    if (validateWhatsapp) {
+      // Standard method: 1 credit, Deep Link Profile: 3 credits
+      creditsPerNumber += validationMethod === 'deeplink_profile' ? 3 : 1;
+    }
+    if (validateTelegram) {
+      creditsPerNumber += 1; // Telegram always 1 credit
+    }
+    
     return validInputs * creditsPerNumber;
   };
 
