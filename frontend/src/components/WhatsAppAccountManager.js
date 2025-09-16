@@ -141,13 +141,20 @@ const WhatsAppAccountManager = () => {
         await fetchData();
         closeModal();
       } else {
+        // Prevent double submission
+        const submitButton = document.querySelector('button[type="submit"]');
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = 'Creating...';
+        }
+        
         // Prepare account data with proxy configuration
         const accountData = {
-          name: accountForm.name,
-          phone_number: accountForm.phone_number,
+          name: accountForm.name.trim(),
+          phone_number: accountForm.phone_number.trim(),
           login_method: accountForm.login_method,
           max_daily_requests: accountForm.max_daily_requests,
-          notes: accountForm.notes
+          notes: accountForm.notes.trim()
         };
 
         // Add proxy configuration only if enabled
@@ -155,22 +162,28 @@ const WhatsAppAccountManager = () => {
           accountData.proxy_config = {
             enabled: true,
             type: accountForm.proxy_type,
-            url: accountForm.proxy_url,
-            username: accountForm.proxy_username || null,
-            password: accountForm.proxy_password || null
+            url: accountForm.proxy_url.trim(),
+            username: accountForm.proxy_username?.trim() || null,
+            password: accountForm.proxy_password?.trim() || null
           };
         }
 
-        // Create new account (reverted to simple approach)
+        // Create new account
         console.log('🚀 Creating WhatsApp account with data:', accountData);
         
         const result = await apiCall('/api/admin/whatsapp-accounts', 'POST', accountData);
         
         console.log('✅ Account creation successful:', result);
         
-        toast.success('WhatsApp account created successfully');
-        await fetchData();
+        toast.success(`✅ WhatsApp account "${accountData.name}" berhasil dibuat`);
+        
+        // Close modal first, then refresh data to prevent double rendering
         closeModal();
+        
+        // Small delay to ensure modal is closed before refresh
+        setTimeout(async () => {
+          await fetchData();
+        }, 500);
       }
     } catch (error) {
       console.error('❌ Account save error:', error);
