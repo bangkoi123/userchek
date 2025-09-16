@@ -31,7 +31,13 @@ const WhatsAppAccountManager = () => {
     phone_number: '',
     login_method: 'qr_code',
     max_daily_requests: 100,
-    notes: ''
+    notes: '',
+    // Proxy configuration
+    proxy_enabled: false,
+    proxy_url: '',
+    proxy_username: '',
+    proxy_password: '',
+    proxy_type: 'http' // http, socks5, socks4
   });
 
   useEffect(() => {
