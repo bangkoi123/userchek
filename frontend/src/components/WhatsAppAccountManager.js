@@ -188,15 +188,27 @@ const WhatsAppAccountManager = () => {
     } catch (error) {
       console.error('❌ Account save error:', error);
       
-      // Simplified error handling
+      // Re-enable submit button
+      const submitButton = document.querySelector('button[type="submit"]');
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = editingAccount ? 'Update Account' : 'Create Account';
+      }
+      
+      // Enhanced error handling
       if (error.response?.status === 400) {
-        toast.error('Data tidak valid - periksa form');
+        const errorMsg = error.response?.data?.detail || 'Data tidak valid';
+        toast.error(`❌ ${errorMsg} - periksa form`);
       } else if (error.response?.status === 403) {
-        toast.error('Akses ditolak - login sebagai admin');
+        toast.error('❌ Akses ditolak - login sebagai admin');
+      } else if (error.response?.status === 409) {
+        toast.error('❌ Account dengan nomor tersebut sudah ada');
       } else if (error.response?.status === 500) {
-        toast.error('Server error - coba lagi nanti');
+        toast.error('⚠️ Server error - tunggu beberapa saat dan coba lagi');
+      } else if (error.message?.includes('Network Error')) {
+        toast.error('🌐 Koneksi terputus - periksa internet dan coba lagi');
       } else {
-        toast.error('Gagal menyimpan account - coba lagi');
+        toast.error('❌ Gagal menyimpan account - coba lagi');
       }
     }
   };
