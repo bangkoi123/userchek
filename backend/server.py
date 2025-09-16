@@ -1719,26 +1719,12 @@ async def login_whatsapp_account(
         raise HTTPException(status_code=403, detail="Admin access required")
     
     try:
-        # Force real browser automation (Playwright should be working now)
+        # Real browser automation with Playwright (now working!)
         result = await real_whatsapp_login(account_id, db)
         return result
         
     except Exception as e:
-        error_msg = str(e)
-        
-        # Enhanced error reporting
-        if "Executable doesn't exist" in error_msg:
-            raise HTTPException(
-                status_code=500, 
-                detail="Browser automation not available - Playwright installation incomplete"
-            )
-        elif "TimeoutError" in error_msg:
-            raise HTTPException(
-                status_code=500,
-                detail="Browser automation timeout - Please try again"
-            )
-        else:
-            raise HTTPException(status_code=500, detail=f"Login error: {error_msg}")
+        raise HTTPException(status_code=500, detail=f"Login error: {str(e)}")
 
 @app.post("/api/admin/whatsapp-accounts/{account_id}/logout")
 async def logout_whatsapp_account(
