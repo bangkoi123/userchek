@@ -89,16 +89,48 @@ class WhatsAppBrowserManager:
             except Exception as e:
                 print(f"⚠️ Could not load storage state: {str(e)}")
         
-        # Create context with persistent storage (updated for Playwright v1.40.0)
+        # Create context with anti-detection measures
+        import random
+        
+        # Random user agents to avoid detection
+        user_agents = [
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/121.0'
+        ]
+        
+        # Random viewport sizes
+        viewports = [
+            {'width': 1366, 'height': 768},
+            {'width': 1920, 'height': 1080},
+            {'width': 1440, 'height': 900},
+            {'width': 1280, 'height': 720}
+        ]
+        
+        selected_ua = random.choice(user_agents)
+        selected_viewport = random.choice(viewports)
+        
+        print(f"🎭 Using user agent: {selected_ua[:50]}...")
+        print(f"📱 Using viewport: {selected_viewport}")
+        
         context = await self.browser.new_context(
-            viewport={'width': 1366, 'height': 768},
-            user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            viewport=selected_viewport,
+            user_agent=selected_ua,
             java_script_enabled=True,
             accept_downloads=False,
             ignore_https_errors=True,
             locale='en-US',
             timezone_id='Asia/Jakarta',
-            storage_state=storage_state  # Load existing session if available
+            storage_state=storage_state,
+            # Additional anti-detection measures
+            extra_http_headers={
+                'Accept-Language': 'en-US,en;q=0.9,id;q=0.8',
+                'Accept-Encoding': 'gzip, deflate, br',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache'
+            }
         )
         
         # Add stealth scripts to avoid detection
