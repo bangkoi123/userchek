@@ -175,22 +175,39 @@ const WhatsAppAccountManager = () => {
   const handleLogin = async (accountId) => {
     try {
       setLoginModal(accountId);
+      console.log('🔐 Attempting login for account:', accountId);
+      
       const result = await apiCall(`/api/admin/whatsapp-accounts/${accountId}/login`, 'POST');
       
-      if (result.success) {
-        toast.success('Account logged in successfully');
+      console.log('📊 Login result:', result);
+      
+      if (result.success && result.already_logged_in) {
+        toast.success('Account already logged in');
         await fetchData();
-      } else if (result.qr_code) {
-        // Show QR code for scanning
+        setLoginModal(null);
+      } else if (result.success && result.qr_code) {
+        // Show QR code modal for scanning
+        setQrCodeData(result.qr_code);
+        setQrCodeModal(accountId);
+        setLoginModal(null);
         toast.info('QR Code generated - scan with WhatsApp mobile app');
-        // TODO: Implement QR code display modal
+        console.log('📱 QR Code modal should be displayed');
+        
+        // Auto-refresh account status after QR code expires
+        setTimeout(async () => {
+          console.log('⏰ QR Code expired, refreshing data...');
+          await fetchData();
+          setQrCodeModal(null);
+          setQrCodeData(null);
+        }, (result.expires_in || 300) * 1000); // 5 minutes default
+        
       } else {
         toast.error(result.message || 'Login failed');
+        setLoginModal(null);
       }
     } catch (error) {
-      toast.error('Failed to login account');
+      toast.error(`Failed to login account: ${error.message || 'Unknown error'}`);
       console.error('Login Error:', error);
-    } finally {
       setLoginModal(null);
     }
   };
