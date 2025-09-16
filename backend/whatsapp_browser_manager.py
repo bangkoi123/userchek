@@ -76,6 +76,19 @@ class WhatsAppBrowserManager:
         """Create browser context with session for account"""
         session_path = self.get_session_path(account_id)
         
+        # Check if storage state exists
+        storage_state_file = f"{session_path}/storage_state.json"
+        storage_state = None
+        
+        if os.path.exists(storage_state_file):
+            try:
+                import json
+                with open(storage_state_file, 'r') as f:
+                    storage_state = json.load(f)
+                print(f"📁 Loading existing session for account {account_id}")
+            except Exception as e:
+                print(f"⚠️ Could not load storage state: {str(e)}")
+        
         # Create context with persistent storage (updated for Playwright v1.40.0)
         context = await self.browser.new_context(
             viewport={'width': 1366, 'height': 768},
@@ -85,8 +98,7 @@ class WhatsAppBrowserManager:
             ignore_https_errors=True,
             locale='en-US',
             timezone_id='Asia/Jakarta',
-            # Use storage_state for session persistence instead of user_data_dir
-            storage_state=None  # We'll handle session persistence differently
+            storage_state=storage_state  # Load existing session if available
         )
         
         # Add stealth scripts to avoid detection
