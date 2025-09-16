@@ -197,29 +197,33 @@ const WhatsAppAccountManager = () => {
       setQrCodeData(null);
       setRefreshingQR(false);
       
+      toast.info('🔄 Memulai proses login WhatsApp...');
+      
       console.log('📡 Calling login API...');
       const result = await apiCall(`/api/admin/whatsapp-accounts/${accountId}/login`, 'POST');
       
       console.log('📊 Login API response:', result);
       
       if (result.success && result.already_logged_in) {
-        toast.success('Account sudah login - siap digunakan');
-        await fetchData();
+        toast.success('✅ Account sudah login - siap digunakan');
         setLoginModal(null);
-      } else if (result.success && result.method === 'direct_screenshot') {
-        // Direct WhatsApp Web screenshot - most reliable method
-        console.log('📷 Displaying direct WhatsApp Web screenshot');
+        await fetchData();
+      } else if (result.success && (result.method === 'direct_screenshot' || result.qr_code)) {
+        // QR Code method - most common
+        console.log('📷 Displaying QR code for login');
         setQrCodeData(result.qr_code);
         setQrCodeModal(accountId);
-        setLoginModal(null);
-        toast.success('✅ WhatsApp Web screenshot berhasil di-capture');
-        toast.info('📱 QR code area di-crop untuk visibility yang lebih baik');
+        setLoginModal(null); // Clear login modal, show QR modal
+        
+        toast.success('✅ QR Code berhasil di-generate');
+        toast.info('📱 Scan QR code dengan WhatsApp mobile Anda');
         
         // Auto-close modal after expiry
         setTimeout(async () => {
           console.log('⏰ QR Code expired, cleaning up...');
           setQrCodeModal(null);
           setQrCodeData(null);
+          setLoginModal(null);
           await fetchData();
         }, (result.expires_in || 300) * 1000);
         
@@ -237,37 +241,27 @@ const WhatsAppAccountManager = () => {
           await fetchData();
         }, 60000); // Check after 1 minute
         
-      } else if (result.success && result.qr_code) {
-        // QR code fallback method
-        console.log('📱 Displaying QR code modal (fallback method)');
-        setQrCodeData(result.qr_code);
-        setQrCodeModal(accountId);
-        setLoginModal(null);
-        toast.info('QR Code di-generate sebagai fallback - coba scan');
-        
-        // Auto-close QR modal after expiry
-        setTimeout(async () => {
-          console.log('⏰ QR Code expired, cleaning up...');
-          setQrCodeModal(null);
-          setQrCodeData(null);
-          await fetchData();
-        }, (result.expires_in || 240) * 1000);
-        
       } else {
         console.log('❌ Login failed:', result);
-        toast.error(result.message || 'Login gagal');
+        toast.error(result.message || 'Login gagal - coba lagi nanti');
         setLoginModal(null);
       }
     } catch (error) {
       console.error('❌ Login error details:', error);
       
-      // Enhanced error handling
-      if (error.message && error.message.includes('timeout')) {
-        toast.error('Timeout - browser automation gagal');
-      } else if (error.response?.status === 500) {
-        toast.error('Server error - coba lagi nanti');
+      // Enhanced error handling with specific messages
+      if (error.response?.status === 500) {
+        if (error.response?.data?.detail?.includes('browser')) {
+          toast.error('🔧 Browser automation sedang setup - tunggu beberapa menit');
+        } else {
+          toast.error('⚠️ Server error - tunggu 2-3 menit dan coba lagi');
+        }
+      } else if (error.message?.includes('timeout')) {
+        toast.error('⏱️ Timeout - coba lagi dengan koneksi yang lebih stabil');
+      } else if (error.response?.status === 404) {
+        toast.error('❌ Account tidak ditemukan');
       } else {
-        toast.error('Login gagal - coba lagi');
+        toast.error('❌ Login gagal - periksa koneksi internet dan coba lagi');
       }
       
       setLoginModal(null);
