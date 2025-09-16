@@ -118,20 +118,27 @@ class WhatsAppAccountManager:
     
     async def increment_usage(self, account_id: str) -> bool:
         """Increment usage counters for account"""
+        from bson import ObjectId
         current_date = datetime.utcnow().date()
         
+        # Convert string ID to ObjectId for MongoDB query
+        if isinstance(account_id, str) and len(account_id) == 24:
+            query_id = ObjectId(account_id)
+        else:
+            query_id = account_id
+        
         # Reset daily usage if it's a new day
-        account = await self.db.whatsapp_accounts.find_one({"_id": account_id})
+        account = await self.db.whatsapp_accounts.find_one({"_id": query_id})
         if account:
             last_used = account.get("last_used")
             if not last_used or last_used.date() != current_date:
                 await self.db.whatsapp_accounts.update_one(
-                    {"_id": account_id},
+                    {"_id": query_id},
                     {"$set": {"daily_usage": 0}}
                 )
         
         result = await self.db.whatsapp_accounts.update_one(
-            {"_id": account_id},
+            {"_id": query_id},
             {
                 "$inc": {"usage_count": 1, "daily_usage": 1},
                 "$set": {"last_used": datetime.utcnow()}
