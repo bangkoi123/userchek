@@ -30,7 +30,7 @@ class WhatsAppBrowserManager:
         """Async context manager setup"""
         self.playwright = await async_playwright().start()
         
-        # Launch browser with stealth settings
+        # Launch browser with enhanced stealth settings for WhatsApp compatibility
         self.browser = await self.playwright.chromium.launch(
             headless=self.headless,
             args=[
@@ -41,7 +41,12 @@ class WhatsAppBrowserManager:
                 '--no-first-run',
                 '--no-zygote',
                 '--disable-gpu',
-                '--disable-features=VizDisplayCompositor'
+                '--disable-features=VizDisplayCompositor',
+                '--disable-blink-features=AutomationControlled',  # Hide automation
+                '--disable-web-security',
+                '--disable-features=TranslateUI',
+                '--disable-ipc-flooding-protection',
+                '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
             ]
         )
         
