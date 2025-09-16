@@ -194,6 +194,7 @@ const WhatsAppAccountManager = () => {
       setLoginModal(accountId);
       setQrCodeModal(null); // Clear any existing QR modal
       setQrCodeData(null);
+      setRefreshingQR(false);
       
       console.log('📡 Calling login API...');
       const result = await apiCall(`/api/admin/whatsapp-accounts/${accountId}/login`, 'POST');
@@ -211,7 +212,7 @@ const WhatsAppAccountManager = () => {
         setQrCodeModal(accountId);
         setLoginModal(null);
         toast.success('✅ WhatsApp Web screenshot berhasil di-capture');
-        toast.info('📱 Ini persis seperti yang Anda lihat di browser biasa');
+        toast.info('📱 QR code area di-crop untuk visibility yang lebih baik');
         
         // Auto-close modal after expiry
         setTimeout(async () => {
@@ -229,36 +230,14 @@ const WhatsAppAccountManager = () => {
         
         setLoginModal(null);
         
-        // Show instruction modal instead of QR code modal
-        setQrCodeModal(accountId);
-        setQrCodeData(`
-          <div style="text-align: center; padding: 20px;">
-            <h3>📞 SMS Verification</h3>
-            <p>SMS kode verifikasi telah dikirim ke:</p>
-            <p style="font-weight: bold; color: #25D366;">${result.phone_number}</p>
-            <br>
-            <h4>📋 Langkah selanjutnya:</h4>
-            <ol style="text-align: left; margin: 20px;">
-              <li>Periksa SMS di HP WhatsApp Anda</li>
-              <li>Masukkan kode 6-digit di halaman WhatsApp Web</li>
-              <li>Account akan otomatis menjadi ACTIVE</li>
-            </ol>
-            <p style="color: #666; font-size: 12px;">
-              Kode akan expired dalam 5 menit
-            </p>
-          </div>
-        `);
-        
         // Auto-refresh to check login status  
         setTimeout(async () => {
           console.log('📱 Checking login status after SMS verification...');
           await fetchData();
-          setQrCodeModal(null);
-          setQrCodeData(null);
         }, 60000); // Check after 1 minute
         
       } else if (result.success && result.qr_code) {
-        // Show QR code modal (fallback method)
+        // QR code fallback method
         console.log('📱 Displaying QR code modal (fallback method)');
         setQrCodeData(result.qr_code);
         setQrCodeModal(accountId);
@@ -291,6 +270,38 @@ const WhatsAppAccountManager = () => {
       }
       
       setLoginModal(null);
+    }
+  };
+
+  // New function for refreshing QR code
+  const handleRefreshQR = async (accountId) => {
+    console.log('🔄 Refreshing QR code for account:', accountId);
+    
+    try {
+      setRefreshingQR(true);
+      toast.info('🔄 Generating QR code baru...');
+      
+      const result = await apiCall(`/api/admin/whatsapp-accounts/${accountId}/login`, 'POST');
+      
+      if (result.success && (result.qr_code || result.method === 'direct_screenshot')) {
+        setQrCodeData(result.qr_code);
+        toast.success('✅ QR code baru berhasil di-generate');
+        
+        // Reset auto-expiry timer
+        setTimeout(async () => {
+          setQrCodeModal(null);
+          setQrCodeData(null);
+          await fetchData();
+        }, (result.expires_in || 300) * 1000);
+        
+      } else {
+        toast.error('Gagal generate QR code baru');
+      }
+    } catch (error) {
+      console.error('❌ Refresh QR error:', error);
+      toast.error('Gagal refresh QR code');
+    } finally {
+      setRefreshingQR(false);
     }
   };
 
