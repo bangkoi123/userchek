@@ -241,22 +241,63 @@ class WhatsAppBrowserManager:
             except:
                 print("🔍 Not logged in, need to capture QR code...")
             
-            # Take screenshot of entire WhatsApp Web page (like user would see)
-            print("📷 Taking screenshot of entire WhatsApp Web page...")
+            # Take screenshot of QR code area specifically (bigger and clearer)
+            print("📷 Looking for and capturing QR code area specifically...")
             
-            # Wait for QR code area to be visible (optional)
+            qr_screenshot = None
+            
+            # Try to find QR code element for cropped screenshot
             try:
-                await page.wait_for_selector('canvas', timeout=10000)
-                print("✅ QR code area detected")
+                qr_element = await page.wait_for_selector('canvas', timeout=10000)
+                print("✅ QR code canvas found, taking cropped screenshot...")
+                
+                # Take screenshot of QR code element only (bigger and clearer)
+                qr_screenshot = await qr_element.screenshot()
+                print("✅ QR code area screenshot captured (cropped)")
+                
             except:
-                print("⚠️ QR code area not detected, continuing with screenshot...")
+                print("⚠️ QR code element not found, trying full page screenshot...")
+                # Fallback: Take full page but crop QR area programmatically
+                try:
+                    full_screenshot = await page.screenshot()
+                    print("✅ Full page screenshot captured for cropping")
+                    
+                    # Try to crop QR area from full screenshot (approximate center area)
+                    from PIL import Image
+                    import io
+                    
+                    # Convert screenshot to PIL Image
+                    img = Image.open(io.BytesIO(full_screenshot))
+                    width, height = img.size
+                    
+                    # Crop center area where QR code usually appears (approximate)
+                    left = width // 4
+                    top = height // 4  
+                    right = 3 * width // 4
+                    bottom = 3 * height // 4
+                    
+                    cropped_qr = img.crop((left, top, right, bottom))
+                    
+                    # Convert back to bytes
+                    qr_buffer = io.BytesIO()
+                    cropped_qr.save(qr_buffer, format='PNG')
+                    qr_screenshot = qr_buffer.getvalue()
+                    
+                    print("✅ QR area cropped from full screenshot")
+                    
+                except Exception as crop_error:
+                    print(f"⚠️ Image cropping failed: {str(crop_error)}")
+                    # Use full screenshot as final fallback
+                    qr_screenshot = await page.screenshot()
+                    print("✅ Using full page screenshot as fallback")
             
-            # Take full page screenshot - exactly what user sees
-            full_page_screenshot = await page.screenshot(full_page=True)
-            qr_base64 = base64.b64encode(full_page_screenshot).decode('utf-8')
+            if not qr_screenshot:
+                raise Exception("Could not capture any screenshot")
             
-            print("✅ Full page screenshot captured")
-            print(f"📊 Screenshot size: {len(qr_base64)} characters")
+            qr_base64 = base64.b64encode(qr_screenshot).decode('utf-8')
+            
+            print("✅ QR code screenshot ready")
+            print(f"📊 QR Screenshot size: {len(qr_base64)} characters")
             
             # Start monitoring for login completion (simplified)
             asyncio.create_task(self._monitor_login_completion(page, account_id))
