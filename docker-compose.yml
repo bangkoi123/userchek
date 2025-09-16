@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  # MongoDB - Shared database
+  mongo:
+    image: mongo:6.0
+    container_name: webtools_mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+    volumes:
+      - mongo_data:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    ports:
+      - "27017:27017"
+    networks:
+      - webtools-network
+
+  # Redis - For container communication
+  redis:
+    image: redis:7-alpine
+    container_name: webtools_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - webtools-network
+
+  # Main API Server - Orchestrator
+  main-api:
+    build: 
+      context: ../backend
+      dockerfile: ../docker/main-api/Dockerfile
+    container_name: webtools_main_api
+    restart: unless-stopped
+    environment:
+      - MONGO_URL=mongodb://admin:password123@mongo:27017/webtools_validation?authSource=admin
+      - REDIS_URL=redis://redis:6379
+      - CONTAINER_MODE=true
+    ports:
+      - "8001:8001"
+    depends_on:
+      - mongo
+      - redis
+    networks:
+      - webtools-network
+    volumes:
+      - ../backend:/app
+
+  # Frontend
+  frontend:
+    build: 
+      context: ../frontend
+      dockerfile: ../docker/frontend/Dockerfile
+    container_name: webtools_frontend
+    restart: unless-stopped
+    environment:
+      - REACT_APP_BACKEND_URL=http://localhost:8001
+    ports:
+      - "3000:3000"
+    networks:
+      - webtools-network
+
+  # WhatsApp Account Containers (Dynamic)
+  # These will be created/destroyed via API calls
+
+networks:
+  webtools-network:
+    driver: bridge
+
+volumes:
+  mongo_data:
