@@ -65,12 +65,19 @@ const WhatsAppAccountManager = () => {
   const openModal = (account = null) => {
     if (account) {
       setEditingAccount(account);
+      const proxyConfig = account.proxy_config || {};
       setAccountForm({
         name: account.name || '',
         phone_number: account.phone_number || '',
         login_method: account.login_method || 'qr_code',
         max_daily_requests: account.max_daily_requests || 100,
-        notes: account.notes || ''
+        notes: account.notes || '',
+        // Proxy configuration
+        proxy_enabled: proxyConfig.enabled || false,
+        proxy_url: proxyConfig.url || '',
+        proxy_username: proxyConfig.username || '',
+        proxy_password: proxyConfig.password || '',
+        proxy_type: proxyConfig.type || 'http'
       });
     } else {
       setEditingAccount(null);
@@ -79,7 +86,13 @@ const WhatsAppAccountManager = () => {
         phone_number: '',
         login_method: 'qr_code',
         max_daily_requests: 100,
-        notes: ''
+        notes: '',
+        // Proxy configuration
+        proxy_enabled: false,
+        proxy_url: '',
+        proxy_username: '',
+        proxy_password: '',
+        proxy_type: 'http'
       });
     }
     setShowModal(true);
