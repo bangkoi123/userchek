@@ -131,7 +131,7 @@ const WhatsAppAccountManager = () => {
           };
         }
 
-        // Create new account using direct fetch (workaround for apiCall issue)
+        // Create new account using multiple fallback approaches
         console.log('🚀 Creating WhatsApp account with data:', accountData);
         
         // Get token from localStorage
@@ -140,24 +140,61 @@ const WhatsAppAccountManager = () => {
           throw new Error('Authentication token not found');
         }
         
-        // Use direct fetch instead of apiCall
-        const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
-        const response = await fetch(`${backendUrl}/api/admin/whatsapp-accounts`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(accountData)
-        });
+        // Try multiple backend URLs as fallback
+        const backendUrls = [
+          process.env.REACT_APP_BACKEND_URL,
+          'https://checktool.preview.emergentagent.com',
+          'https://wa-deeplink-check.preview.emergentagent.com',
+          window.location.origin // Same domain as frontend
+        ].filter(Boolean);
         
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(`API Error ${response.status}: ${errorData.detail || response.statusText}`);
+        console.log('🔍 Trying backend URLs:', backendUrls);
+        
+        let lastError = null;
+        let success = false;
+        
+        for (const backendUrl of backendUrls) {
+          try {
+            console.log(`🌐 Trying: ${backendUrl}/api/admin/whatsapp-accounts`);
+            
+            const response = await fetch(`${backendUrl}/api/admin/whatsapp-accounts`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify(accountData),
+              mode: 'cors',
+              credentials: 'include'
+            });
+            
+            console.log(`📊 Response: ${response.status} ${response.statusText}`);
+            
+            if (!response.ok) {
+              const errorData = await response.json().catch(() => ({}));
+              lastError = new Error(`API Error ${response.status}: ${errorData.detail || response.statusText}`);
+              console.log(`❌ Failed with ${backendUrl}: ${lastError.message}`);
+              continue; // Try next URL
+            }
+            
+            const result = await response.json();
+            console.log('✅ Account creation successful with:', backendUrl);
+            console.log('✅ Result:', result);
+            
+            success = true;
+            break; // Success! Break the loop
+            
+          } catch (error) {
+            lastError = error;
+            console.log(`❌ Network error with ${backendUrl}:`, error.message);
+            continue; // Try next URL
+          }
         }
         
-        const result = await response.json();
-        console.log('✅ Account creation successful:', result);
+        if (!success) {
+          throw lastError || new Error('All backend URLs failed');
+        }
         
         toast.success('WhatsApp account created successfully');
         await fetchData();
