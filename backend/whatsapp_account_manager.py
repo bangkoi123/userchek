@@ -25,10 +25,21 @@ class WhatsAppAccountManager:
         self.active_sessions = {}  # In-memory session tracking
         
     async def create_account(self, account_data: Dict) -> Dict:
-        """Create new WhatsApp account entry"""
+        """Create new WhatsApp account entry with phone number uniqueness validation"""
+        phone_number = account_data.get("phone_number", "").strip()
+        
+        # Check if phone number already exists
+        existing_account = await self.db.whatsapp_accounts.find_one({
+            "phone_number": phone_number,
+            "is_active": True
+        })
+        
+        if existing_account:
+            raise ValueError(f"WhatsApp account with phone number {phone_number} already exists")
+        
         account = {
-            "name": account_data.get("name"),
-            "phone_number": account_data.get("phone_number"),
+            "name": account_data.get("name", "").strip(),
+            "phone_number": phone_number,
             "login_method": account_data.get("login_method", "qr_code"),  # qr_code, phone_verification
             "status": AccountStatus.LOGGED_OUT.value,
             "session_data": None,
@@ -39,11 +50,23 @@ class WhatsAppAccountManager:
             "created_at": datetime.utcnow(),
             "updated_at": datetime.utcnow(),
             "is_active": True,
-            "notes": account_data.get("notes", ""),
+            "notes": account_data.get("notes", "").strip(),
             "max_daily_requests": account_data.get("max_daily_requests", 100),
             "failure_count": 0,
             "last_error": None
         }
+        
+        # Add proxy configuration if provided
+        if account_data.get("proxy_config"):
+            proxy_config = account_data["proxy_config"]
+            if proxy_config.get("enabled"):
+                account["proxy_config"] = {
+                    "enabled": True,
+                    "type": proxy_config.get("type", "http"),
+                    "url": proxy_config.get("url", "").strip(),
+                    "username": proxy_config.get("username", "").strip() or None,
+                    "password": proxy_config.get("password", "").strip() or None
+                }
         
         result = await self.db.whatsapp_accounts.insert_one(account)
         account["_id"] = str(result.inserted_id)
