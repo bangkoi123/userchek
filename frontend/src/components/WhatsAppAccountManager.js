@@ -836,12 +836,31 @@ const WhatsAppAccountManager = () => {
                 </ul>
               </div>
               
-              {/* Close Button */}
-              <div className="flex justify-center pt-4">
+              {/* Action Buttons */}
+              <div className="flex justify-center space-x-3 pt-4">
+                <button
+                  onClick={() => handleRefreshQR(qrCodeModal)}
+                  disabled={refreshingQR}
+                  className="btn-primary flex items-center"
+                >
+                  {refreshingQR ? (
+                    <>
+                      <div className="loading-spinner w-4 h-4 mr-2"></div>
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Refresh QR
+                    </>
+                  )}
+                </button>
+                
                 <button
                   onClick={() => {
                     setQrCodeModal(null);
                     setQrCodeData(null);
+                    setRefreshingQR(false);
                   }}
                   className="btn-secondary"
                 >
