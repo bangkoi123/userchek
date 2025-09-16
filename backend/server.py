@@ -33,7 +33,20 @@ from dotenv import load_dotenv
 from whatsapp_deeplink_validator import validate_whatsapp_deeplink_batch, WhatsAppDeepLinkValidator
 from whatsapp_account_manager import WhatsAppAccountManager, get_whatsapp_account_for_validation, validate_whatsapp_deeplink_with_account
 from whatsapp_browser_manager import real_whatsapp_login, validate_with_real_whatsapp_account, logout_real_whatsapp_account
-from whatsapp_container_orchestrator import get_orchestrator
+# from whatsapp_container_orchestrator import get_orchestrator
+
+# Mock function to replace get_orchestrator
+def get_orchestrator(db):
+    class MockOrchestrator:
+        async def get_available_container(self):
+            return None
+        async def create_container(self, account_id):
+            return {"success": False, "error": "Container orchestration not available"}
+        async def stop_container(self, container_id):
+            return {"success": False, "error": "Container orchestration not available"}
+        async def get_container_status(self, container_id):
+            return {"status": "unavailable"}
+    return MockOrchestrator()
 load_dotenv()
 
 # Load environment variables from .env file
