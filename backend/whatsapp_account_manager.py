@@ -136,6 +136,8 @@ class WhatsAppAccountManager:
         # 3. Session cookie management
         # 4. Browser automation setup
         
+        from bson import ObjectId
+        
         login_result = {
             "success": False,
             "qr_code": None,
@@ -144,7 +146,13 @@ class WhatsAppAccountManager:
         }
         
         try:
-            account = await self.db.whatsapp_accounts.find_one({"_id": account_id})
+            # Convert string ID to ObjectId for MongoDB query
+            if isinstance(account_id, str) and len(account_id) == 24:
+                query_id = ObjectId(account_id)
+            else:
+                query_id = account_id
+                
+            account = await self.db.whatsapp_accounts.find_one({"_id": query_id})
             if not account:
                 login_result["message"] = "Account not found"
                 return login_result
@@ -162,7 +170,7 @@ class WhatsAppAccountManager:
                 
                 # Update account with session data
                 await self.db.whatsapp_accounts.update_one(
-                    {"_id": account_id},
+                    {"_id": query_id},
                     {
                         "$set": {
                             "status": AccountStatus.ACTIVE.value,
