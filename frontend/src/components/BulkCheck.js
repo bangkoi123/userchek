@@ -615,14 +615,14 @@ Maya,+628111222333`;
               
               {/* Enhanced Deep Link Method */}
               <label className={`method-card cursor-pointer border-2 rounded-lg p-4 transition-all ${
-                validationMethod === 'deeplink' 
+                validationMethod === 'deeplink_profile' 
                   ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' 
                   : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
               }`}>
                 <input 
                   type="radio" 
-                  value="deeplink" 
-                  checked={validationMethod === 'deeplink'}
+                  value="deeplink_profile" 
+                  checked={validationMethod === 'deeplink_profile'}
                   onChange={(e) => setValidationMethod(e.target.value)}
                   className="sr-only"
                 />
