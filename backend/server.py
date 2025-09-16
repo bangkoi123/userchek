@@ -31,6 +31,7 @@ from emergentintegrations.payments.stripe.checkout import StripeCheckout, Checko
 # Load environment variables from .env file
 from dotenv import load_dotenv
 from whatsapp_deeplink_validator import validate_whatsapp_deeplink_batch, WhatsAppDeepLinkValidator
+from whatsapp_account_manager import WhatsAppAccountManager, get_whatsapp_account_for_validation, validate_whatsapp_deeplink_with_account
 load_dotenv()
 
 # Load environment variables from .env file
