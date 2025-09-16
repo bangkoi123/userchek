@@ -120,27 +120,32 @@ class FocusedWhatsAppTester:
             print(f"✅ Deep Link Profile method test passed")
             
             # Check WhatsApp result
-            if 'whatsapp' in result and result['whatsapp']:
-                whatsapp_result = result['whatsapp']
-                provider = whatsapp_result.get('details', {}).get('provider', 'unknown')
-                print(f"   📊 WhatsApp provider: {provider}")
-                
-                # Deep Link Profile should use enhanced validation
-                if any(keyword in provider.lower() for keyword in ['deeplink', 'browser', 'enhanced']):
-                    print(f"   ✅ Deep Link Profile provider correct")
+            if 'details' in result and result['details'] and len(result['details']) > 0:
+                first_detail = result['details'][0]
+                if 'whatsapp' in first_detail:
+                    whatsapp_result = first_detail['whatsapp']
+                    details = whatsapp_result.get('details', {})
+                    provider = details.get('provider', 'unknown')
+                    print(f"   📊 WhatsApp provider: {provider}")
+                    
+                    # Deep Link Profile should use enhanced validation
+                    if any(keyword in provider.lower() for keyword in ['deeplink', 'browser', 'enhanced']):
+                        print(f"   ✅ Deep Link Profile provider correct")
+                    else:
+                        print(f"   ⚠️  Expected deeplink provider, got: {provider}")
+                        
+                    # Check for enhanced validation indicators
+                    enhanced = details.get('enhanced_validation', False)
+                    if enhanced:
+                        print(f"   ✅ Enhanced validation flag detected")
+                        
+                    account_used = details.get('account_used')
+                    if account_used:
+                        print(f"   ✅ WhatsApp account used: {account_used}")
                 else:
-                    print(f"   ⚠️  Expected deeplink provider, got: {provider}")
-                    
-                # Check for enhanced validation indicators
-                enhanced = whatsapp_result.get('details', {}).get('enhanced_validation', False)
-                if enhanced:
-                    print(f"   ✅ Enhanced validation flag detected")
-                    
-                account_used = whatsapp_result.get('details', {}).get('account_used')
-                if account_used:
-                    print(f"   ✅ WhatsApp account used: {account_used}")
+                    print(f"   ⚠️  No WhatsApp result in details")
             else:
-                print(f"   ⚠️  No WhatsApp result in response")
+                print(f"   ⚠️  No details in response")
                 
             return True
         else:
