@@ -138,7 +138,7 @@ class WhatsAppBrowserManager:
             }
         )
         
-        # Add stealth scripts to avoid detection
+        # Add enhanced stealth scripts to avoid WhatsApp detection
         await context.add_init_script("""
             // Remove webdriver property
             Object.defineProperty(navigator, 'webdriver', {
@@ -147,12 +147,37 @@ class WhatsAppBrowserManager:
             
             // Mock languages and plugins
             Object.defineProperty(navigator, 'languages', {
-                get: () => ['en-US', 'en'],
+                get: () => ['en-US', 'en', 'id'],
             });
             
             Object.defineProperty(navigator, 'plugins', {
-                get: () => [1, 2, 3, 4, 5],
+                get: () => [
+                    {name: 'Chrome PDF Plugin'}, 
+                    {name: 'Chrome PDF Viewer'}, 
+                    {name: 'Native Client'}
+                ],
             });
+            
+            // Override automation detection
+            Object.defineProperty(navigator, 'platform', {
+                get: () => 'Win32',
+            });
+            
+            // Mock hardware concurrency
+            Object.defineProperty(navigator, 'hardwareConcurrency', {
+                get: () => 4,
+            });
+            
+            // Override permission queries
+            const originalQuery = window.navigator.permissions.query;
+            window.navigator.permissions.query = (parameters) => (
+                parameters.name === 'notifications' ?
+                    Promise.resolve({ state: Notification.permission }) :
+                    originalQuery(parameters)
+            );
+            
+            // Hide automation flags
+            delete navigator.__proto__.webdriver;
         """)
         
         self.contexts[account_id] = context
