@@ -1706,6 +1706,9 @@ async def create_whatsapp_account(
         else:
             return {"message": "WhatsApp account created successfully", "account": account}
             
+    except ValueError as e:
+        # Handle duplicate phone number or validation errors
+        raise HTTPException(status_code=409, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Account creation failed: {str(e)}")
 
