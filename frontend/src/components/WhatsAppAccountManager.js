@@ -569,12 +569,22 @@ const WhatsAppAccountManager = () => {
                       {account.status === 'logged_out' ? (
                         <button
                           onClick={() => handleLogin(account._id)}
-                          disabled={loginModal === account._id}
-                          className="text-green-600 hover:text-green-700 p-1"
-                          title="Login Account"
+                          disabled={loginModal === account._id || qrCodeModal === account._id}
+                          className={`p-1 ${
+                            loginModal === account._id || qrCodeModal === account._id
+                              ? 'text-gray-400 cursor-not-allowed'
+                              : 'text-green-600 hover:text-green-700'
+                          }`}
+                          title={
+                            loginModal === account._id || qrCodeModal === account._id
+                              ? 'Login sedang proses...'
+                              : 'Login Account'
+                          }
                         >
                           {loginModal === account._id ? (
                             <div className="loading-spinner w-4 h-4"></div>
+                          ) : qrCodeModal === account._id ? (
+                            <QrCode className="h-4 w-4" />
                           ) : (
                             <LogIn className="h-4 w-4" />
                           )}
@@ -586,6 +596,23 @@ const WhatsAppAccountManager = () => {
                           title="Logout Account"
                         >
                           <LogOut className="h-4 w-4" />
+                        </button>
+                      ) : account.status === 'error' ? (
+                        <button
+                          onClick={() => handleLogin(account._id)}
+                          disabled={loginModal === account._id || qrCodeModal === account._id}
+                          className={`p-1 ${
+                            loginModal === account._id || qrCodeModal === account._id
+                              ? 'text-gray-400 cursor-not-allowed'
+                              : 'text-yellow-600 hover:text-yellow-700'
+                          }`}
+                          title="Retry Login"
+                        >
+                          {loginModal === account._id ? (
+                            <div className="loading-spinner w-4 h-4"></div>
+                          ) : (
+                            <Power className="h-4 w-4" />
+                          )}
                         </button>
                       ) : null}
                       
