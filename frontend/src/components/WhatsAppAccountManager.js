@@ -194,9 +194,25 @@ const WhatsAppAccountManager = () => {
   const handleLogin = async (accountId) => {
     try {
       setLoginModal(accountId);
-      const result = await apiCall(`/api/admin/whatsapp-accounts/${accountId}/login`, {
-        method: 'POST'
+      
+      // Use direct fetch for login (consistent with create account fix)
+      const token = localStorage.getItem('token');
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+      
+      const response = await fetch(`${backendUrl}/api/admin/whatsapp-accounts/${accountId}/login`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(`Login failed: ${errorData.detail || response.statusText}`);
+      }
+      
+      const result = await response.json();
       
       if (result.success) {
         toast.success('Account logged in successfully');
@@ -204,13 +220,13 @@ const WhatsAppAccountManager = () => {
       } else if (result.qr_code) {
         // Show QR code for scanning
         toast.info('QR Code generated - scan with WhatsApp mobile app');
-        // In real implementation, show QR code image
+        // TODO: Implement QR code display modal
       } else {
         toast.error(result.message || 'Login failed');
       }
     } catch (error) {
       toast.error('Failed to login account');
-      console.error('Error:', error);
+      console.error('Login Error:', error);
     } finally {
       setLoginModal(null);
     }
