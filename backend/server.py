@@ -1975,7 +1975,8 @@ async def quick_check(request: QuickCheckRequest, current_user = Depends(get_cur
     # Calculate credits needed
     credits_per_number = 0
     if request.validate_whatsapp:
-        credits_per_number += 1
+        # Standard method: 1 credit, Deep Link Profile: 3 credits
+        credits_per_number += 3 if request.validation_method == 'deeplink_profile' else 1
     if request.validate_telegram:
         credits_per_number += 1
     
