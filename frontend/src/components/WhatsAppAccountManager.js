@@ -131,70 +131,12 @@ const WhatsAppAccountManager = () => {
           };
         }
 
-        // Create new account using multiple fallback approaches
+        // Create new account (reverted to simple approach)
         console.log('🚀 Creating WhatsApp account with data:', accountData);
         
-        // Get token from localStorage
-        const token = localStorage.getItem('token');
-        if (!token) {
-          throw new Error('Authentication token not found');
-        }
+        const result = await apiCall('/api/admin/whatsapp-accounts', 'POST', accountData);
         
-        // Try multiple backend URLs as fallback
-        const backendUrls = [
-          process.env.REACT_APP_BACKEND_URL,
-          'https://checktool.preview.emergentagent.com',
-          'https://wa-deeplink-check.preview.emergentagent.com',
-          window.location.origin // Same domain as frontend
-        ].filter(Boolean);
-        
-        console.log('🔍 Trying backend URLs:', backendUrls);
-        
-        let lastError = null;
-        let success = false;
-        
-        for (const backendUrl of backendUrls) {
-          try {
-            console.log(`🌐 Trying: ${backendUrl}/api/admin/whatsapp-accounts`);
-            
-            const response = await fetch(`${backendUrl}/api/admin/whatsapp-accounts`, {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-              },
-              body: JSON.stringify(accountData),
-              mode: 'cors',
-              credentials: 'include'
-            });
-            
-            console.log(`📊 Response: ${response.status} ${response.statusText}`);
-            
-            if (!response.ok) {
-              const errorData = await response.json().catch(() => ({}));
-              lastError = new Error(`API Error ${response.status}: ${errorData.detail || response.statusText}`);
-              console.log(`❌ Failed with ${backendUrl}: ${lastError.message}`);
-              continue; // Try next URL
-            }
-            
-            const result = await response.json();
-            console.log('✅ Account creation successful with:', backendUrl);
-            console.log('✅ Result:', result);
-            
-            success = true;
-            break; // Success! Break the loop
-            
-          } catch (error) {
-            lastError = error;
-            console.log(`❌ Network error with ${backendUrl}:`, error.message);
-            continue; // Try next URL
-          }
-        }
-        
-        if (!success) {
-          throw lastError || new Error('All backend URLs failed');
-        }
+        console.log('✅ Account creation successful:', result);
         
         toast.success('WhatsApp account created successfully');
         await fetchData();
