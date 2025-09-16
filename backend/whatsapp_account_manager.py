@@ -84,6 +84,8 @@ class WhatsAppAccountManager:
     async def update_account_status(self, account_id: str, status: AccountStatus, 
                                   error_message: str = None) -> bool:
         """Update account status"""
+        from bson import ObjectId
+        
         update_data = {
             "status": status.value,
             "updated_at": datetime.utcnow()
@@ -91,15 +93,25 @@ class WhatsAppAccountManager:
         
         if error_message:
             update_data["last_error"] = error_message
-            update_data["failure_count"] = {"$inc": 1}
-        
+            # Use $inc for increment operation properly
+            
         if status == AccountStatus.RATE_LIMITED:
             # Set rate limit reset to 1 hour from now
             update_data["rate_limit_reset"] = datetime.utcnow() + timedelta(hours=1)
         
+        # Convert string ID to ObjectId
+        if isinstance(account_id, str) and len(account_id) == 24:
+            query_id = ObjectId(account_id)
+        else:
+            query_id = account_id
+            
+        operations = {"$set": update_data}
+        if error_message:
+            operations["$inc"] = {"failure_count": 1}
+        
         result = await self.db.whatsapp_accounts.update_one(
-            {"_id": account_id},
-            {"$set": update_data}
+            {"_id": query_id},
+            operations
         )
         
         return result.modified_count > 0
