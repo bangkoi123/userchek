@@ -288,9 +288,11 @@ Maya,+628111222333`;
       }
     });
     
-    // Calculate credits based on platform selection
+    // Calculate credits based on platform selection and validation method
     let creditsPerNumber = 0;
-    if (validateWhatsapp) creditsPerNumber += 1;
+    if (validateWhatsapp) {
+      creditsPerNumber += validationMethod === 'standard' ? 1 : 3;
+    }
     if (validateTelegram) creditsPerNumber += 1;
     
     return totalRows * creditsPerNumber;
