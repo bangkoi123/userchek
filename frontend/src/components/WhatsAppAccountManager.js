@@ -120,7 +120,7 @@ const WhatsAppAccountManager = () => {
           notes: accountForm.notes
         };
 
-        // Add proxy configuration if enabled
+        // Add proxy configuration only if enabled
         if (accountForm.proxy_enabled) {
           accountData.proxy_config = {
             enabled: true,
@@ -128,10 +128,6 @@ const WhatsAppAccountManager = () => {
             url: accountForm.proxy_url,
             username: accountForm.proxy_username || null,
             password: accountForm.proxy_password || null
-          };
-        } else {
-          accountData.proxy_config = {
-            enabled: false
           };
         }
 
