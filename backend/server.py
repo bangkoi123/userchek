@@ -1594,7 +1594,93 @@ async def toggle_api_key(key_id: str, current_user = Depends(get_current_user)):
         "is_active": new_status
     }
 
-# Credit Top-up and Payment Routes
+# WhatsApp Account Management Endpoints
+@app.get("/api/admin/whatsapp-accounts")
+async def get_whatsapp_accounts(current_user: dict = Depends(get_current_user)):
+    """Get all WhatsApp accounts"""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    manager = WhatsAppAccountManager(db)
+    accounts = await manager.get_all_accounts()
+    return accounts
+
+@app.post("/api/admin/whatsapp-accounts")
+async def create_whatsapp_account(
+    account_data: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Create new WhatsApp account"""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    required_fields = ["name", "phone_number"]
+    for field in required_fields:
+        if not account_data.get(field):
+            raise HTTPException(status_code=400, detail=f"Field '{field}' is required")
+    
+    manager = WhatsAppAccountManager(db)
+    account = await manager.create_account(account_data)
+    
+    return {"message": "WhatsApp account created successfully", "account": account}
+
+@app.post("/api/admin/whatsapp-accounts/{account_id}/login")
+async def login_whatsapp_account(
+    account_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Login WhatsApp account"""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    manager = WhatsAppAccountManager(db)
+    result = await manager.login_account(account_id)
+    
+    return result
+
+@app.post("/api/admin/whatsapp-accounts/{account_id}/logout")
+async def logout_whatsapp_account(
+    account_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Logout WhatsApp account"""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    manager = WhatsAppAccountManager(db)
+    success = await manager.logout_account(account_id)
+    
+    if success:
+        return {"message": "Account logged out successfully"}
+    else:
+        raise HTTPException(status_code=404, detail="Account not found")
+
+@app.delete("/api/admin/whatsapp-accounts/{account_id}")
+async def delete_whatsapp_account(
+    account_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Delete WhatsApp account"""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    manager = WhatsAppAccountManager(db)
+    success = await manager.delete_account(account_id)
+    
+    if success:
+        return {"message": "Account deleted successfully"}
+    else:
+        raise HTTPException(status_code=404, detail="Account not found")
+
+@app.get("/api/admin/whatsapp-accounts/stats")
+async def get_whatsapp_account_stats(current_user: dict = Depends(get_current_user)):
+    """Get WhatsApp account statistics"""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    manager = WhatsAppAccountManager(db)
+    stats = await manager.get_account_stats()
+    return stats
 @app.get("/api/credit-packages")
 async def get_credit_packages():
     """Get available credit packages"""
