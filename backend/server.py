@@ -2392,6 +2392,7 @@ async def bulk_check(
             "phone_data": unique_phone_data,  # Store both phone and identifier
             "validate_whatsapp": validate_whatsapp,
             "validate_telegram": validate_telegram,
+            "validation_method": validation_method,  # Store validation method
             "results": None,
             "credits_used": required_credits,
             "created_at": datetime.utcnow(),
