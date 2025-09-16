@@ -77,7 +77,8 @@ const AdminPanel = () => {
       if (whatsappProviderSettings.provider) {
         whatsappProvidersArray.push({
           _id: 'primary',
-          name: whatsappProviderSettings.provider === 'checknumber_ai' ? 'CheckNumber.ai' : 'Free Method',
+          name: whatsappProviderSettings.provider === 'checknumber_ai' ? 'CheckNumber.ai' : 
+                whatsappProviderSettings.provider === 'deeplink' ? 'Deep Link Method' : 'Free Method',
           provider_type: whatsappProviderSettings.provider,
           api_endpoint: whatsappProviderSettings.api_url || 'N/A',
           api_key: whatsappProviderSettings.api_key || '',
