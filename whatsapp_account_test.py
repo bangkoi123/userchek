@@ -11,7 +11,7 @@ from datetime import datetime
 
 class WhatsAppAccountTester:
     def __init__(self):
-        self.base_url = "https://whatsapp-verify.preview.emergentagent.com"
+        self.base_url = "http://localhost:8001"
         self.admin_token = None
         self.tests_run = 0
         self.tests_passed = 0
