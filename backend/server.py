@@ -414,6 +414,9 @@ async def validate_whatsapp_number_smart(phone: str, identifier: str = None) -> 
             if provider == "checknumber_ai":
                 # Use CheckNumber.ai API with settings
                 return await validate_whatsapp_checknumber_api(phone, identifier, provider_settings)
+            elif provider == "deeplink":
+                # Use Deep Link validation method (custom implementation)
+                return await validate_whatsapp_deeplink_single(phone, identifier)
             elif provider == "free":
                 # Use free web scraping method
                 return await validate_whatsapp_web_api(phone, identifier)
