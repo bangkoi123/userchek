@@ -2050,7 +2050,12 @@ async def quick_check(request: QuickCheckRequest, current_user = Depends(get_cur
             telegram_result = None
             
             if request.validate_whatsapp:
-                whatsapp_result = await validate_whatsapp_number_smart(phone, identifier)
+                if request.validation_method == 'deeplink_profile':
+                    # Use Deep Link Profile method (premium)
+                    whatsapp_result = await validate_whatsapp_deeplink_single(phone, identifier)
+                else:
+                    # Use standard method (CheckNumber.ai or fallback)
+                    whatsapp_result = await validate_whatsapp_number_smart(phone, identifier)
             
             if request.validate_telegram:
                 if telegram_account:
