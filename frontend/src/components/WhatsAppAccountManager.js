@@ -195,23 +195,7 @@ const WhatsAppAccountManager = () => {
 
   const handleLogout = async (accountId) => {
     try {
-      // Use direct fetch for logout (consistent fix)
-      const token = localStorage.getItem('token');
-      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
-      
-      const response = await fetch(`${backendUrl}/api/admin/whatsapp-accounts/${accountId}/logout`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(`Logout failed: ${errorData.detail || response.statusText}`);
-      }
-      
+      await apiCall(`/api/admin/whatsapp-accounts/${accountId}/logout`, 'POST');
       toast.success('Account logged out successfully');
       await fetchData();
     } catch (error) {
