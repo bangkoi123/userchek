@@ -194,7 +194,12 @@ class WhatsAppBrowserManager:
     async def login_account(self, account_id: str) -> Dict:
         """WhatsApp login with direct web.whatsapp.com screenshot (most reliable method)"""
         try:
-            print(f"🚀 Starting direct WhatsApp Web screenshot for account: {account_id}")
+            print(f"🚀 Starting WhatsApp login for account: {account_id}")
+            
+            # Check if browser is available
+            if not self.browser:
+                print("❌ Browser not available - returning fallback response")
+                return await self._fallback_login_response(account_id)
             
             # Get account data
             from bson import ObjectId
