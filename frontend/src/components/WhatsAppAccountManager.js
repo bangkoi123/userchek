@@ -134,10 +134,7 @@ const WhatsAppAccountManager = () => {
         // Create new account
         console.log('🚀 Creating WhatsApp account with data:', accountData);
         
-        const result = await apiCall('/api/admin/whatsapp-accounts', {
-          method: 'POST',
-          body: JSON.stringify(accountData)
-        });
+        const result = await apiCall('/api/admin/whatsapp-accounts', 'POST', accountData);
         
         console.log('✅ Account creation successful:', result);
         
