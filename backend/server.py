@@ -1636,14 +1636,18 @@ async def login_whatsapp_account(
     account_id: str,
     current_user: dict = Depends(get_current_user)
 ):
-    """Login WhatsApp account"""
+    """Real WhatsApp login with QR code"""
     if current_user.get("role") != "admin":
         raise HTTPException(status_code=403, detail="Admin access required")
     
-    manager = WhatsAppAccountManager(db)
-    result = await manager.login_account(account_id)
-    
-    return result
+    try:
+        # Use real browser automation for login
+        result = await real_whatsapp_login(account_id, db)
+        
+        return result
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Login error: {str(e)}")
 
 @app.post("/api/admin/whatsapp-accounts/{account_id}/logout")
 async def logout_whatsapp_account(
