@@ -229,11 +229,21 @@ class WhatsAppBrowserManager:
             await manager.update_account_status(account_id, AccountStatus.ERROR, str(e))
     
     async def _save_session_data(self, account_id: str):
-        """Save session data to database"""
+        """Save session data to database and storage state"""
         try:
             session_token = f"session_{account_id}_{datetime.utcnow().timestamp()}"
             
-            manager = WhatsAppAccountManager(self.db)
+            # Save storage state for session persistence
+            if self.context:
+                storage_state = await self.context.storage_state()
+                session_path = self.get_session_path(account_id)
+                
+                # Save storage state to file
+                import json
+                with open(f"{session_path}/storage_state.json", 'w') as f:
+                    json.dump(storage_state, f)
+            
+            # Update database
             await self.db.whatsapp_accounts.update_one(
                 {"_id": account_id},
                 {
@@ -241,7 +251,8 @@ class WhatsAppBrowserManager:
                         "session_data": {
                             "session_token": session_token,
                             "logged_in_at": datetime.utcnow(),
-                            "session_path": self.get_session_path(account_id)
+                            "session_path": self.get_session_path(account_id),
+                            "storage_state_available": True
                         }
                     }
                 }
