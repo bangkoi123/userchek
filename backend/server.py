@@ -1778,6 +1778,122 @@ async def get_whatsapp_account_stats(current_user: dict = Depends(get_current_us
     manager = WhatsAppAccountManager(db)
     stats = await manager.get_account_stats()
     return stats
+
+# Container Management Endpoints
+@app.get("/api/admin/containers")
+async def list_containers(current_user: dict = Depends(get_current_user)):
+    """List all active WhatsApp account containers"""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    try:
+        orchestrator = get_orchestrator(db)
+        containers = await orchestrator.list_active_containers()
+        return {"containers": containers}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Container listing failed: {str(e)}")
+
+@app.post("/api/admin/containers/{account_id}/restart")
+async def restart_container(account_id: str, current_user: dict = Depends(get_current_user)):
+    """Restart account container"""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    try:
+        orchestrator = get_orchestrator(db)
+        result = await orchestrator.restart_container(account_id)
+        return result
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Container restart failed: {str(e)}")
+
+@app.delete("/api/admin/containers/{account_id}")
+async def destroy_container(account_id: str, current_user: dict = Depends(get_current_user)):
+    """Destroy account container"""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    try:
+        orchestrator = get_orchestrator(db)
+        result = await orchestrator.destroy_account_container(account_id)
+        return result
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Container destruction failed: {str(e)}")
+
+@app.post("/api/admin/containers/cleanup")
+async def cleanup_orphaned_containers(current_user: dict = Depends(get_current_user)):
+    """Clean up orphaned containers"""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    try:
+        orchestrator = get_orchestrator(db)
+        await orchestrator.cleanup_orphaned_containers()
+        return {"message": "Orphaned containers cleaned up successfully"}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Container cleanup failed: {str(e)}")
+
+# Internal endpoints for container communication
+@app.post("/api/internal/register-container")
+async def register_container(container_data: dict):
+    """Register container with main API (internal use)"""
+    try:
+        account_id = container_data.get("account_id")
+        container_url = container_data.get("container_url")
+        
+        # Update database with container info
+        await db.whatsapp_accounts.update_one(
+            {"_id": account_id},
+            {
+                "$set": {
+                    "container_url": container_url,
+                    "container_registered_at": datetime.utcnow(),
+                    "updated_at": datetime.utcnow()
+                }
+            }
+        )
+        
+        return {"message": "Container registered successfully"}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Container registration failed: {str(e)}")
+
+@app.post("/api/internal/account-event")
+async def handle_account_event(event_data: dict):
+    """Handle events from account containers (internal use)"""
+    try:
+        account_id = event_data.get("account_id")
+        event_type = event_data.get("event_type")
+        data = event_data.get("data", {})
+        
+        # Log the event
+        await db.whatsapp_account_events.insert_one({
+            "account_id": account_id,
+            "event_type": event_type,
+            "data": data,
+            "timestamp": datetime.utcnow()
+        })
+        
+        # Handle specific events
+        if event_type == "login_completed":
+            await db.whatsapp_accounts.update_one(
+                {"_id": account_id},
+                {
+                    "$set": {
+                        "status": "active",
+                        "last_login": data.get("logged_in_at"),
+                        "updated_at": datetime.utcnow()
+                    }
+                }
+            )
+        
+        return {"message": "Event processed successfully"}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Event handling failed: {str(e)}")
 @app.get("/api/credit-packages")
 async def get_credit_packages():
     """Get available credit packages"""
