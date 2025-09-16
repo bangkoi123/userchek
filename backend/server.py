@@ -1747,6 +1747,60 @@ async def logout_whatsapp_account(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Logout error: {str(e)}")
 
+@app.put("/api/admin/whatsapp-accounts/{account_id}")
+async def update_whatsapp_account(
+    account_id: str,
+    account_data: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update WhatsApp account"""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    try:
+        # Update account in database
+        from bson import ObjectId
+        
+        # Convert string ID to ObjectId if needed
+        if isinstance(account_id, str) and len(account_id) == 24:
+            query_id = ObjectId(account_id)
+        else:
+            query_id = account_id
+        
+        # Prepare update data
+        update_data = {
+            "name": account_data.get("name"),
+            "phone_number": account_data.get("phone_number"),
+            "login_method": account_data.get("login_method", "qr_code"),
+            "max_daily_requests": account_data.get("max_daily_requests", 100),
+            "notes": account_data.get("notes", ""),
+            "updated_at": datetime.utcnow()
+        }
+        
+        # Add proxy configuration if provided
+        if "proxy_config" in account_data:
+            update_data["proxy_config"] = account_data["proxy_config"]
+        
+        result = await db.whatsapp_accounts.update_one(
+            {"_id": query_id},
+            {"$set": update_data}
+        )
+        
+        if result.modified_count > 0:
+            # Get updated account
+            updated_account = await db.whatsapp_accounts.find_one({"_id": query_id})
+            updated_account["_id"] = str(updated_account["_id"])
+            
+            return {
+                "message": "WhatsApp account updated successfully",
+                "account": updated_account
+            }
+        else:
+            raise HTTPException(status_code=404, detail="Account not found")
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Account update failed: {str(e)}")
+
 @app.delete("/api/admin/whatsapp-accounts/{account_id}")
 async def delete_whatsapp_account(
     account_id: str,
