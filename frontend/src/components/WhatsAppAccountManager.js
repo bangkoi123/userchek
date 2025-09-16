@@ -173,25 +173,7 @@ const WhatsAppAccountManager = () => {
   const handleLogin = async (accountId) => {
     try {
       setLoginModal(accountId);
-      
-      // Use direct fetch for login (consistent with create account fix)
-      const token = localStorage.getItem('token');
-      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
-      
-      const response = await fetch(`${backendUrl}/api/admin/whatsapp-accounts/${accountId}/login`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(`Login failed: ${errorData.detail || response.statusText}`);
-      }
-      
-      const result = await response.json();
+      const result = await apiCall(`/api/admin/whatsapp-accounts/${accountId}/login`, 'POST');
       
       if (result.success) {
         toast.success('Account logged in successfully');
