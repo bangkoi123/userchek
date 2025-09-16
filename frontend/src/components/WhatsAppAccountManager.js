@@ -252,17 +252,29 @@ const WhatsAppAccountManager = () => {
   };
 
   const handleDelete = async (accountId, accountName) => {
-    if (!window.confirm(`Are you sure you want to delete account "${accountName}"?`)) {
+    console.log('🗑️ Attempting to delete account:', accountId, accountName);
+    
+    if (!window.confirm(`Yakin hapus account "${accountName}"?`)) {
       return;
     }
 
     try {
-      await apiCall(`/api/admin/whatsapp-accounts/${accountId}`, 'DELETE');
-      toast.success('Account deleted successfully');
+      console.log('📡 Calling delete API...');
+      const result = await apiCall(`/api/admin/whatsapp-accounts/${accountId}`, 'DELETE');
+      
+      console.log('✅ Delete successful:', result);
+      toast.success('Account berhasil dihapus');
       await fetchData();
     } catch (error) {
-      toast.error('Failed to delete account');
-      console.error('Delete Error:', error);
+      console.error('❌ Delete error:', error);
+      
+      if (error.response?.status === 404) {
+        toast.error('Account tidak ditemukan');
+      } else if (error.response?.status === 403) {
+        toast.error('Akses ditolak');
+      } else {
+        toast.error('Gagal hapus account - coba lagi');
+      }
     }
   };
 
