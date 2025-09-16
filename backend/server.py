@@ -1736,17 +1736,8 @@ async def logout_whatsapp_account(
         raise HTTPException(status_code=403, detail="Admin access required")
     
     try:
-        # Check if we're running in container mode
-        container_mode = os.environ.get('CONTAINER_MODE', 'false').lower() == 'true'
-        
-        if container_mode:
-            # Use container orchestrator for logout
-            orchestrator = get_orchestrator(db)
-            result = await orchestrator.logout_account_container(account_id)
-            success = result.get("success", False)
-        else:
-            # Use real browser automation for logout
-            success = await logout_real_whatsapp_account(account_id, db)
+        # Use browser automation for logout (container mode disabled)
+        success = await logout_real_whatsapp_account(account_id, db)
         
         if success:
             return {"message": "Account logged out successfully"}
