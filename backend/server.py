@@ -430,6 +430,49 @@ async def validate_whatsapp_number_smart(phone: str, identifier: str = None) -> 
         print(f"❌ Smart validation error for {phone}: {str(e)}, falling back to free method")
         return await validate_whatsapp_web_api(phone, identifier)
 
+async def validate_whatsapp_deeplink_single(phone: str, identifier: str = None) -> Dict[str, Any]:
+    """Single WhatsApp validation using Deep Link method"""
+    try:
+        async with WhatsAppDeepLinkValidator() as validator:
+            result = await validator.validate_single_number(phone, identifier)
+        
+        # Convert to standard format expected by the system
+        status_mapping = {
+            'active': ValidationStatus.ACTIVE,
+            'inactive': ValidationStatus.INACTIVE,
+            'error': ValidationStatus.ERROR
+        }
+        
+        return {
+            'identifier': identifier,
+            'phone_number': phone,
+            'platform': 'whatsapp',
+            'status': status_mapping.get(result.get('status'), ValidationStatus.ERROR),
+            'validated_at': datetime.utcnow(),
+            'details': {
+                'type': 'personal' if result.get('status') == 'active' else None,
+                'provider': 'whatsapp_deeplink',
+                'confidence': result.get('confidence', 0),
+                'method': result.get('method', 'deep_link_validation'),
+                'api_response': result.get('details', {}).get('api_response', 'unknown')
+            }
+        }
+        
+    except Exception as e:
+        print(f"❌ Deep Link validation error for {phone}: {str(e)}")
+        return {
+            'identifier': identifier,
+            'phone_number': phone,
+            'platform': 'whatsapp',
+            'status': ValidationStatus.ERROR,
+            'validated_at': datetime.utcnow(),
+            'error': str(e),
+            'details': {
+                'provider': 'whatsapp_deeplink',
+                'method': 'deep_link_validation'
+            }
+        }
+
 # MongoDB connection
 MONGO_URL = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
 client = AsyncIOMotorClient(MONGO_URL)
