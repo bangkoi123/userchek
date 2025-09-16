@@ -28,6 +28,14 @@ class WhatsAppBrowserManager:
         
     async def __aenter__(self):
         """Async context manager setup"""
+        try:
+            return await self._setup_browser()
+        except Exception as e:
+            print(f"⚠️  Browser setup failed: {e}")
+            # Return self even if browser setup fails for graceful degradation
+            return self
+    
+    async def _setup_browser(self):
         self.playwright = await async_playwright().start()
         
         # Launch browser with enhanced stealth settings for WhatsApp compatibility
