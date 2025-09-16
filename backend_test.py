@@ -2334,6 +2334,461 @@ class WebtoolsAPITester:
                     
         return success
 
+    # ========== COMPREHENSIVE WHATSAPP ACCOUNT MANAGEMENT TESTS ==========
+    
+    def test_whatsapp_account_management_get_accounts(self):
+        """Test GET /api/admin/whatsapp-accounts - List all WhatsApp accounts"""
+        if not self.admin_token:
+            print("❌ Skipping WhatsApp accounts list test - no admin token")
+            return False
+            
+        success, response = self.run_test(
+            "WhatsApp Accounts List",
+            "GET",
+            "api/admin/whatsapp-accounts",
+            200,
+            token=self.admin_token,
+            description="Get all WhatsApp accounts (admin only)"
+        )
+        
+        if success:
+            if isinstance(response, list):
+                print(f"   ✅ Found {len(response)} WhatsApp accounts")
+                
+                # Check account structure if accounts exist
+                if response:
+                    first_account = response[0]
+                    expected_fields = ['_id', 'name', 'phone_number', 'status', 'created_at']
+                    missing_fields = [field for field in expected_fields if field not in first_account]
+                    if missing_fields:
+                        print(f"   ⚠️  Account object missing fields: {missing_fields}")
+                    else:
+                        print(f"   ✅ Account structure is correct")
+                        print(f"   📊 Sample account: {first_account.get('name', 'N/A')} ({first_account.get('status', 'N/A')})")
+                else:
+                    print(f"   ℹ️  No WhatsApp accounts found (empty list)")
+            else:
+                print(f"   ⚠️  Expected list, got {type(response)}")
+                
+        return success
+
+    def test_whatsapp_account_management_create_account(self):
+        """Test POST /api/admin/whatsapp-accounts - Create new WhatsApp account"""
+        if not self.admin_token:
+            print("❌ Skipping WhatsApp account creation test - no admin token")
+            return False
+            
+        # Test account data
+        account_data = {
+            "name": "Test WhatsApp Account",
+            "phone_number": "+628123456789",
+            "login_method": "qr_code",
+            "daily_request_limit": 100,
+            "notes": "Test account created by automated testing"
+        }
+        
+        success, response = self.run_test(
+            "Create WhatsApp Account",
+            "POST",
+            "api/admin/whatsapp-accounts",
+            200,
+            data=account_data,
+            token=self.admin_token,
+            description="Create new WhatsApp account"
+        )
+        
+        if success:
+            if 'message' in response:
+                print(f"   ✅ Account creation message: {response['message']}")
+                
+                # Store account ID for later tests
+                if 'account' in response and '_id' in response['account']:
+                    self.created_whatsapp_account_id = response['account']['_id']
+                    print(f"   ✅ Created account ID: {self.created_whatsapp_account_id}")
+                    
+                    # Verify account data
+                    created_account = response['account']
+                    if created_account.get('name') == account_data['name']:
+                        print(f"   ✅ Account name matches: {created_account['name']}")
+                    if created_account.get('phone_number') == account_data['phone_number']:
+                        print(f"   ✅ Phone number matches: {created_account['phone_number']}")
+                else:
+                    print(f"   ⚠️  No account data in response")
+            else:
+                print(f"   ⚠️  Expected 'message' field in response")
+                
+        return success
+
+    def test_whatsapp_account_management_get_stats(self):
+        """Test GET /api/admin/whatsapp-accounts/stats - Get WhatsApp account statistics"""
+        if not self.admin_token:
+            print("❌ Skipping WhatsApp account stats test - no admin token")
+            return False
+            
+        success, response = self.run_test(
+            "WhatsApp Account Statistics",
+            "GET",
+            "api/admin/whatsapp-accounts/stats",
+            200,
+            token=self.admin_token,
+            description="Get WhatsApp account statistics"
+        )
+        
+        if success:
+            expected_fields = ['total_accounts', 'active_accounts', 'available_accounts', 'accounts_with_issues']
+            missing_fields = [field for field in expected_fields if field not in response]
+            if missing_fields:
+                print(f"   ⚠️  Missing statistics fields: {missing_fields}")
+            else:
+                print(f"   ✅ Statistics structure is complete")
+                print(f"   📊 Total Accounts: {response.get('total_accounts', 0)}")
+                print(f"   📊 Active Accounts: {response.get('active_accounts', 0)}")
+                print(f"   📊 Available Accounts: {response.get('available_accounts', 0)}")
+                print(f"   📊 Accounts with Issues: {response.get('accounts_with_issues', 0)}")
+                
+        return success
+
+    def test_whatsapp_account_management_login_account(self):
+        """Test POST /api/admin/whatsapp-accounts/{id}/login - Login WhatsApp account (QR code)"""
+        if not self.admin_token:
+            print("❌ Skipping WhatsApp account login test - no admin token")
+            return False
+            
+        # Use created account ID or fallback to a test ID
+        account_id = self.created_whatsapp_account_id or "test_account_id"
+        
+        success, response = self.run_test(
+            "WhatsApp Account Login",
+            "POST",
+            f"api/admin/whatsapp-accounts/{account_id}/login",
+            200,
+            token=self.admin_token,
+            description="Login WhatsApp account with QR code generation"
+        )
+        
+        if success:
+            # Check for QR code or login status in response
+            if 'qr_code' in response or 'status' in response or 'message' in response:
+                print(f"   ✅ Login response received")
+                
+                if 'qr_code' in response:
+                    print(f"   ✅ QR code generated successfully")
+                if 'status' in response:
+                    print(f"   📊 Login status: {response['status']}")
+                if 'message' in response:
+                    print(f"   📊 Message: {response['message']}")
+            else:
+                print(f"   ⚠️  Unexpected response structure")
+        else:
+            # Login might fail due to browser dependencies in container - this is expected
+            print(f"   ℹ️  Login failure expected in container environment (browser dependencies)")
+            
+        return success
+
+    def test_whatsapp_account_management_logout_account(self):
+        """Test POST /api/admin/whatsapp-accounts/{id}/logout - Logout WhatsApp account"""
+        if not self.admin_token:
+            print("❌ Skipping WhatsApp account logout test - no admin token")
+            return False
+            
+        # Use created account ID or fallback to a test ID
+        account_id = self.created_whatsapp_account_id or "test_account_id"
+        
+        success, response = self.run_test(
+            "WhatsApp Account Logout",
+            "POST",
+            f"api/admin/whatsapp-accounts/{account_id}/logout",
+            200,
+            token=self.admin_token,
+            description="Logout WhatsApp account"
+        )
+        
+        if success:
+            if 'message' in response:
+                print(f"   ✅ Logout message: {response['message']}")
+            if 'success' in response:
+                print(f"   📊 Logout success: {response['success']}")
+        else:
+            # Logout might fail if account wasn't logged in - this is acceptable
+            print(f"   ℹ️  Logout failure acceptable if account wasn't logged in")
+            
+        return success
+
+    def test_whatsapp_account_management_update_account(self):
+        """Test PUT /api/admin/whatsapp-accounts/{id} - Update WhatsApp account"""
+        if not self.admin_token:
+            print("❌ Skipping WhatsApp account update test - no admin token")
+            return False
+            
+        # Use created account ID or fallback to a test ID
+        account_id = self.created_whatsapp_account_id or "test_account_id"
+        
+        # Update data
+        update_data = {
+            "name": "Updated Test WhatsApp Account",
+            "daily_request_limit": 150,
+            "notes": "Updated by automated testing"
+        }
+        
+        success, response = self.run_test(
+            "Update WhatsApp Account",
+            "PUT",
+            f"api/admin/whatsapp-accounts/{account_id}",
+            200,
+            data=update_data,
+            token=self.admin_token,
+            description="Update WhatsApp account information"
+        )
+        
+        if success:
+            if 'message' in response:
+                print(f"   ✅ Update message: {response['message']}")
+            if 'account' in response:
+                updated_account = response['account']
+                if updated_account.get('name') == update_data['name']:
+                    print(f"   ✅ Account name updated successfully")
+                if updated_account.get('daily_request_limit') == update_data['daily_request_limit']:
+                    print(f"   ✅ Daily request limit updated successfully")
+                    
+        return success
+
+    def test_whatsapp_account_management_delete_account(self):
+        """Test DELETE /api/admin/whatsapp-accounts/{id} - Delete WhatsApp account"""
+        if not self.admin_token:
+            print("❌ Skipping WhatsApp account deletion test - no admin token")
+            return False
+            
+        # Use created account ID or fallback to a test ID
+        account_id = self.created_whatsapp_account_id or "test_account_id"
+        
+        success, response = self.run_test(
+            "Delete WhatsApp Account",
+            "DELETE",
+            f"api/admin/whatsapp-accounts/{account_id}",
+            200,
+            token=self.admin_token,
+            description="Delete WhatsApp account"
+        )
+        
+        if success:
+            if 'message' in response:
+                print(f"   ✅ Deletion message: {response['message']}")
+                # Clear the stored account ID since it's deleted
+                self.created_whatsapp_account_id = None
+                
+        return success
+
+    def test_whatsapp_account_management_comprehensive_scenario(self):
+        """Test comprehensive WhatsApp Account Management scenario as requested in review"""
+        if not self.admin_token:
+            print("❌ Skipping comprehensive WhatsApp scenario test - no admin token")
+            return False
+            
+        print(f"\n🎯 Testing Comprehensive WhatsApp Account Management Scenario...")
+        print(f"   Description: Full CRUD cycle with login/logout operations as requested")
+        
+        scenario_success = True
+        
+        # Step 1: Login as admin (already done, but verify)
+        print(f"   🔐 Step 1: Verifying admin login...")
+        if self.admin_token:
+            print(f"      ✅ Admin authenticated successfully")
+        else:
+            print(f"      ❌ Admin authentication failed")
+            return False
+        
+        # Step 2: Get initial account list
+        print(f"   📋 Step 2: Getting initial account list...")
+        success, initial_accounts = self.run_test(
+            "Initial Account List",
+            "GET",
+            "api/admin/whatsapp-accounts",
+            200,
+            token=self.admin_token,
+            description="Get initial account count"
+        )
+        initial_count = len(initial_accounts) if success and isinstance(initial_accounts, list) else 0
+        print(f"      Initial account count: {initial_count}")
+        
+        # Step 3: Get initial statistics
+        print(f"   📊 Step 3: Getting initial statistics...")
+        success, initial_stats = self.run_test(
+            "Initial Statistics",
+            "GET",
+            "api/admin/whatsapp-accounts/stats",
+            200,
+            token=self.admin_token,
+            description="Get initial statistics"
+        )
+        if success:
+            print(f"      Initial stats: Total={initial_stats.get('total_accounts', 0)}, Active={initial_stats.get('active_accounts', 0)}")
+        
+        # Step 4: Create new account
+        print(f"   ➕ Step 4: Creating new WhatsApp account...")
+        account_data = {
+            "name": "Scenario Test Account",
+            "phone_number": "+628987654321",
+            "login_method": "qr_code",
+            "daily_request_limit": 200,
+            "notes": "Created for comprehensive scenario testing"
+        }
+        
+        success, create_response = self.run_test(
+            "Scenario Account Creation",
+            "POST",
+            "api/admin/whatsapp-accounts",
+            200,
+            data=account_data,
+            token=self.admin_token,
+            description="Create account for scenario"
+        )
+        
+        if success and 'account' in create_response:
+            scenario_account_id = create_response['account']['_id']
+            print(f"      Created account ID: {scenario_account_id}")
+        else:
+            print(f"      ❌ Failed to create account for scenario")
+            scenario_success = False
+            scenario_account_id = None
+        
+        # Step 5: Verify account in list
+        if scenario_account_id:
+            print(f"   📋 Step 5: Verifying account appears in list...")
+            success, updated_accounts = self.run_test(
+                "Updated Account List",
+                "GET",
+                "api/admin/whatsapp-accounts",
+                200,
+                token=self.admin_token,
+                description="Verify new account in list"
+            )
+            
+            if success and isinstance(updated_accounts, list):
+                new_count = len(updated_accounts)
+                if new_count == initial_count + 1:
+                    print(f"      ✅ Account count increased: {initial_count} → {new_count}")
+                else:
+                    print(f"      ⚠️  Unexpected count: {initial_count} → {new_count}")
+            
+        # Step 6: Get updated statistics
+        print(f"   📊 Step 6: Getting updated statistics...")
+        success, updated_stats = self.run_test(
+            "Updated Statistics",
+            "GET",
+            "api/admin/whatsapp-accounts/stats",
+            200,
+            token=self.admin_token,
+            description="Get updated statistics"
+        )
+        
+        if success:
+            print(f"      Updated stats: Total={updated_stats.get('total_accounts', 0)}, Active={updated_stats.get('active_accounts', 0)}")
+        
+        # Step 7: Try login (expected to fail in container but endpoint should respond)
+        if scenario_account_id:
+            print(f"   🔐 Step 7: Attempting account login (QR code generation)...")
+            success, login_response = self.run_test(
+                "Account Login Attempt",
+                "POST",
+                f"api/admin/whatsapp-accounts/{scenario_account_id}/login",
+                200,
+                token=self.admin_token,
+                description="Attempt QR code login"
+            )
+            
+            if success:
+                print(f"      ✅ Login endpoint responded successfully")
+                if 'qr_code' in login_response:
+                    print(f"      ✅ QR code generated")
+                if 'message' in login_response:
+                    print(f"      📊 Login message: {login_response['message']}")
+            else:
+                print(f"      ℹ️  Login failure expected in container environment")
+        
+        # Step 8: Update account
+        if scenario_account_id:
+            print(f"   ✏️  Step 8: Updating account...")
+            update_data = {
+                "name": "Updated Scenario Account",
+                "daily_request_limit": 250
+            }
+            
+            success, update_response = self.run_test(
+                "Account Update",
+                "PUT",
+                f"api/admin/whatsapp-accounts/{scenario_account_id}",
+                200,
+                data=update_data,
+                token=self.admin_token,
+                description="Update account details"
+            )
+            
+            if success:
+                print(f"      ✅ Account updated successfully")
+                if 'account' in update_response:
+                    updated_account = update_response['account']
+                    if updated_account.get('name') == update_data['name']:
+                        print(f"      ✅ Name updated to: {updated_account['name']}")
+        
+        # Step 9: Try logout
+        if scenario_account_id:
+            print(f"   🚪 Step 9: Attempting account logout...")
+            success, logout_response = self.run_test(
+                "Account Logout Attempt",
+                "POST",
+                f"api/admin/whatsapp-accounts/{scenario_account_id}/logout",
+                200,
+                token=self.admin_token,
+                description="Attempt logout"
+            )
+            
+            if success:
+                print(f"      ✅ Logout endpoint responded successfully")
+                if 'message' in logout_response:
+                    print(f"      📊 Logout message: {logout_response['message']}")
+        
+        # Step 10: Delete account (cleanup)
+        if scenario_account_id:
+            print(f"   🗑️  Step 10: Cleaning up - deleting account...")
+            success, delete_response = self.run_test(
+                "Account Cleanup",
+                "DELETE",
+                f"api/admin/whatsapp-accounts/{scenario_account_id}",
+                200,
+                token=self.admin_token,
+                description="Delete test account"
+            )
+            
+            if success:
+                print(f"      ✅ Account deleted successfully")
+        
+        # Step 11: Verify final count
+        print(f"   📋 Step 11: Verifying final account count...")
+        success, final_accounts = self.run_test(
+            "Final Account List",
+            "GET",
+            "api/admin/whatsapp-accounts",
+            200,
+            token=self.admin_token,
+            description="Get final account count"
+        )
+        
+        if success and isinstance(final_accounts, list):
+            final_count = len(final_accounts)
+            if final_count == initial_count:
+                print(f"      ✅ Account count restored: {final_count}")
+            else:
+                print(f"      ⚠️  Count mismatch: expected {initial_count}, got {final_count}")
+        
+        if scenario_success:
+            self.tests_passed += 1
+            print(f"   🎉 Comprehensive WhatsApp Account Management scenario completed successfully!")
+        else:
+            print(f"   ❌ Scenario had some failures")
+        
+        self.tests_run += 1
+        return scenario_success
+
 def main():
     print("🚀 Starting Webtools Validation API Tests")
     print("=" * 50)
