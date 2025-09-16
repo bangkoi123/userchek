@@ -862,6 +862,9 @@ const WhatsAppAccountManager = () => {
                     setQrCodeModal(null);
                     setQrCodeData(null);
                     setRefreshingQR(false);
+                    setLoginModal(null); // Ensure login modal state is also cleared
+                    // Refresh account data to update button states
+                    fetchData();
                   }}
                   className="btn-secondary"
                 >
