@@ -206,8 +206,18 @@ const WhatsAppAccountManager = () => {
         setLoginModal(null);
       }
     } catch (error) {
-      toast.error(`Failed to login account: ${error.message || 'Unknown error'}`);
+      // Simple error handling to avoid toast module issues
       console.error('Login Error:', error);
+      
+      // Show user-friendly error messages
+      if (error.message && error.message.includes('timeout')) {
+        toast.error('Login timeout - silakan coba lagi');
+      } else if (error.response?.status === 500) {
+        toast.error('Server error - silakan coba lagi dalam beberapa menit');
+      } else {
+        toast.error('Login gagal - silakan coba lagi');
+      }
+      
       setLoginModal(null);
     }
   };
