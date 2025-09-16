@@ -213,8 +213,34 @@ class WhatsAppBrowserManager:
             print(f"⏳ Random delay: {initial_delay:.1f}s")
             await asyncio.sleep(initial_delay)
             
-            # Navigate to WhatsApp Web
-            print("📱 Navigating to WhatsApp Web...")
+            # Navigate to WhatsApp Web with phone login URL
+            print("📱 Navigating to WhatsApp Web with phone login...")
+            
+            # Use WhatsApp Web phone login URL if available
+            phone_login_url = f"https://web.whatsapp.com/phone?phone={phone_number}"
+            
+            try:
+                await page.goto(phone_login_url, timeout=30000)
+                await page.wait_for_load_state('networkidle')
+                await asyncio.sleep(3)
+                
+                print("📞 Checking if phone login page loaded...")
+                
+                # Check if phone input page loaded
+                page_content = await page.content()
+                if "phone" in page_content.lower() or "nomor" in page_content.lower():
+                    print("✅ Phone login page detected")
+                    
+                    # Try to initiate phone verification
+                    verification_result = await self._handle_phone_verification(page, phone_number, account_id)
+                    if verification_result.get("success"):
+                        return verification_result
+                        
+            except Exception as phone_url_error:
+                print(f"⚠️ Phone login URL failed: {str(phone_url_error)}")
+            
+            # If phone login URL doesn't work, try standard WhatsApp Web
+            print("🔄 Trying standard WhatsApp Web...")
             await page.goto('https://web.whatsapp.com', timeout=30000)
             
             # Wait for page to load with random delay
