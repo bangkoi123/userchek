@@ -203,6 +203,23 @@ const WhatsAppAccountManager = () => {
         toast.success('Account sudah login - siap digunakan');
         await fetchData();
         setLoginModal(null);
+      } else if (result.success && result.method === 'direct_screenshot') {
+        // Direct WhatsApp Web screenshot - most reliable method
+        console.log('📷 Displaying direct WhatsApp Web screenshot');
+        setQrCodeData(result.qr_code);
+        setQrCodeModal(accountId);
+        setLoginModal(null);
+        toast.success('✅ WhatsApp Web screenshot berhasil di-capture');
+        toast.info('📱 Ini persis seperti yang Anda lihat di browser biasa');
+        
+        // Auto-close modal after expiry
+        setTimeout(async () => {
+          console.log('⏰ QR Code expired, cleaning up...');
+          setQrCodeModal(null);
+          setQrCodeData(null);
+          await fetchData();
+        }, (result.expires_in || 300) * 1000);
+        
       } else if (result.success && result.method === 'phone_verification') {
         // Phone verification initiated - show instructions
         toast.success('✅ SMS verification berhasil dikirim!');
