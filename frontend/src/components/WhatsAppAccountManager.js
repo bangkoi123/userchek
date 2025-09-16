@@ -14,7 +14,8 @@ import {
   Activity,
   QrCode,
   LogIn,
-  LogOut
+  LogOut,
+  RefreshCw
 } from 'lucide-react';
 import { apiCall } from '../utils/api';
 
