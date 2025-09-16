@@ -353,7 +353,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Bulk Check 400 Error Debugging"
+    - "New WhatsApp Validation Method Implementation"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
