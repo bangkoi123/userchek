@@ -2274,6 +2274,7 @@ async def bulk_check(
     file: UploadFile = File(...), 
     validate_whatsapp: bool = Form(True),
     validate_telegram: bool = Form(True),
+    validation_method: str = Form('standard'),  # Add validation method parameter
     current_user = Depends(get_current_user)
 ):
     # Debug logging
