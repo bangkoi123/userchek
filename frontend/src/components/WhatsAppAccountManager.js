@@ -111,10 +111,34 @@ const WhatsAppAccountManager = () => {
         // Update existing account (not implemented in backend yet)
         toast.info('Account update functionality coming soon');
       } else {
+        // Prepare account data with proxy configuration
+        const accountData = {
+          name: accountForm.name,
+          phone_number: accountForm.phone_number,
+          login_method: accountForm.login_method,
+          max_daily_requests: accountForm.max_daily_requests,
+          notes: accountForm.notes
+        };
+
+        // Add proxy configuration if enabled
+        if (accountForm.proxy_enabled) {
+          accountData.proxy_config = {
+            enabled: true,
+            type: accountForm.proxy_type,
+            url: accountForm.proxy_url,
+            username: accountForm.proxy_username || null,
+            password: accountForm.proxy_password || null
+          };
+        } else {
+          accountData.proxy_config = {
+            enabled: false
+          };
+        }
+
         // Create new account
         await apiCall('/api/admin/whatsapp-accounts', {
           method: 'POST',
-          body: JSON.stringify(accountForm)
+          body: JSON.stringify(accountData)
         });
         toast.success('WhatsApp account created successfully');
         await fetchData();
