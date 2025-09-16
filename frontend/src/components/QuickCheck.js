@@ -48,6 +48,7 @@ const QuickCheck = () => {
   const [result, setResult] = useState(null);
   const [validateWhatsapp, setValidateWhatsapp] = useState(true);
   const [validateTelegram, setValidateTelegram] = useState(true);
+  const [validationMethod, setValidationMethod] = useState('standard'); // 'standard' or 'deeplink_profile'
   const [platformSettings, setPlatformSettings] = useState({
     whatsapp_enabled: true,
     telegram_enabled: true
