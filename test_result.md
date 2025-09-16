@@ -225,6 +225,18 @@ backend:
         comment: "✅ NEW WHATSAPP VALIDATION METHOD IMPLEMENTATION COMPLETED: Comprehensive testing of new WhatsApp validation methods successfully completed. QUICK CHECK ENDPOINTS: Standard method (validation_method='standard') and Deep Link Profile method (validation_method='deeplink_profile') both working correctly with proper credit calculation (1 credit vs 3 credits). BULK CHECK: Accepts validation_method parameter and processes correctly. CREDIT CALCULATION: Verified accurate - Standard WhatsApp: 1 credit, Deep Link Profile: 3 credits, Telegram: 1 credit. WHATSAPP ACCOUNT MANAGEMENT: All endpoints functional - GET/POST /api/admin/whatsapp-accounts, GET /api/admin/whatsapp-accounts/stats, POST /api/admin/whatsapp-accounts/{id}/login (browser dependencies expected in container). DEEP LINK VALIDATION: Enhanced validation attempts with real WhatsApp accounts, graceful fallback when browser unavailable. PARAMETER VALIDATION: validation_method parameter properly validated, defaults to 'standard'. All new features implemented and functional. System ready for production use."
 
 frontend:
+  - task: "WhatsApp Account Management QR Code Display Testing"
+    implemented: true
+    working: false
+    file: "frontend/src/components/WhatsAppAccountManager.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL WHATSAPP ACCOUNT MANAGEMENT ISSUES IDENTIFIED: Conducted comprehensive testing of WhatsApp Account Management with QR Code functionality as requested. SUCCESSFUL COMPONENTS: ✅ Page loads correctly with proper navigation and admin authentication. ✅ Statistics cards display correctly (Total Accounts: 3, Active: 1, Available: 1, Issues: 0). ✅ Account table displays existing accounts with proper status indicators (ACTIVE, LOGGED OUT). ✅ Add Account modal opens and form fields work correctly (Account Name, Phone Number, Login Method selection, Daily Request Limit, Notes). ✅ Backend API endpoints working - GET /api/admin/whatsapp-accounts (200 OK), POST /api/admin/whatsapp-accounts (200 OK), POST /api/admin/whatsapp-accounts/{id}/login (200 OK). ✅ QR Code generation working on backend - logs show 'QR Code found, capturing...', 'QR Code captured successfully'. CRITICAL ISSUES: ❌ Account creation fails due to JavaScript error: 'TypeError: (config.method || this.defaults.method || \"get\").toLowerCase is not a function' in apiCall function. This prevents new accounts from being created despite backend working correctly. ❌ QR Code modal does not appear in frontend despite backend successfully generating QR codes. Login button clicks but modal fails to display. ❌ Frontend-backend integration broken for account creation and QR code display functionality. BACKEND VERIFICATION: ✅ Backend logs confirm successful account creation (POST 200 OK) and QR code generation with proper WhatsApp Web integration. Issue is purely frontend JavaScript error preventing proper API communication and modal display."
+
   - task: "New WhatsApp Validation Method Selection UI Testing"
     implemented: true
     working: true
