@@ -27,6 +27,7 @@ const WhatsAppAccountManager = () => {
   const [loginModal, setLoginModal] = useState(null);
   const [qrCodeModal, setQrCodeModal] = useState(null); // For QR code display
   const [qrCodeData, setQrCodeData] = useState(null); // QR code image data
+  const [refreshingQR, setRefreshingQR] = useState(false); // QR refresh state
   
   const [accountForm, setAccountForm] = useState({
     name: '',
