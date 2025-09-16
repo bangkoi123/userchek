@@ -821,6 +821,57 @@ class WhatsAppBrowserManager:
                     
         except Exception as e:
             return {"healthy": False, "reason": f"Health check error: {str(e)}"}
+    
+    async def _fallback_login_response(self, account_id: str) -> Dict:
+        """Fallback response when browser is not available (production environment)"""
+        try:
+            # Get account data for context
+            from bson import ObjectId
+            if isinstance(account_id, str) and len(account_id) == 24:
+                query_id = ObjectId(account_id)
+            else:
+                query_id = account_id
+                
+            account = await self.db.whatsapp_accounts.find_one({"_id": query_id})
+            if not account:
+                return {"success": False, "message": "Account not found"}
+            
+            phone_number = account.get("phone_number", "")
+            account_name = account.get("name", "")
+            
+            print(f"🔄 Browser unavailable - providing fallback for {account_name} ({phone_number})")
+            
+            # Generate a placeholder QR code message
+            fallback_qr_data = self._generate_fallback_qr_message(phone_number)
+            
+            return {
+                "success": False,
+                "message": f"WhatsApp Login sedang dalam maintenance. Browser automation tidak tersedia di environment ini.",
+                "fallback": True,
+                "instructions": [
+                    "Fitur login WhatsApp memerlukan browser dependencies yang belum terinstall di production server",
+                    f"Silakan hubungi admin untuk mengaktifkan WhatsApp login untuk account {account_name}",
+                    "Alternatif: Gunakan method 'Standard' untuk validasi nomor WhatsApp"
+                ],
+                "account_info": {
+                    "name": account_name,
+                    "phone": phone_number,
+                    "id": account_id
+                },
+                "suggested_action": "Gunakan metode Standard validation atau hubungi support"
+            }
+            
+        except Exception as e:
+            print(f"❌ Fallback response error: {str(e)}")
+            return {
+                "success": False,
+                "message": "WhatsApp login tidak tersedia - browser automation error",
+                "error": str(e)
+            }
+    
+    def _generate_fallback_qr_message(self, phone_number: str) -> str:
+        """Generate fallback message when QR code cannot be generated"""
+        return f"QR Code untuk {phone_number} tidak dapat di-generate karena browser dependencies belum terinstall di production environment."
 
 # Integration functions
 async def real_whatsapp_login(account_id: str, db) -> Dict:
