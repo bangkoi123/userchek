@@ -282,10 +282,18 @@ class WhatsAppAccountManager:
     
     async def delete_account(self, account_id: str) -> bool:
         """Delete WhatsApp account"""
+        from bson import ObjectId
+        
         # Logout first
         await self.logout_account(account_id)
         
-        result = await self.db.whatsapp_accounts.delete_one({"_id": account_id})
+        # Convert string ID to ObjectId for MongoDB query
+        if isinstance(account_id, str) and len(account_id) == 24:
+            query_id = ObjectId(account_id)
+        else:
+            query_id = account_id
+        
+        result = await self.db.whatsapp_accounts.delete_one({"_id": query_id})
         return result.deleted_count > 0
 
 # Integration with existing validation system
