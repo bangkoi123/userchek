@@ -1020,9 +1020,10 @@ async def process_bulk_validation(job_id: str):
         if not job:
             return
             
-        # Get platform selection from job (default to both for backward compatibility)
+        # Get platform selection and validation method from job (default to both for backward compatibility)
         validate_whatsapp = job.get("validate_whatsapp", True)
         validate_telegram = job.get("validate_telegram", True)
+        validation_method = job.get("validation_method", "standard")  # Get validation method
             
         # Handle both old and new data structures for backward compatibility
         if "phone_data" in job:
