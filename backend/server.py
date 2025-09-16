@@ -38,13 +38,13 @@ from whatsapp_browser_manager import real_whatsapp_login, validate_with_real_wha
 # Mock function to replace get_orchestrator
 def get_orchestrator(db):
     class MockOrchestrator:
-        async def get_available_container(self):
-            return None
-        async def create_container(self, account_id):
-            return {"success": False, "error": "Container orchestration not available"}
-        async def stop_container(self, container_id):
-            return {"success": False, "error": "Container orchestration not available"}
-        async def get_container_status(self, container_id):
+        async def create_account_container(self, account_data):
+            return {"success": False, "error": "Container orchestration temporarily disabled"}
+        async def login_account_container(self, account_id):
+            return {"success": False, "error": "Container orchestration temporarily disabled"}  
+        async def logout_account_container(self, account_id):
+            return {"success": False, "error": "Container orchestration temporarily disabled"}
+        async def get_container_status(self, account_id):
             return {"status": "unavailable"}
     return MockOrchestrator()
 load_dotenv()
