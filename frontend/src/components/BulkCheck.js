@@ -31,6 +31,7 @@ const BulkCheck = () => {
   const [realTimeProgress, setRealTimeProgress] = useState(null);
   const [validateWhatsapp, setValidateWhatsapp] = useState(true);
   const [validateTelegram, setValidateTelegram] = useState(true);
+  const [validationMethod, setValidationMethod] = useState('standard');
   const [platformSettings, setPlatformSettings] = useState({
     whatsapp_enabled: true,
     telegram_enabled: true
