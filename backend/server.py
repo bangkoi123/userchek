@@ -435,45 +435,51 @@ async def validate_whatsapp_number_smart(phone: str, identifier: str = None) -> 
         return await validate_whatsapp_web_api(phone, identifier)
 
 async def validate_whatsapp_deeplink_single(phone: str, identifier: str = None) -> Dict[str, Any]:
-    """Single WhatsApp validation using Deep Link method"""
+    """Single deep link validation with account management"""
     try:
-        async with WhatsAppDeepLinkValidator() as validator:
-            result = await validator.validate_single_number(phone, identifier)
+        # Get available WhatsApp account
+        account = await get_whatsapp_account_for_validation(db)
         
-        # Convert to standard format expected by the system
-        status_mapping = {
-            'active': ValidationStatus.ACTIVE,
-            'inactive': ValidationStatus.INACTIVE,
-            'error': ValidationStatus.ERROR
-        }
+        if not account:
+            print("⚠️ No WhatsApp account available, falling back to basic deep link")
+            # Fallback to basic deep link without account
+            async with WhatsAppDeepLinkValidator() as validator:
+                result = await validator.validate_single_number(phone, identifier)
+                result['details']['provider'] = 'whatsapp_deeplink_basic'
+                return result
+        
+        print(f"🔗 Using WhatsApp account: {account.get('name')} for deep link validation")
+        
+        # Enhanced validation with account
+        result = await validate_whatsapp_deeplink_with_account(phone, account)
         
         return {
-            'identifier': identifier,
             'phone_number': phone,
             'platform': 'whatsapp',
-            'status': status_mapping.get(result.get('status'), ValidationStatus.ERROR),
+            'status': ValidationStatus.ACTIVE if result.get('status') == 'active' else ValidationStatus.INACTIVE,
             'validated_at': datetime.utcnow(),
             'details': {
                 'type': 'personal' if result.get('status') == 'active' else None,
-                'provider': 'whatsapp_deeplink',
-                'confidence': result.get('confidence', 0),
-                'method': result.get('method', 'deep_link_validation'),
-                'api_response': result.get('details', {}).get('api_response', 'unknown')
+                'provider': 'whatsapp_deeplink_account',
+                'api_response': result.get('details', {}).get('api_response', 'unknown'),
+                'confidence_score': int(result.get('confidence', 0.8) * 5),
+                'account_used': account.get('name'),
+                'enhanced_validation': True,
+                **result.get('details', {})
             }
         }
         
     except Exception as e:
-        print(f"❌ Deep Link validation error for {phone}: {str(e)}")
+        print(f"❌ Deep link validation error for {phone}: {str(e)}")
         return {
-            'identifier': identifier,
             'phone_number': phone,
             'platform': 'whatsapp',
             'status': ValidationStatus.ERROR,
             'validated_at': datetime.utcnow(),
-            'error': str(e),
             'details': {
-                'provider': 'whatsapp_deeplink',
-                'method': 'deep_link_validation'
+                'provider': 'whatsapp_deeplink_error',
+                'error': str(e),
+                'confidence_score': 0
             }
         }
 
