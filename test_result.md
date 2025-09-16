@@ -353,7 +353,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "New WhatsApp Validation Method Implementation"
+    - "New WhatsApp Validation Method Selection UI Testing"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
