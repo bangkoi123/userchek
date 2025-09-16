@@ -122,7 +122,7 @@ class WhatsAppBrowserManager:
         return context
     
     async def login_account(self, account_id: str) -> Dict:
-        """Real WhatsApp login with QR code"""
+        """Real WhatsApp login with QR code (with anti-detection measures)"""
         try:
             print(f"🚀 Starting real WhatsApp login for account: {account_id}")
             
@@ -131,13 +131,21 @@ class WhatsAppBrowserManager:
             page = await context.new_page()
             self.pages[account_id] = page
             
-            # Navigate to WhatsApp Web
+            # Add random delay to appear more human-like
+            import random
+            initial_delay = random.uniform(2, 5)
+            print(f"⏳ Random delay: {initial_delay:.1f}s")
+            await asyncio.sleep(initial_delay)
+            
+            # Navigate to WhatsApp Web with human-like behavior
             print("📱 Navigating to WhatsApp Web...")
             await page.goto('https://web.whatsapp.com', timeout=30000)
             
-            # Wait for page to load
+            # Wait for page to load with random delay
             await page.wait_for_load_state('networkidle')
-            await asyncio.sleep(3)
+            human_delay = random.uniform(3, 7)
+            print(f"⏳ Human-like delay: {human_delay:.1f}s")
+            await asyncio.sleep(human_delay)
             
             # Check if already logged in
             try:
