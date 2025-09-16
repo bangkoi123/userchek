@@ -198,19 +198,27 @@ class WhatsAppBrowserManager:
             except:
                 print("🔍 Not logged in, need QR code scan...")
             
-            # Wait for QR code
+            # Wait for QR code with better timeout handling
             try:
-                qr_element = await page.wait_for_selector('canvas[aria-label="Scan this QR code to link a device!"]', timeout=15000)
+                print("🔍 Looking for QR code...")
+                qr_element = await page.wait_for_selector(
+                    'canvas[aria-label="Scan this QR code to link a device!"]', 
+                    timeout=20000  # Increased timeout
+                )
                 print("📷 QR Code found, capturing...")
+                
+                # Small delay before screenshot
+                await asyncio.sleep(1)
                 
                 # Screenshot QR code area
                 qr_screenshot = await qr_element.screenshot()
                 qr_base64 = base64.b64encode(qr_screenshot).decode('utf-8')
                 
                 print("✅ QR Code captured successfully")
+                print(f"📊 QR Code size: {len(qr_base64)} characters")
                 
-                # Start monitoring for login completion
-                login_task = asyncio.create_task(self._monitor_login_completion(page, account_id))
+                # Start monitoring for login completion (non-blocking)
+                asyncio.create_task(self._monitor_login_completion(page, account_id))
                 
                 return {
                     "success": True,
@@ -218,7 +226,7 @@ class WhatsAppBrowserManager:
                     "message": "QR Code generated - scan with WhatsApp mobile app",
                     "qr_code": f"data:image/png;base64,{qr_base64}",
                     "account_id": account_id,
-                    "expires_in": 300  # 5 minutes
+                    "expires_in": 240  # 4 minutes instead of 5
                 }
                 
             except Exception as qr_error:
