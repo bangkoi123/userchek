@@ -568,6 +568,98 @@ class WhatsAppBrowserManager:
                 "message": f"Could not load QR code: {str(qr_error)}"
             }
     
+    async def _handle_phone_verification(self, page: Page, phone_number: str, account_id: str) -> Dict:
+        """Handle phone number verification flow"""
+        try:
+            print(f"📞 Handling phone verification for {phone_number}")
+            
+            # Look for phone input field
+            phone_input_selectors = [
+                'input[type="tel"]',
+                'input[placeholder*="phone"]',
+                'input[placeholder*="nomor"]',
+                'input[name="phone"]',
+                '#phone',
+                '.phone-input'
+            ]
+            
+            phone_filled = False
+            for selector in phone_input_selectors:
+                try:
+                    await page.wait_for_selector(selector, timeout=5000)
+                    await page.fill(selector, phone_number)
+                    print(f"✅ Phone number filled with selector: {selector}")
+                    phone_filled = True
+                    break
+                except:
+                    continue
+            
+            if not phone_filled:
+                print("❌ Could not find phone input field")
+                return {"success": False, "message": "Phone input not found"}
+            
+            # Look for submit button
+            submit_selectors = [
+                'button[type="submit"]',
+                'button:has-text("Continue")',
+                'button:has-text("Next")',
+                'button:has-text("Send")',
+                'button:has-text("Lanjutkan")',
+                'button:has-text("Kirim")',
+                '.btn-submit',
+                '[data-testid="submit"]'
+            ]
+            
+            submit_clicked = False
+            for selector in submit_selectors:
+                try:
+                    await page.click(selector)
+                    print(f"✅ Submit clicked with selector: {selector}")
+                    submit_clicked = True
+                    break
+                except:
+                    continue
+            
+            if not submit_clicked:
+                print("❌ Could not find submit button")
+                return {"success": False, "message": "Submit button not found"}
+            
+            # Wait for SMS verification prompt
+            await asyncio.sleep(5)
+            
+            # Check if SMS verification screen appeared
+            page_content = await page.content()
+            
+            if any(keyword in page_content.lower() for keyword in ['sms', 'code', 'verification', 'verifikasi', 'kode']):
+                print("✅ SMS verification screen detected")
+                
+                # Update account status to pending verification
+                manager = WhatsAppAccountManager(self.db)
+                await manager.update_account_status(account_id, AccountStatus.LOGGED_OUT, "Waiting for SMS verification")
+                
+                return {
+                    "success": True,
+                    "method": "phone_verification",
+                    "message": f"SMS verification sent to {phone_number}",
+                    "phone_number": phone_number,
+                    "account_id": account_id,
+                    "next_step": "Check SMS and enter verification code in WhatsApp Web",
+                    "expires_in": 300,
+                    "instructions": {
+                        "step1": "Check SMS on your WhatsApp phone number",
+                        "step2": "Enter the 6-digit code in WhatsApp Web",
+                        "step3": "Account will be marked as ACTIVE when verification complete"
+                    }
+                }
+            else:
+                print("⚠️ SMS verification screen not detected")
+                return {"success": False, "message": "SMS verification failed to initiate"}
+                
+        except Exception as e:
+            print(f"❌ Phone verification error: {str(e)}")
+            return {"success": False, "message": f"Phone verification error: {str(e)}"}
+    
+    
     async def _monitor_login_completion(self, page: Page, account_id: str):
         """Monitor page for login completion"""
         try:
