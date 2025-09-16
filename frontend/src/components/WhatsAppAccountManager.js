@@ -210,23 +210,7 @@ const WhatsAppAccountManager = () => {
     }
 
     try {
-      // Use direct fetch for delete (consistent fix)
-      const token = localStorage.getItem('token');
-      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
-      
-      const response = await fetch(`${backendUrl}/api/admin/whatsapp-accounts/${accountId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(`Delete failed: ${errorData.detail || response.statusText}`);
-      }
-      
+      await apiCall(`/api/admin/whatsapp-accounts/${accountId}`, 'DELETE');
       toast.success('Account deleted successfully');
       await fetchData();
     } catch (error) {
