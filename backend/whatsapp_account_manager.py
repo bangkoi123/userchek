@@ -10,6 +10,7 @@ from typing import Dict, List, Optional
 import random
 from enum import Enum
 import json
+from pymongo.errors import DuplicateKeyError
 
 class AccountStatus(Enum):
     ACTIVE = "active"
