@@ -336,7 +336,8 @@ const QuickCheck = () => {
               Platform Selection
             </h2>
             
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="space-y-4 mb-6">
+              {/* WhatsApp Section */}
               <div className="flex items-center">
                 <input
                   type="checkbox"
@@ -348,6 +349,95 @@ const QuickCheck = () => {
                 />
                 <label htmlFor="whatsapp" className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
                   <span className="flex items-center">
+                    <span className="text-green-600">🟢</span>
+                    <span className="ml-1">WhatsApp</span>
+                    {!platformSettings.whatsapp_enabled && (
+                      <span className="ml-2 text-xs text-red-500">(Disabled)</span>
+                    )}
+                  </span>
+                </label>
+              </div>
+
+              {/* WhatsApp Method Selection */}
+              {validateWhatsapp && (
+                <div className="ml-6 space-y-3 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Pilih Metode WhatsApp:</p>
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-center">
+                      <input
+                        type="radio"
+                        id="standard"
+                        name="whatsapp_method"
+                        value="standard"
+                        checked={validationMethod === 'standard'}
+                        onChange={(e) => setValidationMethod(e.target.value)}
+                        className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                      />
+                      <label htmlFor="standard" className="ml-2 text-sm text-gray-900 dark:text-gray-300">
+                        <div className="flex items-center justify-between w-full">
+                          <span>
+                            <strong>Standard Check</strong>
+                            <span className="text-gray-500 dark:text-gray-400 block text-xs">
+                              Validasi akurat menggunakan CheckNumber.ai
+                            </span>
+                          </span>
+                          <span className="text-primary-600 font-medium text-sm">1 kredit</span>
+                        </div>
+                      </label>
+                    </div>
+                    
+                    <div className="flex items-center">
+                      <input
+                        type="radio"
+                        id="deeplink_profile"
+                        name="whatsapp_method"
+                        value="deeplink_profile"
+                        checked={validationMethod === 'deeplink_profile'}
+                        onChange={(e) => setValidationMethod(e.target.value)}
+                        className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                      />
+                      <label htmlFor="deeplink_profile" className="ml-2 text-sm text-gray-900 dark:text-gray-300">
+                        <div className="flex items-center justify-between w-full">
+                          <span>
+                            <strong>Deep Link Profile</strong> 
+                            <span className="inline-block bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-2 py-0.5 rounded-full ml-1">PREMIUM</span>
+                            <span className="text-gray-500 dark:text-gray-400 block text-xs">
+                              Info profil detail: foto, last seen, akun bisnis
+                            </span>
+                          </span>
+                          <span className="text-purple-600 font-medium text-sm">3 kredit</span>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Telegram Section */}
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="telegram"
+                  checked={validateTelegram}
+                  onChange={(e) => setValidateTelegram(e.target.checked)}
+                  disabled={!platformSettings.telegram_enabled}
+                  className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                />
+                <label htmlFor="telegram" className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+                  <span className="flex items-center justify-between w-full">
+                    <span className="flex items-center">
+                      <span className="text-blue-600">🔵</span>
+                      <span className="ml-1">Telegram</span>
+                      {!platformSettings.telegram_enabled && (
+                        <span className="ml-2 text-xs text-red-500">(Disabled)</span>
+                      )}
+                    </span>
+                    <span className="text-primary-600 font-medium text-sm">1 kredit</span>
+                  </span>
+                </label>
+              </div>
+            </div>
                     WhatsApp (1 credit)
                     {!platformSettings.whatsapp_enabled && (
                       <span className="ml-2 text-xs text-red-500">(Disabled)</span>
