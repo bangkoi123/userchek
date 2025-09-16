@@ -204,16 +204,40 @@ const WhatsAppAccountManager = () => {
         await fetchData();
         setLoginModal(null);
       } else if (result.success && result.method === 'phone_verification') {
-        // Phone verification initiated
-        toast.success('SMS verification dikirim ke nomor WhatsApp');
-        toast.info('Periksa SMS dan masukkan kode verifikasi di WhatsApp Web');
+        // Phone verification initiated - show instructions
+        toast.success('✅ SMS verification berhasil dikirim!');
+        toast.info(`📱 Periksa SMS di nomor: ${result.phone_number}`);
+        toast.info('💡 Masukkan kode 6-digit di WhatsApp Web');
+        
         setLoginModal(null);
         
-        // Auto-refresh to check login status
+        // Show instruction modal instead of QR code modal
+        setQrCodeModal(accountId);
+        setQrCodeData(`
+          <div style="text-align: center; padding: 20px;">
+            <h3>📞 SMS Verification</h3>
+            <p>SMS kode verifikasi telah dikirim ke:</p>
+            <p style="font-weight: bold; color: #25D366;">${result.phone_number}</p>
+            <br>
+            <h4>📋 Langkah selanjutnya:</h4>
+            <ol style="text-align: left; margin: 20px;">
+              <li>Periksa SMS di HP WhatsApp Anda</li>
+              <li>Masukkan kode 6-digit di halaman WhatsApp Web</li>
+              <li>Account akan otomatis menjadi ACTIVE</li>
+            </ol>
+            <p style="color: #666; font-size: 12px;">
+              Kode akan expired dalam 5 menit
+            </p>
+          </div>
+        `);
+        
+        // Auto-refresh to check login status  
         setTimeout(async () => {
-          console.log('📱 Checking login status after phone verification...');
+          console.log('📱 Checking login status after SMS verification...');
           await fetchData();
-        }, 30000); // Check after 30 seconds
+          setQrCodeModal(null);
+          setQrCodeData(null);
+        }, 60000); // Check after 1 minute
         
       } else if (result.success && result.qr_code) {
         // Show QR code modal (fallback method)
