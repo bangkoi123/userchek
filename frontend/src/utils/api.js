@@ -48,20 +48,34 @@ api.interceptors.response.use(
 
 export const apiCall = async (endpoint, method = 'GET', data = null, config = {}) => {
   try {
+    // Ensure method is always a string and properly formatted
+    const httpMethod = String(method || 'GET').toUpperCase();
+    
+    console.log('🌐 API Call:', {
+      endpoint,
+      method: httpMethod,
+      hasData: !!data,
+      config
+    });
+    
     const response = await api({
       url: endpoint,
-      method,
+      method: httpMethod,
       data,
       ...config
     });
+    
+    console.log('✅ API Success:', response.status, response.statusText);
     return response.data;
   } catch (error) {
-    console.error('API Call Error:', error);
+    console.error('❌ API Call Error:', error);
     console.error('Error details:', {
       status: error.response?.status,
       statusText: error.response?.statusText,
       data: error.response?.data,
-      message: error.message
+      message: error.message,
+      url: error.config?.url,
+      method: error.config?.method
     });
     throw error;
   }
