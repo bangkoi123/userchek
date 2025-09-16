@@ -76,6 +76,12 @@ const Sidebar = ({ isOpen, setSidebarOpen, isMinimized, setIsMinimized }) => {
         description: 'Deep insights & performance metrics'
       },
       {
+        name: 'WhatsApp Accounts',
+        path: '/admin/whatsapp-accounts',
+        icon: Smartphone,
+        description: 'Manage WhatsApp accounts for deep validation'
+      },
+      {
         name: 'Admin Settings',
         path: '/admin/settings',
         icon: Settings,
