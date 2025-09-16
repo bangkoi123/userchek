@@ -2071,8 +2071,8 @@ async def quick_check(request: QuickCheckRequest, current_user = Depends(get_cur
         use_cache = cached_result and (datetime.utcnow() - cached_result["cached_at"]).days < 7
         
         if use_cache:
-            whatsapp_result = cached_result["whatsapp"] if request.validate_whatsapp else None
-            telegram_result = cached_result["telegram"] if request.validate_telegram else None
+            whatsapp_result = cached_result.get("whatsapp") if request.validate_whatsapp else None
+            telegram_result = cached_result.get("telegram") if request.validate_telegram else None
         else:
             # Perform validations
             whatsapp_result = None
