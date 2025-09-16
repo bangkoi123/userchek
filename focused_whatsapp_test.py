@@ -68,18 +68,22 @@ class FocusedWhatsAppTester:
             print(f"✅ Standard method test passed")
             
             # Check WhatsApp result
-            if 'whatsapp' in result and result['whatsapp']:
-                whatsapp_result = result['whatsapp']
-                provider = whatsapp_result.get('details', {}).get('provider', 'unknown')
-                print(f"   📊 WhatsApp provider: {provider}")
-                
-                # Standard method should use CheckNumber.ai or free method
-                if provider in ['checknumber_ai', 'free', 'whatsapp_web_api']:
-                    print(f"   ✅ Standard method provider correct")
+            if 'details' in result and result['details'] and len(result['details']) > 0:
+                first_detail = result['details'][0]
+                if 'whatsapp' in first_detail:
+                    whatsapp_result = first_detail['whatsapp']
+                    provider = whatsapp_result.get('details', {}).get('provider', 'unknown')
+                    print(f"   📊 WhatsApp provider: {provider}")
+                    
+                    # Standard method should use CheckNumber.ai or free method
+                    if provider in ['checknumber_ai', 'free', 'whatsapp_web_api', 'whatsapp_deeplink']:
+                        print(f"   ✅ Standard method provider correct")
+                    else:
+                        print(f"   ⚠️  Unexpected provider: {provider}")
                 else:
-                    print(f"   ⚠️  Unexpected provider: {provider}")
+                    print(f"   ⚠️  No WhatsApp result in details")
             else:
-                print(f"   ⚠️  No WhatsApp result in response")
+                print(f"   ⚠️  No details in response")
                 
             return True
         else:
