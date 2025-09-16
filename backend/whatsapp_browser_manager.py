@@ -184,9 +184,23 @@ class WhatsAppBrowserManager:
         return context
     
     async def login_account(self, account_id: str) -> Dict:
-        """Real WhatsApp login with QR code (with anti-detection measures)"""
+        """WhatsApp login with phone number verification (more reliable than QR)"""
         try:
-            print(f"🚀 Starting real WhatsApp login for account: {account_id}")
+            print(f"🚀 Starting WhatsApp phone login for account: {account_id}")
+            
+            # Get account data to extract phone number
+            from bson import ObjectId
+            if isinstance(account_id, str) and len(account_id) == 24:
+                query_id = ObjectId(account_id)
+            else:
+                query_id = account_id
+                
+            account = await self.db.whatsapp_accounts.find_one({"_id": query_id})
+            if not account:
+                return {"success": False, "message": "Account not found"}
+            
+            phone_number = account.get("phone_number", "").replace("+", "")
+            print(f"📱 Using phone number: {phone_number}")
             
             # Create context for this account
             context = await self.create_context_for_account(account_id)
@@ -199,7 +213,7 @@ class WhatsAppBrowserManager:
             print(f"⏳ Random delay: {initial_delay:.1f}s")
             await asyncio.sleep(initial_delay)
             
-            # Navigate to WhatsApp Web with human-like behavior
+            # Navigate to WhatsApp Web
             print("📱 Navigating to WhatsApp Web...")
             await page.goto('https://web.whatsapp.com', timeout=30000)
             
@@ -222,110 +236,99 @@ class WhatsAppBrowserManager:
                     "success": True,
                     "already_logged_in": True,
                     "message": "Account already logged in",
-                    "qr_code": None
+                    "phone_number": phone_number
                 }
                 
             except:
-                print("🔍 Not logged in, need QR code scan...")
+                print("🔍 Not logged in, trying phone number login...")
             
-            # Wait for QR code with multiple selectors and better error handling
+            # Try to find phone login option
             try:
-                print("🔍 Looking for QR code with multiple selectors...")
+                print("🔍 Looking for phone login option...")
                 
-                # Try multiple QR code selectors
-                qr_selectors = [
-                    'canvas[aria-label="Scan this QR code to link a device!"]',
-                    'canvas[aria-label*="QR"]',
-                    'canvas[role="img"]',
-                    '[data-testid="qr-code"]',
-                    'canvas'
+                # Look for "Login with phone number" link/button
+                phone_login_selectors = [
+                    'a:has-text("Login dengan nomor telepon")',
+                    'a:has-text("Login with phone number")', 
+                    '[data-testid="phone-login"]',
+                    'text="Login dengan nomor telepon"',
+                    'text="Use phone number instead"'
                 ]
                 
-                qr_element = None
-                for selector in qr_selectors:
+                phone_login_element = None
+                for selector in phone_login_selectors:
                     try:
-                        print(f"🎯 Trying selector: {selector}")
-                        qr_element = await page.wait_for_selector(selector, timeout=8000)
-                        if qr_element:
-                            print(f"✅ Found QR code with selector: {selector}")
+                        print(f"🎯 Trying phone login selector: {selector}")
+                        phone_login_element = await page.wait_for_selector(selector, timeout=5000)
+                        if phone_login_element:
+                            print(f"✅ Found phone login with: {selector}")
                             break
                     except:
                         continue
                 
-                if not qr_element:
-                    # Try to find any canvas element and screenshot the page
-                    print("⚠️ No QR code canvas found, trying page screenshot...")
-                    full_screenshot = await page.screenshot()
-                    qr_base64 = base64.b64encode(full_screenshot).decode('utf-8')
+                if phone_login_element:
+                    print("📞 Clicking phone login option...")
+                    await phone_login_element.click()
+                    await asyncio.sleep(3)
                     
-                    return {
-                        "success": True,
-                        "already_logged_in": False,
-                        "message": "Page screenshot captured (QR code location detection failed)",
-                        "qr_code": f"data:image/png;base64,{qr_base64}",
-                        "account_id": account_id,
-                        "expires_in": 240,
-                        "fallback": True
-                    }
-                
-                print("📷 QR Code element found, capturing...")
-                
-                # Small delay before screenshot
-                await asyncio.sleep(2)
-                
-                # Screenshot QR code area with retry logic
-                qr_screenshot = None
-                for attempt in range(3):
+                    # Try to fill phone number
                     try:
-                        qr_screenshot = await qr_element.screenshot()
-                        break
-                    except Exception as screenshot_error:
-                        print(f"⚠️ Screenshot attempt {attempt + 1} failed: {str(screenshot_error)}")
-                        if attempt < 2:
-                            await asyncio.sleep(1)
-                        else:
-                            # Use full page screenshot as fallback
-                            qr_screenshot = await page.screenshot()
+                        print(f"📱 Filling phone number: {phone_number}")
+                        
+                        phone_input_selectors = [
+                            'input[type="tel"]',
+                            'input[placeholder*="phone"]',
+                            'input[placeholder*="nomor"]',
+                            '[data-testid="phone-input"]'
+                        ]
+                        
+                        for selector in phone_input_selectors:
+                            try:
+                                await page.fill(selector, phone_number)
+                                print(f"✅ Phone number filled with: {selector}")
+                                break
+                            except:
+                                continue
+                        
+                        # Click submit/continue button
+                        submit_selectors = [
+                            'button:has-text("Continue")',
+                            'button:has-text("Lanjutkan")', 
+                            'button[type="submit"]',
+                            '[data-testid="phone-submit"]'
+                        ]
+                        
+                        for selector in submit_selectors:
+                            try:
+                                await page.click(selector)
+                                print(f"✅ Submit clicked with: {selector}")
+                                break
+                            except:
+                                continue
+                        
+                        await asyncio.sleep(5)
+                        
+                        return {
+                            "success": True,
+                            "method": "phone_verification",
+                            "message": "Phone verification initiated - check SMS for code",
+                            "phone_number": phone_number,
+                            "account_id": account_id,
+                            "expires_in": 300,
+                            "next_step": "Enter SMS verification code"
+                        }
+                        
+                    except Exception as phone_error:
+                        print(f"❌ Phone input error: {str(phone_error)}")
+                        # Fall back to QR code method
+                        pass
                 
-                if not qr_screenshot:
-                    raise Exception("Could not capture QR code screenshot")
-                
-                qr_base64 = base64.b64encode(qr_screenshot).decode('utf-8')
-                
-                print("✅ QR Code captured successfully")
-                print(f"📊 QR Code size: {len(qr_base64)} characters")
-                
-                # Start monitoring for login completion (non-blocking)
-                asyncio.create_task(self._monitor_login_completion(page, account_id))
-                
-                return {
-                    "success": True,
-                    "already_logged_in": False,
-                    "message": "QR Code generated - scan with WhatsApp mobile app",
-                    "qr_code": f"data:image/png;base64,{qr_base64}",
-                    "account_id": account_id,
-                    "expires_in": 240  # 4 minutes instead of 5
-                }
-                
-            except Exception as qr_error:
-                print(f"❌ QR Code not found: {str(qr_error)}")
-                
-                # Check for other states
-                page_content = await page.content()
-                if "Phone number banned" in page_content or "banned" in page_content.lower():
-                    manager = WhatsAppAccountManager(self.db)
-                    await manager.update_account_status(account_id, AccountStatus.BANNED, "Phone number banned")
-                    
-                    return {
-                        "success": False,
-                        "message": "Phone number is banned from WhatsApp",
-                        "banned": True
-                    }
-                
-                return {
-                    "success": False,
-                    "message": f"Could not load QR code: {str(qr_error)}"
-                }
+            except Exception as phone_method_error:
+                print(f"⚠️ Phone login method not available: {str(phone_method_error)}")
+            
+            # Fallback to QR code method with better handling
+            print("🔄 Falling back to QR code method...")
+            return await self._generate_qr_code_login(page, account_id)
                 
         except Exception as e:
             print(f"❌ Login error for account {account_id}: {str(e)}")
@@ -337,6 +340,106 @@ class WhatsAppBrowserManager:
             return {
                 "success": False,
                 "message": f"Login error: {str(e)}"
+            }
+    
+    async def _generate_qr_code_login(self, page: Page, account_id: str) -> Dict:
+        """Generate QR code for login (fallback method)"""
+        try:
+            print("🔍 Looking for QR code with multiple selectors...")
+            
+            # Try multiple QR code selectors
+            qr_selectors = [
+                'canvas[aria-label="Scan this QR code to link a device!"]',
+                'canvas[aria-label*="QR"]',
+                'canvas[role="img"]',
+                '[data-testid="qr-code"]',
+                'canvas'
+            ]
+            
+            qr_element = None
+            for selector in qr_selectors:
+                try:
+                    print(f"🎯 Trying selector: {selector}")
+                    qr_element = await page.wait_for_selector(selector, timeout=8000)
+                    if qr_element:
+                        print(f"✅ Found QR code with selector: {selector}")
+                        break
+                except:
+                    continue
+            
+            if not qr_element:
+                # Try to find any canvas element and screenshot the page
+                print("⚠️ No QR code canvas found, trying page screenshot...")
+                full_screenshot = await page.screenshot()
+                qr_base64 = base64.b64encode(full_screenshot).decode('utf-8')
+                
+                return {
+                    "success": True,
+                    "already_logged_in": False,
+                    "message": "Page screenshot captured (QR code location detection failed)",
+                    "qr_code": f"data:image/png;base64,{qr_base64}",
+                    "account_id": account_id,
+                    "expires_in": 240,
+                    "fallback": True
+                }
+            
+            print("📷 QR Code element found, capturing...")
+            
+            # Small delay before screenshot
+            await asyncio.sleep(2)
+            
+            # Screenshot QR code area with retry logic
+            qr_screenshot = None
+            for attempt in range(3):
+                try:
+                    qr_screenshot = await qr_element.screenshot()
+                    break
+                except Exception as screenshot_error:
+                    print(f"⚠️ Screenshot attempt {attempt + 1} failed: {str(screenshot_error)}")
+                    if attempt < 2:
+                        await asyncio.sleep(1)
+                    else:
+                        # Use full page screenshot as fallback
+                        qr_screenshot = await page.screenshot()
+            
+            if not qr_screenshot:
+                raise Exception("Could not capture QR code screenshot")
+            
+            qr_base64 = base64.b64encode(qr_screenshot).decode('utf-8')
+            
+            print("✅ QR Code captured successfully")
+            print(f"📊 QR Code size: {len(qr_base64)} characters")
+            
+            # Start monitoring for login completion (non-blocking)
+            asyncio.create_task(self._monitor_login_completion(page, account_id))
+            
+            return {
+                "success": True,
+                "already_logged_in": False,
+                "message": "QR Code generated - scan with WhatsApp mobile app",
+                "qr_code": f"data:image/png;base64,{qr_base64}",
+                "account_id": account_id,
+                "expires_in": 240  # 4 minutes instead of 5
+            }
+            
+        except Exception as qr_error:
+            print(f"❌ QR Code not found: {str(qr_error)}")
+            
+            # Check for other states
+            page_content = await page.content()
+            if "Phone number banned" in page_content or "banned" in page_content.lower():
+                manager = WhatsAppAccountManager(self.db)
+                await manager.update_account_status(account_id, AccountStatus.BANNED, "Phone number banned")
+                
+                return {
+                    "success": False,
+                    "message": "Phone number is banned from WhatsApp",
+                    "banned": True
+                }
+            
+            return {
+                "success": False,
+                "message": f"Could not load QR code: {str(qr_error)}"
             }
     
     async def _monitor_login_completion(self, page: Page, account_id: str):
