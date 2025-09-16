@@ -141,7 +141,29 @@ const WhatsAppAccountManager = () => {
         closeModal();
       }
     } catch (error) {
-      toast.error('Failed to save account');
+      // Enhanced error logging for debugging
+      console.error('🔍 WhatsApp Account Creation Error Details:', {
+        error: error,
+        message: error.message,
+        response: error.response,
+        status: error.response?.status,
+        data: error.response?.data,
+        config: error.config
+      });
+      
+      // More specific error messages
+      if (error.response?.status === 400) {
+        toast.error(`Validation Error: ${error.response?.data?.detail || 'Invalid data'}`);
+      } else if (error.response?.status === 403) {
+        toast.error('Access denied - Admin permission required');
+      } else if (error.response?.status === 500) {
+        toast.error(`Server Error: ${error.response?.data?.detail || 'Internal server error'}`);
+      } else if (error.code === 'NETWORK_ERROR') {
+        toast.error('Network error - Check your connection');
+      } else {
+        toast.error(`Failed to save account: ${error.message || 'Unknown error'}`);
+      }
+      
       console.error('Error:', error);
     }
   };
