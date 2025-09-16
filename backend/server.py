@@ -509,8 +509,9 @@ async def validate_whatsapp_deeplink_single(phone: str, identifier: str = None) 
 
 # MongoDB connection
 MONGO_URL = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
+DB_NAME = os.environ.get('DB_NAME', 'webtools_validation')
 client = AsyncIOMotorClient(MONGO_URL)
-db = client.webtools_validation
+db = client[DB_NAME]
 
 # Socket.IO setup
 sio = socketio.AsyncServer(cors_allowed_origins="*", async_mode='asgi')
