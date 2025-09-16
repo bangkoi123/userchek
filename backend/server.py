@@ -1706,8 +1706,16 @@ async def login_whatsapp_account(
         raise HTTPException(status_code=403, detail="Admin access required")
     
     try:
-        # Use real browser automation for login
-        result = await real_whatsapp_login(account_id, db)
+        # Check if we're running in container mode
+        container_mode = os.environ.get('CONTAINER_MODE', 'false').lower() == 'true'
+        
+        if container_mode:
+            # Use container orchestrator for login
+            orchestrator = get_orchestrator(db)
+            result = await orchestrator.login_account_container(account_id)
+        else:
+            # Use real browser automation for login
+            result = await real_whatsapp_login(account_id, db)
         
         return result
         
