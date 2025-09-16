@@ -200,7 +200,8 @@ const QuickCheck = () => {
       const data = await apiCall('/api/validation/quick-check', 'POST', {
         phone_inputs: validInputs,
         validate_whatsapp: validateWhatsapp,
-        validate_telegram: validateTelegram
+        validate_telegram: validateTelegram,
+        validation_method: validationMethod // Pass validation method to backend
       });
 
       setResult(data);
