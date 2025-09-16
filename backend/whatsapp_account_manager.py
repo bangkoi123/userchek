@@ -207,8 +207,16 @@ class WhatsAppAccountManager:
     
     async def logout_account(self, account_id: str) -> bool:
         """Logout account and clear session"""
+        from bson import ObjectId
+        
+        # Convert string ID to ObjectId for MongoDB query
+        if isinstance(account_id, str) and len(account_id) == 24:
+            query_id = ObjectId(account_id)
+        else:
+            query_id = account_id
+            
         result = await self.db.whatsapp_accounts.update_one(
-            {"_id": account_id},
+            {"_id": query_id},
             {
                 "$set": {
                     "status": AccountStatus.LOGGED_OUT.value,
