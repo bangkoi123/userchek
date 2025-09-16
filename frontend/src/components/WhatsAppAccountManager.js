@@ -199,49 +199,53 @@ const WhatsAppAccountManager = () => {
   };
 
   const handleLogin = async (accountId) => {
+    console.log('🔐 Starting login for account:', accountId);
+    
     try {
       setLoginModal(accountId);
-      console.log('🔐 Attempting login for account:', accountId);
+      setQrCodeModal(null); // Clear any existing QR modal
+      setQrCodeData(null);
       
+      console.log('📡 Calling login API...');
       const result = await apiCall(`/api/admin/whatsapp-accounts/${accountId}/login`, 'POST');
       
-      console.log('📊 Login result:', result);
+      console.log('📊 Login API response:', result);
       
       if (result.success && result.already_logged_in) {
-        toast.success('Account already logged in');
+        toast.success('Account sudah login - siap digunakan');
         await fetchData();
         setLoginModal(null);
       } else if (result.success && result.qr_code) {
-        // Show QR code modal for scanning
+        // Show QR code modal
+        console.log('📱 Displaying QR code modal');
         setQrCodeData(result.qr_code);
         setQrCodeModal(accountId);
         setLoginModal(null);
-        toast.info('QR Code generated - scan with WhatsApp mobile app');
-        console.log('📱 QR Code modal should be displayed');
+        toast.success('QR Code berhasil di-generate');
         
-        // Auto-refresh account status after QR code expires
+        // Auto-close QR modal after expiry
         setTimeout(async () => {
-          console.log('⏰ QR Code expired, refreshing data...');
-          await fetchData();
+          console.log('⏰ QR Code expired, cleaning up...');
           setQrCodeModal(null);
           setQrCodeData(null);
-        }, (result.expires_in || 300) * 1000); // 5 minutes default
+          await fetchData();
+        }, (result.expires_in || 300) * 1000);
         
       } else {
-        toast.error(result.message || 'Login failed');
+        console.log('❌ Login failed:', result);
+        toast.error(result.message || 'Login gagal');
         setLoginModal(null);
       }
     } catch (error) {
-      // Simple error handling to avoid toast module issues
-      console.error('Login Error:', error);
+      console.error('❌ Login error details:', error);
       
-      // Show user-friendly error messages
+      // Enhanced error handling
       if (error.message && error.message.includes('timeout')) {
-        toast.error('Login timeout - silakan coba lagi');
+        toast.error('Timeout - browser automation gagal');
       } else if (error.response?.status === 500) {
-        toast.error('Server error - silakan coba lagi dalam beberapa menit');
+        toast.error('Server error - coba lagi nanti');
       } else {
-        toast.error('Login gagal - silakan coba lagi');
+        toast.error('Login gagal - coba lagi');
       }
       
       setLoginModal(null);
