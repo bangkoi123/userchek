@@ -1719,33 +1719,26 @@ async def login_whatsapp_account(
         raise HTTPException(status_code=403, detail="Admin access required")
     
     try:
-        # Try browser automation first, fallback to simulation if fails
-        try:
-            result = await real_whatsapp_login(account_id, db)
-            return result
-        except Exception as browser_error:
-            # If browser automation fails, use simulation for testing
-            if "Executable doesn't exist" in str(browser_error) or "playwright" in str(browser_error).lower():
-                print(f"⚠️ Browser automation unavailable, using simulation for account {account_id}")
-                
-                # Use simulation login from account manager
-                manager = WhatsAppAccountManager(db)
-                simulation_result = await manager.login_account(account_id)
-                
-                return {
-                    "success": True,
-                    "simulation": True,
-                    "message": "Account login simulated (browser automation unavailable)",
-                    "qr_code": simulation_result.get("qr_code"),
-                    "session_token": simulation_result.get("session_token"),
-                    "note": "In production, this would show real QR code for WhatsApp scanning"
-                }
-            else:
-                # Re-raise other errors
-                raise browser_error
+        # Force real browser automation (Playwright should be working now)
+        result = await real_whatsapp_login(account_id, db)
+        return result
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Login error: {str(e)}")
+        error_msg = str(e)
+        
+        # Enhanced error reporting
+        if "Executable doesn't exist" in error_msg:
+            raise HTTPException(
+                status_code=500, 
+                detail="Browser automation not available - Playwright installation incomplete"
+            )
+        elif "TimeoutError" in error_msg:
+            raise HTTPException(
+                status_code=500,
+                detail="Browser automation timeout - Please try again"
+            )
+        else:
+            raise HTTPException(status_code=500, detail=f"Login error: {error_msg}")
 
 @app.post("/api/admin/whatsapp-accounts/{account_id}/logout")
 async def logout_whatsapp_account(
