@@ -17,6 +17,7 @@ import {
   LogOut
 } from 'lucide-react';
 import { apiCall } from '../utils/api';
+import toast from 'react-hot-toast';
 
 const WhatsAppAccountManager = () => {
   const [accounts, setAccounts] = useState([]);
