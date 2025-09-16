@@ -477,11 +477,14 @@ const AdminPanel = () => {
                   className="input-field"
                 >
                   <option value="free">Free Method (Web Scraping)</option>
+                  <option value="deeplink">Deep Link Method (Custom FREE)</option>
                   <option value="checknumber_ai">CheckNumber.ai (API Premium)</option>
                 </select>
                 <p className="text-xs text-gray-500 mt-1">
                   {whatsAppForm.provider === 'free' 
                     ? 'Metode gratis dengan akurasi 70-80%' 
+                    : whatsAppForm.provider === 'deeplink'
+                    ? 'Metode deep link custom - GRATIS dengan akurasi 85-90%'
                     : 'API premium dengan akurasi 95%+'}
                 </p>
               </div>
