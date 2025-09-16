@@ -203,13 +203,25 @@ const WhatsAppAccountManager = () => {
         toast.success('Account sudah login - siap digunakan');
         await fetchData();
         setLoginModal(null);
+      } else if (result.success && result.method === 'phone_verification') {
+        // Phone verification initiated
+        toast.success('SMS verification dikirim ke nomor WhatsApp');
+        toast.info('Periksa SMS dan masukkan kode verifikasi di WhatsApp Web');
+        setLoginModal(null);
+        
+        // Auto-refresh to check login status
+        setTimeout(async () => {
+          console.log('📱 Checking login status after phone verification...');
+          await fetchData();
+        }, 30000); // Check after 30 seconds
+        
       } else if (result.success && result.qr_code) {
-        // Show QR code modal
-        console.log('📱 Displaying QR code modal');
+        // Show QR code modal (fallback method)
+        console.log('📱 Displaying QR code modal (fallback method)');
         setQrCodeData(result.qr_code);
         setQrCodeModal(accountId);
         setLoginModal(null);
-        toast.success('QR Code berhasil di-generate');
+        toast.info('QR Code di-generate sebagai fallback - coba scan');
         
         // Auto-close QR modal after expiry
         setTimeout(async () => {
@@ -217,7 +229,7 @@ const WhatsAppAccountManager = () => {
           setQrCodeModal(null);
           setQrCodeData(null);
           await fetchData();
-        }, (result.expires_in || 300) * 1000);
+        }, (result.expires_in || 240) * 1000);
         
       } else {
         console.log('❌ Login failed:', result);
