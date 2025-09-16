@@ -284,23 +284,41 @@ const WhatsAppAccountManager = () => {
       
       const result = await apiCall(`/api/admin/whatsapp-accounts/${accountId}/login`, 'POST');
       
-      if (result.success && (result.qr_code || result.method === 'direct_screenshot')) {
+      console.log('🔄 Refresh QR result:', result);
+      
+      if (result.success && result.qr_code) {
         setQrCodeData(result.qr_code);
         toast.success('✅ QR code baru berhasil di-generate');
         
         // Reset auto-expiry timer
         setTimeout(async () => {
+          console.log('⏰ QR Code expired after refresh, closing modal...');
           setQrCodeModal(null);
           setQrCodeData(null);
+          setLoginModal(null);
           await fetchData();
         }, (result.expires_in || 300) * 1000);
         
+      } else if (result.success && result.already_logged_in) {
+        toast.success('Account sudah login - QR tidak diperlukan');
+        setQrCodeModal(null);
+        setQrCodeData(null);
+        setLoginModal(null);
+        await fetchData();
       } else {
-        toast.error('Gagal generate QR code baru');
+        console.log('❌ QR refresh failed:', result);
+        toast.error(result.message || 'Gagal generate QR code baru - coba beberapa saat lagi');
       }
     } catch (error) {
-      console.error('❌ Refresh QR error:', error);
-      toast.error('Gagal refresh QR code');
+      console.error('❌ Refresh QR error details:', error);
+      
+      if (error.response?.status === 500) {
+        toast.error('Server sedang sibuk - tunggu beberapa menit dan coba lagi');
+      } else if (error.message?.includes('timeout')) {
+        toast.error('Timeout - jaringan lambat, coba lagi');
+      } else {
+        toast.error('Gagal refresh QR code - periksa koneksi internet');
+      }
     } finally {
       setRefreshingQR(false);
     }
