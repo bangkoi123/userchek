@@ -477,6 +477,32 @@ class WhatsAppBrowserManager:
             return {"success": False, "message": f"Phone verification error: {str(e)}"}
     
     
+    async def _monitor_login_simple(self, page: Page, account_id: str):
+        """Simple login completion monitoring"""
+        try:
+            print(f"⏳ Monitoring login completion for {account_id} (simplified)...")
+            
+            # Wait for either chat interface or timeout (5 minutes)
+            await page.wait_for_selector('[data-testid="chat"]', timeout=300000)
+            
+            print(f"✅ Login successful for account {account_id}!")
+            
+            # Update account status
+            manager = WhatsAppAccountManager(self.db)
+            await manager.update_account_status(account_id, AccountStatus.ACTIVE)
+            
+            print(f"💾 Account {account_id} marked as ACTIVE")
+            
+        except asyncio.TimeoutError:
+            print(f"⏰ Login timeout for account {account_id}")
+            manager = WhatsAppAccountManager(self.db)
+            await manager.update_account_status(account_id, AccountStatus.LOGGED_OUT, "QR code expired")
+            
+        except Exception as e:
+            print(f"❌ Login monitoring error for {account_id}: {str(e)}")
+            manager = WhatsAppAccountManager(self.db)
+            await manager.update_account_status(account_id, AccountStatus.ERROR, str(e))
+    
     async def _monitor_login_completion(self, page: Page, account_id: str):
         """Monitor page for login completion"""
         try:
