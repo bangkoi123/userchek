@@ -21,6 +21,7 @@ import SystemHealth from './components/SystemHealth';
 import AuditLogs from './components/AuditLogs';
 import BulkUserOperations from './components/BulkUserOperations';
 import AdvancedAnalytics from './components/AdvancedAnalytics';
+import WhatsAppAccountManager from './components/WhatsAppAccountManager';
 
 // Context
 import { AuthProvider, useAuth } from './context/AuthContext';
