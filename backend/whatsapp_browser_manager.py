@@ -198,20 +198,68 @@ class WhatsAppBrowserManager:
             except:
                 print("🔍 Not logged in, need QR code scan...")
             
-            # Wait for QR code with better timeout handling
+            # Wait for QR code with multiple selectors and better error handling
             try:
-                print("🔍 Looking for QR code...")
-                qr_element = await page.wait_for_selector(
-                    'canvas[aria-label="Scan this QR code to link a device!"]', 
-                    timeout=20000  # Increased timeout
-                )
-                print("📷 QR Code found, capturing...")
+                print("🔍 Looking for QR code with multiple selectors...")
+                
+                # Try multiple QR code selectors
+                qr_selectors = [
+                    'canvas[aria-label="Scan this QR code to link a device!"]',
+                    'canvas[aria-label*="QR"]',
+                    'canvas[role="img"]',
+                    '[data-testid="qr-code"]',
+                    'canvas'
+                ]
+                
+                qr_element = None
+                for selector in qr_selectors:
+                    try:
+                        print(f"🎯 Trying selector: {selector}")
+                        qr_element = await page.wait_for_selector(selector, timeout=8000)
+                        if qr_element:
+                            print(f"✅ Found QR code with selector: {selector}")
+                            break
+                    except:
+                        continue
+                
+                if not qr_element:
+                    # Try to find any canvas element and screenshot the page
+                    print("⚠️ No QR code canvas found, trying page screenshot...")
+                    full_screenshot = await page.screenshot()
+                    qr_base64 = base64.b64encode(full_screenshot).decode('utf-8')
+                    
+                    return {
+                        "success": True,
+                        "already_logged_in": False,
+                        "message": "Page screenshot captured (QR code location detection failed)",
+                        "qr_code": f"data:image/png;base64,{qr_base64}",
+                        "account_id": account_id,
+                        "expires_in": 240,
+                        "fallback": True
+                    }
+                
+                print("📷 QR Code element found, capturing...")
                 
                 # Small delay before screenshot
-                await asyncio.sleep(1)
+                await asyncio.sleep(2)
                 
-                # Screenshot QR code area
-                qr_screenshot = await qr_element.screenshot()
+                # Screenshot QR code area with retry logic
+                qr_screenshot = None
+                for attempt in range(3):
+                    try:
+                        qr_screenshot = await qr_element.screenshot()
+                        break
+                    except Exception as screenshot_error:
+                        print(f"⚠️ Screenshot attempt {attempt + 1} failed: {str(screenshot_error)}")
+                        if attempt < 2:
+                            await asyncio.sleep(1)
+                        else:
+                            # Use full page screenshot as fallback
+                            qr_screenshot = await page.screenshot()
+                
+                if not qr_screenshot:
+                    raise Exception("Could not capture QR code screenshot")
+                
                 qr_base64 = base64.b64encode(qr_screenshot).decode('utf-8')
                 
                 print("✅ QR Code captured successfully")
