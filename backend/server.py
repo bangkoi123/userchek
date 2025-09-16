@@ -1654,17 +1654,21 @@ async def logout_whatsapp_account(
     account_id: str,
     current_user: dict = Depends(get_current_user)
 ):
-    """Logout WhatsApp account"""
+    """Real WhatsApp logout"""
     if current_user.get("role") != "admin":
         raise HTTPException(status_code=403, detail="Admin access required")
     
-    manager = WhatsAppAccountManager(db)
-    success = await manager.logout_account(account_id)
-    
-    if success:
-        return {"message": "Account logged out successfully"}
-    else:
-        raise HTTPException(status_code=404, detail="Account not found")
+    try:
+        # Use real browser automation for logout
+        success = await logout_real_whatsapp_account(account_id, db)
+        
+        if success:
+            return {"message": "Account logged out successfully"}
+        else:
+            raise HTTPException(status_code=404, detail="Failed to logout account")
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Logout error: {str(e)}")
 
 @app.delete("/api/admin/whatsapp-accounts/{account_id}")
 async def delete_whatsapp_account(
