@@ -1685,8 +1685,8 @@ async def create_whatsapp_account(
         manager = WhatsAppAccountManager(db)
         account = await manager.create_account(account_data)
         
-        # Check if we're running in container mode (enabled for production)
-        container_mode = os.environ.get('CONTAINER_MODE', 'false').lower() == 'true'
+        # Check if we're running in container mode (disabled in K8s environment)
+        container_mode = False  # Docker-in-Docker not supported in current environment
         
         if container_mode:
             # Create container for this account
