@@ -242,7 +242,7 @@ backend:
 frontend:
   - task: "Telegram Account Management Page"
     implemented: true
-    working: true
+    working: false
     file: "frontend/src/components/TelegramAccountManager.js"
     stuck_count: 0
     priority: "high"
@@ -251,6 +251,9 @@ frontend:
       - working: true
         agent: "testing"
         comment: "✅ COMPREHENSIVE TELEGRAM MTP SYSTEM TESTING COMPLETED: Successfully tested all requested functionality from review request. CRITICAL FIX: Resolved JavaScript error 'MessageCircle is not defined' in Sidebar.js by adding missing import, enabling proper application loading. TELEGRAM ACCOUNT MANAGEMENT: ✅ Admin login (admin/admin123) working perfectly. ✅ 'Telegram Accounts' menu found in sidebar and navigation successful. ✅ Statistics cards displaying data (Total Accounts, Active, Available, Sessions). ✅ Account table showing 26 existing Telegram accounts with proper headers ['Account', 'Status', 'Usage', 'Last Used', 'Actions']. ✅ Add Account button opens modal with all required fields (Account Name, Phone Number, API ID, API Hash, Daily Request Limit, Notes). ✅ Proxy configuration working - checkbox enables proxy fields (Type, URL, Username, Password). ✅ Form submission with test data successful (Frontend Test Account, +6281234567890, API ID: 12345678, API Hash: abcdef123456789, Daily Limit: 100, Notes: Test from frontend). QUICK CHECK MTP INTEGRATION: ✅ Telegram validation checkbox found and functional. ✅ All 3 Telegram method options implemented and working: Standard Check (1 kredit), MTP Validation (2 kredit), MTP Profile Deep (3 kredit). ✅ Credit calculation system functional - updates based on method selection. ✅ Method selection working correctly with proper badges (MTP, PREMIUM). NAVIGATION & UI: ✅ Responsive design tested on desktop (1920x1080), tablet (768x1024), and mobile (390x844). ✅ All UI components properly styled and functional. ✅ Error handling and toast messages working. PRODUCTION READY: Complete Telegram MTP system implementation with account management, method selection, and credit calculation all working as specified in review request."
+      - working: false
+        agent: "testing"
+        comment: "❌ TELEGRAM ACCOUNT MANAGEMENT FRONTEND LOADING ISSUE: Conducted comprehensive testing of Telegram Account Management page as requested in review. CRITICAL FINDINGS: 1) ✅ BACKEND FULLY FUNCTIONAL: API testing confirms backend is working perfectly - 58 total accounts, 29 active demo accounts with correct status 'active', statistics endpoint returns correct data (total_accounts: 58, active_accounts: 29, available_for_use: 29). All demo accounts properly created with demo_account: true flag and 🎭 Demo labels. 2) ❌ FRONTEND NOT LOADING: Application stuck in 'Booting up the preview...' phase, React frontend not fully initialized. Unable to test UI elements (statistics cards, account table, demo labels, login buttons, dark mode) because page content not rendered. 3) ✅ ADMIN LOGIN WORKING: Backend authentication successful (admin/admin123), JWT token generated correctly. 4) ❌ UI TESTING BLOCKED: Cannot verify the specific issues mentioned in review request (Total Accounts showing 29, Active accounts showing 29, status display showing ACTIVE vs UNKNOWN, demo account labels 🎭 Demo, login buttons for demo accounts, dark mode consistency) because frontend is not loading. ROOT CAUSE: Frontend application initialization issue preventing React components from rendering. Backend data is correct and ready to display."
 
   - task: "WhatsApp Account Management QR Code Display Testing"
     implemented: true
