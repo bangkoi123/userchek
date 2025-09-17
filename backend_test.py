@@ -4,7 +4,7 @@ import json
 from datetime import datetime
 
 class WebtoolsAPITester:
-    def __init__(self, base_url="https://verify-connect.preview.emergentagent.com"):
+    def __init__(self, base_url="http://localhost:8001"):
         self.base_url = base_url
         self.demo_token = None
         self.admin_token = None
