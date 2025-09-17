@@ -3786,50 +3786,23 @@ if __name__ == "__main__":
         return scenario_success
 
 def main():
-    """Main function to run urgent login investigation"""
-    print("🚀 WEBTOOLS BACKEND API URGENT LOGIN INVESTIGATION")
+    """Main function to run Telegram Account Management API debugging"""
+    print("🚀 WEBTOOLS TELEGRAM ACCOUNT MANAGEMENT API DEBUGGING")
     print("=" * 80)
     
     tester = WebtoolsAPITester()
     
-    # Run urgent login investigation
-    investigation_results = tester.urgent_login_investigation()
+    # Run the specific Telegram Account Management debugging
+    debug_results = tester.debug_telegram_account_management_api()
     
-    # Additional quick tests if login works
-    if investigation_results["admin_login"] or investigation_results["demo_login"]:
-        print("\n🔍 RUNNING ADDITIONAL AUTHENTICATION TESTS...")
-        
-        # Test some core endpoints to verify system functionality
-        if investigation_results["admin_login"]:
-            print("\n📊 Testing Admin Endpoints...")
-            tester.test_admin_analytics()
-            tester.test_admin_users_list()
-        
-        if investigation_results["demo_login"]:
-            print("\n📊 Testing User Endpoints...")
-            tester.test_user_profile()
-            tester.test_dashboard_stats()
+    print(f"\n🎯 DEBUGGING COMPLETED")
+    print(f"📊 Results: {sum(debug_results.values())}/{len(debug_results)} checks passed")
     
-    # Final summary
-    print("\n" + "="*80)
-    print("🎯 FINAL INVESTIGATION RESULTS")
-    print("="*80)
-    
-    total_tests = tester.tests_run
-    passed_tests = tester.tests_passed
-    success_rate = (passed_tests / total_tests * 100) if total_tests > 0 else 0
-    
-    print(f"📊 Tests Run: {total_tests}")
-    print(f"📊 Tests Passed: {passed_tests}")
-    print(f"📊 Success Rate: {success_rate:.1f}%")
-    
-    if investigation_results["admin_login"] and investigation_results["demo_login"]:
-        print("\n✅ CONCLUSION: LOGIN SYSTEM IS WORKING!")
-        print("💡 User issue is likely frontend-related or user error")
+    if all(debug_results.values()):
+        print("✅ ALL TESTS PASSED - Telegram Account Management API is working correctly")
         return 0
     else:
-        print("\n❌ CONCLUSION: LOGIN SYSTEM HAS ISSUES!")
-        print("💡 Backend authentication system needs fixing")
+        print("❌ ISSUES FOUND - See detailed analysis above")
         return 1
 
 if __name__ == "__main__":
