@@ -21,10 +21,22 @@ class WhatsAppBrowserManager:
         self.contexts: Dict[str, BrowserContext] = {}  # account_id -> context
         self.pages: Dict[str, Page] = {}  # account_id -> page
         self.playwright = None
-        self.sessions_dir = "/app/backend/whatsapp_sessions"
         
-        # Create sessions directory
-        os.makedirs(self.sessions_dir, exist_ok=True)
+        # Production session directory setup
+        self.sessions_dir = os.environ.get('WHATSAPP_SESSION_PATH', '/app/data/whatsapp_sessions/')
+        self.setup_session_directory()
+        
+    def setup_session_directory(self):
+        """Create session directory with proper permissions - PRODUCTION READY"""
+        try:
+            os.makedirs(self.sessions_dir, exist_ok=True)
+            os.chmod(self.sessions_dir, 0o755)
+            print(f"✅ WhatsApp session directory ready: {self.sessions_dir}")
+        except Exception as e:
+            print(f"❌ Failed to create session directory: {e}")
+            # Fallback to backend directory
+            self.sessions_dir = "/app/backend/whatsapp_sessions"
+            os.makedirs(self.sessions_dir, exist_ok=True)
         
     async def __aenter__(self):
         """Async context manager setup"""
