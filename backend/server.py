@@ -2315,10 +2315,28 @@ async def quick_check(request: QuickCheckRequest, current_user = Depends(get_cur
                     whatsapp_result = await validate_whatsapp_number_smart(phone, identifier)
             
             if request.validate_telegram:
-                if telegram_account:
-                    telegram_result = await validate_telegram_number_real(phone, telegram_account)
+                # Check validation method
+                validation_method = request.get("telegram_validation_method", "standard")
+                
+                if validation_method == "mtp" or validation_method == "mtp_profile":
+                    # Use MTP validation with account pool
+                    try:
+                        from telegram_account_pool import validate_telegram_with_pool
+                        
+                        # Determine validation type based on input
+                        if phone.startswith('@'):
+                            telegram_result = await validate_telegram_with_pool(phone, "username", db)
+                        else:
+                            telegram_result = await validate_telegram_with_pool(phone, "phone", db)
+                    except Exception as e:
+                        print(f"MTP validation failed, falling back to standard: {e}")
+                        telegram_result = await validate_telegram_number(phone)
                 else:
-                    telegram_result = await validate_telegram_number(phone)
+                    # Standard validation (existing method)
+                    if telegram_account:
+                        telegram_result = await validate_telegram_number_real(phone, telegram_account)
+                    else:
+                        telegram_result = await validate_telegram_number(phone)
                 telegram_result["identifier"] = identifier
             
             # Cache results if both were validated
