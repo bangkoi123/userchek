@@ -245,7 +245,7 @@ class WebtoolsAPITester:
         validation_success, validation_response = self.run_test(
             "Credit Usage Test",
             "POST",
-            "api/quick-check",
+            "api/validation/quick-check",
             200,
             data={
                 "phone_inputs": ["+6281234567891"],
@@ -258,7 +258,13 @@ class WebtoolsAPITester:
         )
         
         if not validation_success:
-            return False
+            # Check if it's a 500 error
+            if hasattr(self, 'last_response_status') and self.last_response_status == 500:
+                print(f"   ❌ 500 Internal Server Error - backend has syntax/name errors")
+                return False
+            else:
+                print(f"   ⚠️  Validation endpoint may not be working")
+                return False
             
         credits_used = validation_response.get('credits_used', 0)
         print(f"   📊 Credits used for validation: {credits_used}")
