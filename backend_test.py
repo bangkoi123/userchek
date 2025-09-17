@@ -153,48 +153,286 @@ class WebtoolsAPITester:
         )
         return success
 
-    def test_quick_check_validation(self):
-        """Test quick phone number validation"""
+    def test_quick_check_deeplink_profile(self):
+        """Test quick check with Deep Link Profile validation method for WhatsApp"""
         if not self.demo_token:
-            print("❌ Skipping quick check test - no demo token")
+            print("❌ Skipping Deep Link Profile test - no demo token")
             return False
             
         success, response = self.run_test(
-            "Quick Check Validation",
+            "Quick Check - Deep Link Profile",
             "POST",
-            "api/validation/quick-check",
+            "api/quick-check",
             200,
-            data={"phone_inputs": ["+628123456789"], "validate_whatsapp": True, "validate_telegram": True},
+            data={
+                "phone_inputs": ["+6281234567890"],
+                "validate_whatsapp": True,
+                "validate_telegram": False,
+                "validation_method": "deeplink_profile"
+            },
             token=self.demo_token,
-            description="Validate a single phone number (enhanced with providers)"
+            description="Test Deep Link Profile validation method (premium 3 credits)"
         )
         
         if success:
-            # Verify response structure
-            expected_keys = ['phone_number', 'whatsapp', 'telegram', 'cached', 'checked_at', 'providers_used']
-            response_keys = list(response.keys())
-            missing_keys = [key for key in expected_keys if key not in response_keys]
-            if missing_keys:
-                print(f"   ⚠️  Missing response keys: {missing_keys}")
-            else:
-                print(f"   ✅ Response structure is correct")
+            # Verify response structure for Deep Link Profile
+            if 'results' in response and response['results']:
+                result = response['results'][0]
+                whatsapp_data = result.get('whatsapp', {})
                 
-            # Check if providers_used field exists and has proper structure
-            if 'providers_used' in response:
-                providers = response['providers_used']
-                if isinstance(providers, dict) and 'whatsapp' in providers and 'telegram' in providers:
-                    print(f"   ✅ Providers used: WhatsApp={providers['whatsapp']}, Telegram={providers['telegram']}")
-                    # Check if real provider names are used instead of "Mock Provider"
-                    if providers['whatsapp'] != "Mock Provider" or providers['telegram'] != "Mock Provider":
-                        print(f"   ✅ Real provider integration detected")
-                    else:
-                        print(f"   ⚠️  Still using mock providers")
+                # Check if Deep Link Profile data is returned
+                details = whatsapp_data.get('details', {})
+                provider = details.get('provider', '')
+                
+                print(f"   📊 Provider used: {provider}")
+                print(f"   📊 Validation method: {details.get('validation_method', 'N/A')}")
+                print(f"   📊 Credits used: {response.get('credits_used', 'N/A')}")
+                
+                # Check for premium data fields
+                premium_fields = ['profile_picture', 'last_seen', 'business_info', 'status_message']
+                found_premium = [field for field in premium_fields if field in details]
+                
+                if found_premium:
+                    print(f"   ✅ Premium data fields found: {found_premium}")
                 else:
-                    print(f"   ⚠️  Invalid providers_used structure: {providers}")
+                    print(f"   ⚠️  No premium data fields detected")
+                
+                # Verify credit usage (should be 3 for Deep Link Profile)
+                credits_used = response.get('credits_used', 0)
+                if credits_used == 3:
+                    print(f"   ✅ Correct credit usage: {credits_used} credits")
+                else:
+                    print(f"   ⚠️  Unexpected credit usage: {credits_used} (expected 3)")
+                    
             else:
-                print(f"   ❌ Missing providers_used field in response")
+                print(f"   ⚠️  No results in response")
                 
         return success
+
+    def test_credit_system_verification(self):
+        """Test credit system functionality for demo account"""
+        if not self.demo_token:
+            print("❌ Skipping credit system test - no demo token")
+            return False
+            
+        # First get current credit balance
+        profile_success, profile_response = self.run_test(
+            "Get User Profile for Credits",
+            "GET",
+            "api/user/profile",
+            200,
+            token=self.demo_token,
+            description="Get current credit balance"
+        )
+        
+        if not profile_success:
+            return False
+            
+        initial_credits = profile_response.get('user', {}).get('credits', 0)
+        print(f"   📊 Initial credits: {initial_credits}")
+        
+        # Perform a validation that uses credits
+        validation_success, validation_response = self.run_test(
+            "Credit Usage Test",
+            "POST",
+            "api/quick-check",
+            200,
+            data={
+                "phone_inputs": ["+6281234567891"],
+                "validate_whatsapp": True,
+                "validate_telegram": True,
+                "validation_method": "standard"
+            },
+            token=self.demo_token,
+            description="Test credit deduction with standard validation"
+        )
+        
+        if not validation_success:
+            return False
+            
+        credits_used = validation_response.get('credits_used', 0)
+        print(f"   📊 Credits used for validation: {credits_used}")
+        
+        # Check credit balance after validation
+        final_profile_success, final_profile_response = self.run_test(
+            "Get Updated Credit Balance",
+            "GET",
+            "api/user/profile",
+            200,
+            token=self.demo_token,
+            description="Check credit balance after validation"
+        )
+        
+        if final_profile_success:
+            final_credits = final_profile_response.get('user', {}).get('credits', 0)
+            expected_credits = initial_credits - credits_used
+            
+            print(f"   📊 Final credits: {final_credits}")
+            print(f"   📊 Expected credits: {expected_credits}")
+            
+            if final_credits == expected_credits:
+                print(f"   ✅ Credit system working correctly")
+                return True
+            else:
+                print(f"   ❌ Credit calculation error: {final_credits} != {expected_credits}")
+                return False
+        
+        return False
+
+    def test_backend_health_comprehensive(self):
+        """Comprehensive backend health check for all main endpoints"""
+        print("\n🔍 COMPREHENSIVE BACKEND HEALTH CHECK")
+        print("="*60)
+        
+        health_results = {
+            "health_endpoint": False,
+            "auth_login": False,
+            "user_profile": False,
+            "quick_check": False,
+            "credit_packages": False,
+            "job_history": False
+        }
+        
+        # 1. Basic health check
+        print("\n1. Testing Health Endpoint...")
+        health_results["health_endpoint"] = self.test_health_check()
+        
+        # 2. Authentication
+        print("\n2. Testing Authentication...")
+        health_results["auth_login"] = self.test_demo_login()
+        
+        if health_results["auth_login"]:
+            # 3. User profile
+            print("\n3. Testing User Profile...")
+            health_results["user_profile"] = self.test_user_profile()
+            
+            # 4. Quick check validation
+            print("\n4. Testing Quick Check...")
+            health_results["quick_check"] = self.test_quick_check_validation()
+            
+            # 5. Credit packages
+            print("\n5. Testing Credit Packages...")
+            health_results["credit_packages"] = self.test_credit_packages()
+            
+            # 6. Job history
+            print("\n6. Testing Job History...")
+            health_results["job_history"] = self.test_jobs_list()
+        
+        # Summary
+        print("\n" + "="*60)
+        print("BACKEND HEALTH SUMMARY")
+        print("="*60)
+        
+        total_tests = len(health_results)
+        passed_tests = sum(health_results.values())
+        health_percentage = (passed_tests / total_tests) * 100
+        
+        print(f"📊 Overall Health: {health_percentage:.1f}% ({passed_tests}/{total_tests})")
+        
+        for test_name, result in health_results.items():
+            status = "✅ PASS" if result else "❌ FAIL"
+            print(f"   {status} {test_name.replace('_', ' ').title()}")
+        
+        if health_percentage >= 80:
+            print("🎉 Backend is healthy and ready for production!")
+        elif health_percentage >= 60:
+            print("⚠️  Backend has some issues but core functionality works")
+        else:
+            print("❌ Backend has critical issues that need immediate attention")
+        
+        return health_percentage >= 80
+
+    def test_syntax_and_name_errors(self):
+        """Test for syntax errors and NameErrors by calling various endpoints"""
+        print("\n🔍 TESTING FOR SYNTAX ERRORS AND NAME ERRORS")
+        print("="*60)
+        
+        error_test_results = {
+            "no_500_errors": True,
+            "proper_error_handling": True,
+            "consistent_responses": True
+        }
+        
+        # Test endpoints that might have syntax/name errors
+        test_endpoints = [
+            ("GET", "api/health", None, "Health endpoint"),
+            ("POST", "api/auth/login", {"username": "demo", "password": "demo123"}, "Login endpoint"),
+            ("GET", "api/user/profile", None, "Profile endpoint (requires auth)"),
+            ("POST", "api/quick-check", {
+                "phone_inputs": ["+6281234567890"],
+                "validate_whatsapp": True,
+                "validate_telegram": False,
+                "validation_method": "deeplink_profile"
+            }, "Quick check endpoint"),
+            ("GET", "api/credit-packages", None, "Credit packages endpoint")
+        ]
+        
+        for method, endpoint, data, description in test_endpoints:
+            print(f"\n🔍 Testing {description}...")
+            
+            try:
+                url = f"{self.base_url}/{endpoint}"
+                headers = {'Content-Type': 'application/json'}
+                
+                # Add auth token for protected endpoints
+                if endpoint != "api/health" and endpoint != "api/auth/login" and endpoint != "api/credit-packages":
+                    if self.demo_token:
+                        headers['Authorization'] = f'Bearer {self.demo_token}'
+                
+                if method == 'GET':
+                    response = requests.get(url, headers=headers, timeout=10)
+                elif method == 'POST':
+                    response = requests.post(url, json=data, headers=headers, timeout=10)
+                
+                # Check for 500 errors (usually indicate syntax/name errors)
+                if response.status_code == 500:
+                    print(f"   ❌ 500 Internal Server Error detected!")
+                    try:
+                        error_detail = response.json()
+                        print(f"   📊 Error details: {error_detail}")
+                    except:
+                        print(f"   📊 Raw error: {response.text[:200]}")
+                    error_test_results["no_500_errors"] = False
+                else:
+                    print(f"   ✅ No 500 error (status: {response.status_code})")
+                
+                # Check response format consistency
+                try:
+                    response_data = response.json()
+                    if isinstance(response_data, dict):
+                        print(f"   ✅ Valid JSON response structure")
+                    else:
+                        print(f"   ⚠️  Unexpected response type: {type(response_data)}")
+                        error_test_results["consistent_responses"] = False
+                except:
+                    if response.status_code < 500:  # Non-500 errors should still have valid JSON
+                        print(f"   ⚠️  Invalid JSON response")
+                        error_test_results["consistent_responses"] = False
+                
+            except requests.exceptions.RequestException as e:
+                print(f"   ❌ Request failed: {str(e)}")
+                error_test_results["proper_error_handling"] = False
+            except Exception as e:
+                print(f"   ❌ Unexpected error: {str(e)}")
+                error_test_results["proper_error_handling"] = False
+        
+        # Summary
+        print("\n" + "="*60)
+        print("SYNTAX/ERROR TESTING SUMMARY")
+        print("="*60)
+        
+        all_passed = all(error_test_results.values())
+        
+        for test_name, result in error_test_results.items():
+            status = "✅ PASS" if result else "❌ FAIL"
+            print(f"   {status} {test_name.replace('_', ' ').title()}")
+        
+        if all_passed:
+            print("🎉 No syntax errors or NameErrors detected!")
+        else:
+            print("❌ Potential syntax errors or implementation issues found")
+        
+        return all_passed
 
     def test_quick_check_insufficient_credits(self):
         """Test quick check with insufficient credits (if possible)"""
