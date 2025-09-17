@@ -299,7 +299,7 @@ const WhatsAppAccountManager = () => {
     
     try {
       setRefreshingQR(true);
-      toast.info('🔄 Generating QR code baru...');
+      toast.loading('🔄 Generating QR code baru...');
       
       const result = await apiCall(`/api/admin/whatsapp-accounts/${accountId}/login`, 'POST');
       
