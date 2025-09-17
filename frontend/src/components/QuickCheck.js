@@ -438,18 +438,95 @@ const QuickCheck = () => {
                   className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                 />
                 <label htmlFor="telegram" className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
-                  <span className="flex items-center justify-between w-full">
-                    <span className="flex items-center">
-                      <span className="text-blue-600">🔵</span>
-                      <span className="ml-1">Telegram</span>
-                      {!platformSettings.telegram_enabled && (
-                        <span className="ml-2 text-xs text-red-500">(Disabled)</span>
-                      )}
-                    </span>
-                    <span className="text-primary-600 font-medium text-sm">1 kredit</span>
+                  <span className="flex items-center">
+                    <span className="text-blue-600">🔵</span>
+                    <span className="ml-1">Telegram</span>
+                    {!platformSettings.telegram_enabled && (
+                      <span className="ml-2 text-xs text-red-500">(Disabled)</span>
+                    )}
                   </span>
                 </label>
               </div>
+
+              {/* Telegram Method Selection */}
+              {validateTelegram && (
+                <div className="ml-6 space-y-3 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Pilih Metode Telegram:</p>
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-center">
+                      <input
+                        type="radio"
+                        id="telegram_standard"
+                        name="telegram_method"
+                        value="standard"
+                        checked={telegramValidationMethod === 'standard'}
+                        onChange={(e) => setTelegramValidationMethod(e.target.value)}
+                        className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                      />
+                      <label htmlFor="telegram_standard" className="ml-2 text-sm text-gray-900 dark:text-gray-300">
+                        <div className="flex items-center justify-between w-full">
+                          <span>
+                            <strong>Standard Check</strong>
+                            <span className="text-gray-500 dark:text-gray-400 block text-xs">
+                              Username validation menggunakan Bot API
+                            </span>
+                          </span>
+                          <span className="text-primary-600 font-medium text-sm">1 kredit</span>
+                        </div>
+                      </label>
+                    </div>
+
+                    <div className="flex items-center">
+                      <input
+                        type="radio"
+                        id="telegram_mtp"
+                        name="telegram_method"
+                        value="mtp"
+                        checked={telegramValidationMethod === 'mtp'}
+                        onChange={(e) => setTelegramValidationMethod(e.target.value)}
+                        className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                      />
+                      <label htmlFor="telegram_mtp" className="ml-2 text-sm text-gray-900 dark:text-gray-300">
+                        <div className="flex items-center justify-between w-full">
+                          <span>
+                            <strong>MTP Validation</strong>
+                            <span className="inline-block bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-xs px-2 py-0.5 rounded-full ml-1">MTP</span>
+                            <span className="text-gray-500 dark:text-gray-400 block text-xs">
+                              Phone + Username validation via native client
+                            </span>
+                          </span>
+                          <span className="text-primary-600 font-medium text-sm">2 kredit</span>
+                        </div>
+                      </label>
+                    </div>
+                    
+                    <div className="flex items-center">
+                      <input
+                        type="radio"
+                        id="telegram_mtp_profile"
+                        name="telegram_method"
+                        value="mtp_profile"
+                        checked={telegramValidationMethod === 'mtp_profile'}
+                        onChange={(e) => setTelegramValidationMethod(e.target.value)}
+                        className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                      />
+                      <label htmlFor="telegram_mtp_profile" className="ml-2 text-sm text-gray-900 dark:text-gray-300">
+                        <div className="flex items-center justify-between w-full">
+                          <span>
+                            <strong>MTP Profile Deep</strong>
+                            <span className="inline-block bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-2 py-0.5 rounded-full ml-1">PREMIUM</span>
+                            <span className="text-gray-500 dark:text-gray-400 block text-xs">
+                              Full profile: foto, bio, last seen, privacy settings
+                            </span>
+                          </span>
+                          <span className="text-primary-600 font-medium text-sm">3 kredit</span>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             <h3 className="text-md font-semibold text-gray-900 dark:text-white mb-4">
