@@ -222,7 +222,7 @@ const WhatsAppAccountManager = () => {
       setQrCodeData(null);
       setRefreshingQR(false);
       
-      toast.info('🔄 Memulai proses login WhatsApp...');
+      toast.loading('🔄 Memulai proses login WhatsApp...');
       
       console.log('📡 Calling login API...');
       const result = await apiCall(`/api/admin/whatsapp-accounts/${accountId}/login`, 'POST');
