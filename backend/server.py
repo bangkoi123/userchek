@@ -551,6 +551,36 @@ async def startup_event():
     """Initialize application on startup"""
     await create_demo_users()
     await create_unique_indexes()
+    
+    # Initialize session recovery systems
+    print("🚀 Starting session recovery systems...")
+    
+    try:
+        # Import session managers
+        from telegram_session_manager import startup_session_recovery
+        from whatsapp_session_manager import startup_whatsapp_recovery
+        
+        # Start session recovery in background
+        telegram_recovery = await startup_session_recovery(db)
+        whatsapp_recovery = await startup_whatsapp_recovery(db)
+        
+        print(f"📱 Telegram recovery: {telegram_recovery.get('session_recovery', {}).get('recovered_sessions', 0)} sessions")
+        print(f"📱 WhatsApp recovery: {whatsapp_recovery.get('session_recovery', {}).get('recovered_sessions', 0)} sessions")
+        
+        # Log summary
+        total_telegram = telegram_recovery.get('session_recovery', {}).get('total_accounts', 0)
+        total_whatsapp = whatsapp_recovery.get('session_recovery', {}).get('total_accounts', 0)
+        recovered_telegram = telegram_recovery.get('session_recovery', {}).get('recovered_sessions', 0)
+        recovered_whatsapp = whatsapp_recovery.get('session_recovery', {}).get('recovered_sessions', 0)
+        
+        print(f"✅ Session Recovery Complete:")
+        print(f"   📊 Telegram: {recovered_telegram}/{total_telegram} accounts ready")
+        print(f"   📊 WhatsApp: {recovered_whatsapp}/{total_whatsapp} accounts ready")
+        print(f"   🎯 Total Ready Accounts: {recovered_telegram + recovered_whatsapp}")
+        
+    except Exception as e:
+        print(f"⚠️ Session recovery failed: {e}")
+        print("   System will still work but accounts may need manual setup")
 
 # Security
 security = HTTPBearer()
