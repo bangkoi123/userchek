@@ -1053,6 +1053,8 @@ class WebtoolsAPITester:
         print("="*80)
         
         return investigation_results
+
+    def test_admin_analytics_access_control(self):
         """Test admin analytics access control (non-admin should get 403)"""
         if not self.demo_token:
             print("❌ Skipping admin analytics access control test - no demo token")
@@ -1071,6 +1073,345 @@ class WebtoolsAPITester:
             print(f"   ✅ Access control working correctly - non-admin users blocked")
         
         return success
+
+    def debug_telegram_account_management_api(self):
+        """URGENT: Debug Telegram Account Management API - Frontend shows old data"""
+        print("\n" + "="*80)
+        print("🚨 URGENT: DEBUG TELEGRAM ACCOUNT MANAGEMENT API")
+        print("="*80)
+        print("ISSUE: Frontend shows 56 total accounts with old names like 'Primary Telegram Bot'")
+        print("EXPECTED: API should return exactly 29 demo accounts with status 'active'")
+        print("SCOPE: Test GET /api/admin/telegram-accounts and /api/admin/telegram-accounts/stats")
+        print("="*80)
+        
+        debug_results = {
+            "admin_login": False,
+            "telegram_accounts_api": False,
+            "telegram_stats_api": False,
+            "correct_account_count": False,
+            "correct_account_names": False,
+            "correct_account_status": False,
+            "no_caching_issues": False
+        }
+        
+        # 1. Test Admin Login
+        print("\n🔍 STEP 1: Testing Admin Login")
+        try:
+            admin_success, admin_response = self.run_test(
+                "Admin Login for Telegram Debug",
+                "POST",
+                "api/auth/login",
+                200,
+                data={"username": "admin", "password": "admin123"},
+                description="Login as admin to access Telegram management endpoints"
+            )
+            
+            if admin_success and 'token' in admin_response:
+                self.admin_token = admin_response['token']
+                self.admin_user_id = admin_response.get('user', {}).get('id')
+                print(f"   ✅ Admin login successful")
+                debug_results["admin_login"] = True
+            else:
+                print(f"   ❌ Admin login failed: {admin_response}")
+                return debug_results
+                
+        except Exception as e:
+            print(f"   ❌ Admin login error: {str(e)}")
+            return debug_results
+        
+        # 2. Test GET /api/admin/telegram-accounts
+        print("\n🔍 STEP 2: Testing GET /api/admin/telegram-accounts")
+        try:
+            accounts_success, accounts_response = self.run_test(
+                "Telegram Accounts List",
+                "GET",
+                "api/admin/telegram-accounts",
+                200,
+                token=self.admin_token,
+                description="Get list of all Telegram accounts"
+            )
+            
+            if accounts_success and isinstance(accounts_response, list):
+                debug_results["telegram_accounts_api"] = True
+                total_accounts = len(accounts_response)
+                print(f"   ✅ API returned {total_accounts} accounts")
+                
+                # Analyze account data
+                demo_accounts = [acc for acc in accounts_response if acc.get('demo_account', False)]
+                non_demo_accounts = [acc for acc in accounts_response if not acc.get('demo_account', False)]
+                
+                print(f"   📊 Demo accounts: {len(demo_accounts)}")
+                print(f"   📊 Non-demo accounts: {len(non_demo_accounts)}")
+                
+                # Check for expected demo account names
+                expected_demo_names = [f"Telegram Demo {i}" for i in range(1, 30)]  # Demo 1 to Demo 29
+                found_demo_names = [acc.get('name', '') for acc in demo_accounts]
+                
+                print(f"   📊 Found demo account names: {found_demo_names[:5]}..." if len(found_demo_names) > 5 else f"   📊 Found demo account names: {found_demo_names}")
+                
+                # Check for old account names (the problematic ones)
+                old_account_names = ["Primary Telegram Bot", "Secondary Telegram Account", "Backup Telegram Account"]
+                found_old_names = [acc.get('name', '') for acc in accounts_response if acc.get('name', '') in old_account_names]
+                
+                if found_old_names:
+                    print(f"   ❌ FOUND OLD ACCOUNT NAMES: {found_old_names}")
+                    print(f"   💡 These should not exist in database!")
+                else:
+                    print(f"   ✅ No old account names found")
+                
+                # Check account statuses
+                status_counts = {}
+                for acc in accounts_response:
+                    status = acc.get('status', 'unknown')
+                    status_counts[status] = status_counts.get(status, 0) + 1
+                
+                print(f"   📊 Account status breakdown: {status_counts}")
+                
+                # Check if we have exactly 29 demo accounts with 'active' status
+                active_demo_accounts = [acc for acc in demo_accounts if acc.get('status') == 'active']
+                if len(active_demo_accounts) == 29:
+                    print(f"   ✅ Found exactly 29 active demo accounts")
+                    debug_results["correct_account_count"] = True
+                else:
+                    print(f"   ❌ Expected 29 active demo accounts, found {len(active_demo_accounts)}")
+                
+                # Check demo account names match expected pattern
+                correct_demo_names = [name for name in found_demo_names if name in expected_demo_names]
+                if len(correct_demo_names) >= 29:
+                    print(f"   ✅ Demo account names match expected pattern")
+                    debug_results["correct_account_names"] = True
+                else:
+                    print(f"   ❌ Demo account names don't match expected pattern")
+                    print(f"       Expected: Telegram Demo 1, Telegram Demo 2, etc.")
+                    print(f"       Found: {found_demo_names[:10]}...")
+                
+                # Check if all demo accounts have 'active' status
+                demo_statuses = [acc.get('status') for acc in demo_accounts]
+                active_demo_count = demo_statuses.count('active')
+                if active_demo_count == len(demo_accounts):
+                    print(f"   ✅ All demo accounts have 'active' status")
+                    debug_results["correct_account_status"] = True
+                else:
+                    print(f"   ❌ Not all demo accounts have 'active' status")
+                    print(f"       Active: {active_demo_count}, Total demo: {len(demo_accounts)}")
+                    print(f"       Status breakdown: {set(demo_statuses)}")
+                
+                # Show sample account data
+                if accounts_response:
+                    sample_account = accounts_response[0]
+                    print(f"   📋 Sample account structure:")
+                    for key, value in sample_account.items():
+                        if key not in ['api_hash', 'session_string']:  # Hide sensitive data
+                            print(f"       {key}: {value}")
+                
+            else:
+                print(f"   ❌ Telegram accounts API failed: {accounts_response}")
+                
+        except Exception as e:
+            print(f"   ❌ Telegram accounts API error: {str(e)}")
+        
+        # 3. Test GET /api/admin/telegram-accounts/stats
+        print("\n🔍 STEP 3: Testing GET /api/admin/telegram-accounts/stats")
+        try:
+            stats_success, stats_response = self.run_test(
+                "Telegram Accounts Statistics",
+                "GET",
+                "api/admin/telegram-accounts/stats",
+                200,
+                token=self.admin_token,
+                description="Get Telegram accounts statistics"
+            )
+            
+            if stats_success and isinstance(stats_response, dict):
+                debug_results["telegram_stats_api"] = True
+                print(f"   ✅ Stats API working")
+                
+                # Check expected statistics
+                total_accounts = stats_response.get('total_accounts', 0)
+                active_accounts = stats_response.get('active_accounts', 0)
+                available_for_use = stats_response.get('available_for_use', 0)
+                
+                print(f"   📊 Statistics from API:")
+                print(f"       total_accounts: {total_accounts}")
+                print(f"       active_accounts: {active_accounts}")
+                print(f"       available_for_use: {available_for_use}")
+                
+                # Check if statistics match expected values
+                expected_stats = {
+                    'total_accounts': 29,
+                    'active_accounts': 29,
+                    'available_for_use': 29
+                }
+                
+                stats_correct = True
+                for key, expected_value in expected_stats.items():
+                    actual_value = stats_response.get(key, 0)
+                    if actual_value == expected_value:
+                        print(f"   ✅ {key}: {actual_value} (correct)")
+                    else:
+                        print(f"   ❌ {key}: {actual_value} (expected {expected_value})")
+                        stats_correct = False
+                
+                if stats_correct:
+                    print(f"   ✅ All statistics match expected values")
+                else:
+                    print(f"   ❌ Statistics don't match expected values")
+                    print(f"   💡 This indicates database contains more accounts than expected")
+                
+            else:
+                print(f"   ❌ Telegram stats API failed: {stats_response}")
+                
+        except Exception as e:
+            print(f"   ❌ Telegram stats API error: {str(e)}")
+        
+        # 4. Test for caching issues
+        print("\n🔍 STEP 4: Testing for Caching Issues")
+        try:
+            # Make multiple requests to see if results are consistent
+            print("   Making multiple API requests to check for caching...")
+            
+            consistent_results = True
+            first_response = None
+            
+            for i in range(3):
+                cache_success, cache_response = self.run_test(
+                    f"Cache Test #{i+1}",
+                    "GET",
+                    "api/admin/telegram-accounts",
+                    200,
+                    token=self.admin_token,
+                    description=f"Cache consistency test #{i+1}"
+                )
+                
+                if cache_success:
+                    if first_response is None:
+                        first_response = cache_response
+                    else:
+                        # Compare with first response
+                        if len(cache_response) != len(first_response):
+                            print(f"   ❌ Inconsistent response lengths: {len(cache_response)} vs {len(first_response)}")
+                            consistent_results = False
+                        else:
+                            # Compare account IDs
+                            first_ids = [acc.get('_id') for acc in first_response]
+                            current_ids = [acc.get('_id') for acc in cache_response]
+                            if set(first_ids) != set(current_ids):
+                                print(f"   ❌ Inconsistent account IDs between requests")
+                                consistent_results = False
+                
+                # Small delay between requests
+                import time
+                time.sleep(0.5)
+            
+            if consistent_results:
+                print(f"   ✅ No caching issues detected - responses are consistent")
+                debug_results["no_caching_issues"] = True
+            else:
+                print(f"   ❌ Caching issues detected - responses are inconsistent")
+                
+        except Exception as e:
+            print(f"   ❌ Cache testing error: {str(e)}")
+        
+        # 5. Database vs API Response Verification
+        print("\n🔍 STEP 5: Database vs API Response Analysis")
+        try:
+            if debug_results["telegram_accounts_api"]:
+                print("   Analyzing database content vs API response...")
+                
+                # Re-fetch accounts for analysis
+                accounts_success, accounts_response = self.run_test(
+                    "Final Accounts Analysis",
+                    "GET",
+                    "api/admin/telegram-accounts",
+                    200,
+                    token=self.admin_token,
+                    description="Final analysis of account data"
+                )
+                
+                if accounts_success:
+                    # Group accounts by type
+                    demo_accounts = [acc for acc in accounts_response if acc.get('demo_account', False)]
+                    legacy_accounts = [acc for acc in accounts_response if not acc.get('demo_account', False)]
+                    
+                    print(f"   📊 Final Analysis:")
+                    print(f"       Total accounts in API response: {len(accounts_response)}")
+                    print(f"       Demo accounts (demo_account=true): {len(demo_accounts)}")
+                    print(f"       Legacy accounts (demo_account=false): {len(legacy_accounts)}")
+                    
+                    # Check for duplicate names
+                    all_names = [acc.get('name', '') for acc in accounts_response]
+                    duplicate_names = [name for name in set(all_names) if all_names.count(name) > 1]
+                    
+                    if duplicate_names:
+                        print(f"   ❌ DUPLICATE ACCOUNT NAMES FOUND: {duplicate_names}")
+                        for dup_name in duplicate_names:
+                            dup_accounts = [acc for acc in accounts_response if acc.get('name') == dup_name]
+                            print(f"       '{dup_name}' appears {len(dup_accounts)} times")
+                            for acc in dup_accounts:
+                                print(f"         ID: {acc.get('_id')}, Status: {acc.get('status')}, Demo: {acc.get('demo_account')}")
+                    else:
+                        print(f"   ✅ No duplicate account names found")
+                    
+                    # Show legacy account names (these shouldn't exist)
+                    if legacy_accounts:
+                        legacy_names = [acc.get('name', '') for acc in legacy_accounts]
+                        print(f"   ❌ LEGACY ACCOUNTS FOUND (should be cleaned up): {legacy_names}")
+                    else:
+                        print(f"   ✅ No legacy accounts found")
+                
+        except Exception as e:
+            print(f"   ❌ Database analysis error: {str(e)}")
+        
+        # 6. Summary and Recommendations
+        print("\n" + "="*80)
+        print("🔍 TELEGRAM ACCOUNT MANAGEMENT DEBUG SUMMARY")
+        print("="*80)
+        
+        total_checks = len(debug_results)
+        passed_checks = sum(debug_results.values())
+        
+        print(f"📊 Overall Status: {passed_checks}/{total_checks} checks passed")
+        
+        for check, status in debug_results.items():
+            status_icon = "✅" if status else "❌"
+            print(f"   {status_icon} {check.replace('_', ' ').title()}: {'PASS' if status else 'FAIL'}")
+        
+        # Root Cause Analysis
+        print("\n🔍 ROOT CAUSE ANALYSIS:")
+        
+        if not debug_results["admin_login"]:
+            print("   ❌ AUTHENTICATION ISSUE: Cannot access admin endpoints")
+            print("   💡 Fix admin login first before debugging further")
+        elif not debug_results["telegram_accounts_api"]:
+            print("   ❌ API ENDPOINT ISSUE: Telegram accounts API not working")
+            print("   💡 Check backend logs and endpoint implementation")
+        elif not debug_results["correct_account_count"]:
+            print("   ❌ DATABASE CLEANUP NEEDED: More than 29 accounts in database")
+            print("   💡 Database contains legacy/duplicate accounts from previous testing")
+            print("   💡 RECOMMENDATION: Clean up database to have exactly 29 demo accounts")
+        elif not debug_results["correct_account_names"]:
+            print("   ❌ ACCOUNT NAMING ISSUE: Demo accounts don't follow expected pattern")
+            print("   💡 RECOMMENDATION: Ensure demo accounts are named 'Telegram Demo 1' to 'Telegram Demo 29'")
+        elif not debug_results["correct_account_status"]:
+            print("   ❌ STATUS ISSUE: Demo accounts don't have 'active' status")
+            print("   💡 RECOMMENDATION: Update demo account status to 'active'")
+        elif not debug_results["no_caching_issues"]:
+            print("   ❌ CACHING ISSUE: API responses are inconsistent")
+            print("   💡 RECOMMENDATION: Check for caching layers or race conditions")
+        else:
+            print("   ✅ ALL CHECKS PASSED: API is working correctly")
+            print("   💡 Frontend issue may be due to client-side caching or different API endpoint")
+        
+        print("\n🎯 SPECIFIC RECOMMENDATIONS:")
+        print("   1. Clean database to have exactly 29 demo accounts with unique names")
+        print("   2. Ensure all demo accounts have status 'active' and demo_account: true")
+        print("   3. Remove any legacy accounts with old names like 'Primary Telegram Bot'")
+        print("   4. Check frontend is calling correct API endpoint")
+        print("   5. Clear any frontend caching that might show old data")
+        
+        print("="*80)
+        
+        return debug_results
 
     def test_bulk_check_platform_selection_whatsapp_only(self):
         """Test bulk check with WhatsApp only validation"""
