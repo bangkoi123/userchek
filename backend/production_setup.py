@@ -88,30 +88,24 @@ class ProductionSetupManager:
             ]
             
             # Telegram Demo Accounts  
-            telegram_demos = [
-                {
-                    "name": "Telegram Demo 1",
-                    "phone_number": "+6281999777666",
-                    "api_id": "demo_api_id_1",
-                    "api_hash": "demo_api_hash_1234567890abcdef",
-                    "status": "demo_ready",
+            telegram_demos = []
+            
+            # Generate 29 demo Telegram accounts as mentioned in current_work
+            for i in range(1, 30):
+                telegram_demos.append({
+                    "name": f"Telegram Demo {i}",
+                    "phone_number": f"+628199977{7600 + i:04d}",
+                    "api_id": f"demo_api_id_{i}",
+                    "api_hash": f"demo_api_hash_{i:04d}567890abcdef",
+                    "status": "active",  # Changed from demo_ready to active
                     "max_daily_requests": 1000,
-                    "notes": "Demo account - MTP validation ready",
+                    "notes": f"Demo account #{i} - MTP validation ready",
                     "demo_account": True,
-                    "auto_validation": True
-                },
-                {
-                    "name": "Telegram Demo 2",
-                    "phone_number": "+6281999777667", 
-                    "api_id": "demo_api_id_2",
-                    "api_hash": "demo_api_hash_2345678901bcdefg",
-                    "status": "demo_ready",
-                    "max_daily_requests": 1000,
-                    "notes": "Demo account - backup MTP validation",
-                    "demo_account": True,
-                    "auto_validation": True
-                }
-            ]
+                    "auto_validation": True,
+                    "session_status": "connected",  # Add session status
+                    "last_activity": datetime.utcnow(),
+                    "demo_mode": True
+                })
             
             created_whatsapp = 0
             created_telegram = 0
