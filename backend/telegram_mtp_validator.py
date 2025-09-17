@@ -20,13 +20,15 @@ except ImportError:
 
 class TelegramMTPValidator:
     def __init__(self, session_name: str = "telegram_validator", api_id: str = None, api_hash: str = None, phone_number: str = None):
+        # Initialize logger first
+        self.logger = logging.getLogger(__name__)
+        
         # Get real credentials from environment - PRODUCTION READY
         self.api_id = self._get_api_id(api_id)
         self.api_hash = self._get_api_hash(api_hash)
         self.phone_number = phone_number
         self.session_name = session_name
         self.client: Optional[Client] = None
-        self.logger = logging.getLogger(__name__)
         
         # Setup session directory with proper validation
         self.session_path = os.environ.get('TELEGRAM_SESSION_PATH', '/app/data/telegram_sessions/')
