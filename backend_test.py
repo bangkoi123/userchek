@@ -16,6 +16,7 @@ class WebtoolsAPITester:
         self.created_whatsapp_account_id = None
         self.created_telegram_account_id = None
         self.test_job_id = None
+        self.critical_errors = []
 
     def run_test(self, name, method, endpoint, expected_status, data=None, token=None, description=""):
         """Run a single API test"""
