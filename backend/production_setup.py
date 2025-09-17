@@ -63,29 +63,23 @@ class ProductionSetupManager:
     async def _create_demo_accounts(self) -> Dict:
         """Create demo accounts for immediate testing"""
         try:
-            # WhatsApp Demo Accounts
-            whatsapp_demos = [
-                {
-                    "name": "WhatsApp Demo 1",
-                    "phone_number": "+6281999888777",
+            # WhatsApp Demo Accounts - Generate 6 accounts as mentioned in current_work
+            whatsapp_demos = []
+            
+            for i in range(1, 7):
+                whatsapp_demos.append({
+                    "name": f"WhatsApp Demo {i}",
+                    "phone_number": f"+628199988{8770 + i:04d}",
                     "login_method": "qr_code",
-                    "status": "demo_ready",  # Special status
+                    "status": "active",  # Changed from demo_ready to active
                     "max_daily_requests": 1000,
-                    "notes": "Demo account - ready for validation testing",
+                    "notes": f"Demo account #{i} - ready for validation testing",
                     "demo_account": True,
-                    "auto_validation": True  # Can validate without real login
-                },
-                {
-                    "name": "WhatsApp Demo 2", 
-                    "phone_number": "+6281999888778",
-                    "login_method": "qr_code",
-                    "status": "demo_ready",
-                    "max_daily_requests": 1000,
-                    "notes": "Demo account - backup validation",
-                    "demo_account": True,
-                    "auto_validation": True
-                }
-            ]
+                    "auto_validation": True,  # Can validate without real login
+                    "session_status": "connected",
+                    "last_activity": datetime.utcnow(),
+                    "demo_mode": True
+                })
             
             # Telegram Demo Accounts  
             telegram_demos = []
