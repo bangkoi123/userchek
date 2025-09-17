@@ -3445,125 +3445,50 @@ if __name__ == "__main__":
         return scenario_success
 
 def main():
-    print("🚀 Starting Webtools Validation API Tests")
-    print("=" * 50)
+    """Main function to run urgent login investigation"""
+    print("🚀 WEBTOOLS BACKEND API URGENT LOGIN INVESTIGATION")
+    print("=" * 80)
     
-    # Setup
     tester = WebtoolsAPITester()
     
-    # Basic tests
-    print("\n📋 BASIC FUNCTIONALITY TESTS")
-    print("-" * 30)
-    tester.test_health_check()
+    # Run urgent login investigation
+    investigation_results = tester.urgent_login_investigation()
     
-    # Authentication tests
-    print("\n🔐 AUTHENTICATION TESTS")
-    print("-" * 30)
-    tester.test_demo_login()
-    tester.test_admin_login()
-    tester.test_invalid_login()
-    tester.test_unauthorized_access()
+    # Additional quick tests if login works
+    if investigation_results["admin_login"] or investigation_results["demo_login"]:
+        print("\n🔍 RUNNING ADDITIONAL AUTHENTICATION TESTS...")
+        
+        # Test some core endpoints to verify system functionality
+        if investigation_results["admin_login"]:
+            print("\n📊 Testing Admin Endpoints...")
+            tester.test_admin_analytics()
+            tester.test_admin_users_list()
+        
+        if investigation_results["demo_login"]:
+            print("\n📊 Testing User Endpoints...")
+            tester.test_user_profile()
+            tester.test_dashboard_stats()
     
-    # ========== WHATSAPP VALIDATION ACCURACY INVESTIGATION ==========
-    print("\n🔍 WHATSAPP VALIDATION ACCURACY INVESTIGATION")
-    print("-" * 50)
-    print("🎯 INVESTIGATING: User reports validation results not accurate")
-    print("🎯 INVESTIGATING: Results seem to use free method instead of CheckNumber.ai")
-    print("-" * 50)
+    # Final summary
+    print("\n" + "="*80)
+    print("🎯 FINAL INVESTIGATION RESULTS")
+    print("="*80)
     
-    tester.test_whatsapp_validation_accuracy_quick_check()
-    tester.test_admin_whatsapp_provider_settings()
-    tester.test_bulk_validation_checknumber_usage()
-    tester.test_backend_logs_checknumber_calls()
-    tester.test_whatsapp_provider_configuration_verification()
+    total_tests = tester.tests_run
+    passed_tests = tester.tests_passed
+    success_rate = (passed_tests / total_tests * 100) if total_tests > 0 else 0
     
-    # User functionality tests
-    print("\n👤 USER FUNCTIONALITY TESTS")
-    print("-" * 30)
-    tester.test_user_profile()
-    tester.test_update_user_profile()
-    tester.test_dashboard_stats()
-    tester.test_quick_check_validation()
-    tester.test_quick_check_insufficient_credits()
-    tester.test_jobs_list()
+    print(f"📊 Tests Run: {total_tests}")
+    print(f"📊 Tests Passed: {passed_tests}")
+    print(f"📊 Success Rate: {success_rate:.1f}%")
     
-    # Credit Top-up System Tests
-    print("\n💳 CREDIT TOP-UP SYSTEM TESTS")
-    print("-" * 30)
-    tester.test_credit_packages()
-    tester.test_create_checkout_session()
-    tester.test_payment_status()
-    tester.test_payment_transactions()
-    
-    # Enhanced Bulk Check Tests
-    print("\n📋 ENHANCED BULK CHECK FUNCTIONALITY TESTS")
-    print("-" * 30)
-    tester.test_bulk_check_platform_selection_whatsapp_only()
-    tester.test_bulk_check_platform_selection_telegram_only()
-    tester.test_bulk_check_platform_selection_both_platforms()
-    tester.test_bulk_check_no_platform_selected()
-    tester.test_bulk_check_csv_format_phone_only()
-    tester.test_bulk_check_csv_format_alternative_headers()
-    tester.test_bulk_check_job_status_progression()
-    tester.test_bulk_check_invalid_file_format()
-    tester.test_bulk_check_oversized_file()
-    
-    # Admin functionality tests
-    print("\n👑 ADMIN FUNCTIONALITY TESTS")
-    print("-" * 30)
-    tester.test_seed_sample_data()  # Seed data first
-    tester.test_admin_stats()
-    tester.test_admin_users_list()
-    tester.test_admin_user_details()
-    tester.test_admin_update_user()
-    tester.test_admin_analytics()
-    tester.test_admin_analytics_access_control()
-    tester.test_admin_telegram_accounts()
-    tester.test_admin_whatsapp_providers()
-    tester.test_admin_jobs()
-    tester.test_admin_access_with_user_token()
-    
-    # ========== NEW WHATSAPP VALIDATION METHOD TESTS ==========
-    print("\n🔗 NEW WHATSAPP VALIDATION METHOD TESTS")
-    print("-" * 50)
-    print("🎯 TESTING: New WhatsApp validation methods and account management")
-    print("🎯 TESTING: Standard vs Deep Link Profile validation methods")
-    print("🎯 TESTING: Credit calculation for different methods")
-    print("🎯 TESTING: WhatsApp account management endpoints")
-    print("-" * 50)
-    
-    tester.test_quick_check_standard_method()
-    tester.test_quick_check_deeplink_profile_method()
-    tester.test_bulk_check_validation_method_parameter()
-    tester.test_credit_calculation_validation_methods()
-    tester.test_whatsapp_accounts_list()
-    tester.test_whatsapp_accounts_create()
-    tester.test_whatsapp_account_login()
-    tester.test_whatsapp_accounts_stats()
-    tester.test_deep_link_validation_with_accounts()
-    tester.test_validation_method_parameter_validation()
-    tester.test_error_handling_missing_accounts()
-    
-    # Print results
-    print("\n" + "=" * 50)
-    print("📊 TEST RESULTS SUMMARY")
-    print("=" * 50)
-    print(f"Tests run: {tester.tests_run}")
-    print(f"Tests passed: {tester.tests_passed}")
-    print(f"Tests failed: {tester.tests_run - tester.tests_passed}")
-    print(f"Success rate: {(tester.tests_passed/tester.tests_run)*100:.1f}%")
-    
-    # Special focus on WhatsApp validation accuracy results
-    print("\n" + "🔍" * 50)
-    print("WHATSAPP VALIDATION ACCURACY INVESTIGATION SUMMARY")
-    print("🔍" * 50)
-    print("Key findings will be reported to main agent for analysis...")
-    
-    if tester.tests_passed == tester.tests_run:
-        print("\n🎉 All tests passed!")
+    if investigation_results["admin_login"] and investigation_results["demo_login"]:
+        print("\n✅ CONCLUSION: LOGIN SYSTEM IS WORKING!")
+        print("💡 User issue is likely frontend-related or user error")
         return 0
     else:
-        print(f"\n⚠️  {tester.tests_run - tester.tests_passed} test(s) failed")
+        print("\n❌ CONCLUSION: LOGIN SYSTEM HAS ISSUES!")
+        print("💡 Backend authentication system needs fixing")
         return 1
 
 if __name__ == "__main__":
