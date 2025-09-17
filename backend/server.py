@@ -1724,8 +1724,9 @@ async def login_whatsapp_account(
         raise HTTPException(status_code=403, detail="Admin access required")
     
     try:
-        # Real browser automation with Playwright (now working!)
-        result = await real_whatsapp_login(account_id, db)
+        # Use optimized browser pool for better resource management
+        from whatsapp_account_pool import optimized_whatsapp_login
+        result = await optimized_whatsapp_login(account_id, db)
         return result
         
     except Exception as e:
