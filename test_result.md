@@ -239,6 +239,18 @@ backend:
         agent: "testing"
         comment: "✅ WHATSAPP ACCOUNT MANAGEMENT BACKEND API COMPREHENSIVE TESTING COMPLETED: Executed comprehensive testing of all WhatsApp Account Management backend endpoints as specifically requested in review. TEST SCENARIO EXECUTED: 1) ✅ Admin authentication (admin/admin123) successful with JWT token generation. 2) ✅ GET /api/admin/whatsapp-accounts returns 4 existing accounts with complete data structure including _id, name, phone_number, status, login_method, usage statistics. 3) ✅ GET /api/admin/whatsapp-accounts/stats provides detailed statistics (total: 4, active: 4, status breakdown: error=2, logged_out=2). 4) ✅ POST /api/admin/whatsapp-accounts creates new account successfully with ID 68c9a194bf01060f0550f864, verifying name and phone number match input data. 5) ✅ POST /api/admin/whatsapp-accounts/{id}/login responds correctly (500 error expected due to Playwright browser dependencies in container - 'Executable doesn't exist at /root/.cache/ms-playwright/chromium-1091/chrome-linux/chrome'). 6) ✅ POST /api/admin/whatsapp-accounts/{id}/logout responds correctly (same browser dependency limitation). 7) ✅ PUT /api/admin/whatsapp-accounts/{id} updates account name and daily_request_limit successfully. 8) ✅ DELETE /api/admin/whatsapp-accounts/{id} removes account with confirmation message. RESULTS: 8/8 tests passed (100% success rate). All CRUD operations working perfectly. QR code generation endpoints functional but limited by container environment (expected behavior). Backend API layer completely functional and ready for production use."
 
+  - task: "Telegram Account Management Backend API Testing"
+    implemented: true
+    working: false
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "❌ TELEGRAM ACCOUNT MANAGEMENT API TESTING COMPLETED: Conducted comprehensive testing of Telegram Account Management backend API as requested in review. BACKEND FUNCTIONALITY: ✅ Admin login (admin/admin123) working correctly with JWT token generation. ✅ GET /api/admin/telegram-accounts returns accounts list (58 total accounts found). ✅ GET /api/admin/telegram-accounts/stats returns statistics (total_accounts: 58, active_accounts: 29, available_for_use: 29). ✅ Individual account data structure verification successful. CRITICAL FINDINGS: ❌ EXPECTED 29 DEMO ACCOUNTS, FOUND 58 TOTAL ACCOUNTS: Database contains 30 demo accounts + 28 non-demo accounts instead of exactly 29 demo accounts. ❌ DEMO ACCOUNT STATUS INCORRECT: Demo accounts have status 'demo_ready' instead of expected 'active' status. ❌ DUPLICATE DEMO ACCOUNTS: Found duplicate 'Telegram Demo 2' account in database. ❌ STATISTICS MISMATCH: total_accounts shows 58 instead of expected 29, though active_accounts (29) and available_for_use (29) are correct. DEMO DATA VERIFICATION: ✅ All 29 expected demo account names present ('Telegram Demo 1' to 'Telegram Demo 29'). ✅ Demo accounts have correct phone number format (+6281999777667x). ✅ Demo accounts have demo_account: true flag. ✅ Demo accounts have complete data structure with all required fields. ROOT CAUSE: Database contains legacy/duplicate accounts from previous testing, and demo accounts have incorrect status field. RECOMMENDATION: Clean up database to have exactly 29 demo accounts with status 'active', or update test expectations to match current database state."
+
 frontend:
   - task: "Telegram Account Management Page"
     implemented: true
