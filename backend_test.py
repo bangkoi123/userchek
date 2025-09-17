@@ -3065,7 +3065,57 @@ class WebtoolsAPITester:
             print(f"   ❌ SOME TESTS FAILED - Demo data needs correction")
             
         self.tests_run += 1
-        return all_tests_passed
+def main():
+    """Main function to run urgent login investigation"""
+    print("🚀 WEBTOOLS BACKEND API URGENT LOGIN INVESTIGATION")
+    print("=" * 80)
+    
+    tester = WebtoolsAPITester()
+    
+    # Run urgent login investigation
+    investigation_results = tester.urgent_login_investigation()
+    
+    # Additional quick tests if login works
+    if investigation_results["admin_login"] or investigation_results["demo_login"]:
+        print("\n🔍 RUNNING ADDITIONAL AUTHENTICATION TESTS...")
+        
+        # Test some core endpoints to verify system functionality
+        if investigation_results["admin_login"]:
+            print("\n📊 Testing Admin Endpoints...")
+            tester.test_admin_analytics()
+            tester.test_admin_users_list()
+        
+        if investigation_results["demo_login"]:
+            print("\n📊 Testing User Endpoints...")
+            tester.test_user_profile()
+            tester.test_dashboard_stats()
+    
+    # Final summary
+    print("\n" + "="*80)
+    print("🎯 FINAL INVESTIGATION RESULTS")
+    print("="*80)
+    
+    total_tests = tester.tests_run
+    passed_tests = tester.tests_passed
+    success_rate = (passed_tests / total_tests * 100) if total_tests > 0 else 0
+    
+    print(f"📊 Tests Run: {total_tests}")
+    print(f"📊 Tests Passed: {passed_tests}")
+    print(f"📊 Success Rate: {success_rate:.1f}%")
+    
+    if investigation_results["admin_login"] and investigation_results["demo_login"]:
+        print("\n✅ CONCLUSION: LOGIN SYSTEM IS WORKING!")
+        print("💡 User issue is likely frontend-related or user error")
+    else:
+        print("\n❌ CONCLUSION: LOGIN SYSTEM HAS ISSUES!")
+        print("💡 Backend authentication system needs fixing")
+    
+    print("="*80)
+    
+    return investigation_results
+
+if __name__ == "__main__":
+    main()
 
     def test_telegram_account_management_post_cleanup_verification(self):
         """QUICK VERIFICATION: Test Telegram Account Management API after database cleanup"""
