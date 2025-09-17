@@ -48,35 +48,55 @@ class WhatsAppBrowserManager:
             return self
     
     async def _setup_browser(self):
-        self.playwright = await async_playwright().start()
-        
-        # Launch browser with enhanced stealth settings for WhatsApp compatibility
-        # Optimized for single VPS with multiple accounts
-        self.browser = await self.playwright.chromium.launch(
-            headless=self.headless,
-            args=[
+        """Setup browser with production-ready configuration"""
+        try:
+            self.playwright = await async_playwright().start()
+            
+            # Production browser args - enhanced for stability
+            browser_args = [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
                 '--disable-dev-shm-usage',  # Critical for memory efficiency
                 '--disable-accelerated-2d-canvas',
                 '--no-first-run',
-                '--no-zygote',
-                '--disable-gpu',
-                '--disable-features=VizDisplayCompositor',
-                '--disable-blink-features=AutomationControlled',  # Hide automation
-                '--disable-web-security',
-                '--disable-features=TranslateUI',
-                '--disable-ipc-flooding-protection',
-                '--memory-pressure-off',  # Optimize memory usage
-                '--max_old_space_size=512',  # Limit memory per context
+                '--no-default-browser-check',
+                '--disable-background-networking',
                 '--disable-background-timer-throttling',
                 '--disable-renderer-backgrounding',
                 '--disable-backgrounding-occluded-windows',
-                '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                '--disable-client-side-phishing-detection',
+                '--disable-default-apps',
+                '--disable-hang-monitor',
+                '--mute-audio',
+                '--disable-ipc-flooding-protection'
             ]
-        )
-        
-        return self
+            
+            # Try to launch browser with full args first
+            try:
+                self.browser = await self.playwright.chromium.launch(
+                    headless=self.headless,
+                    args=browser_args,
+                    slow_mo=50,  # Slight delay to avoid detection
+                    timeout=30000  # 30 second timeout
+                )
+                print("✅ Browser launched with full production settings")
+                
+            except Exception as launch_error:
+                print(f"⚠️ Full browser launch failed: {launch_error}")
+                # Fallback to minimal args for compatibility
+                minimal_args = ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+                self.browser = await self.playwright.chromium.launch(
+                    headless=self.headless,
+                    args=minimal_args
+                )
+                print("✅ Browser launched with minimal settings (fallback)")
+            
+            return self
+            
+        except Exception as e:
+            print(f"❌ Browser setup failed completely: {e}")
+            # Still return self for graceful degradation
+            return self
     
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         """Async context manager cleanup"""
