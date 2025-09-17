@@ -457,7 +457,7 @@ class WebtoolsAPITester:
         success, response = self.run_test(
             "Quick Check Validation",
             "POST",
-            "api/quick-check",
+            "api/validation/quick-check",
             200,
             data={"phone_inputs": ["+628123456789"], "validate_whatsapp": True, "validate_telegram": True},
             token=self.demo_token,
@@ -484,6 +484,11 @@ class WebtoolsAPITester:
                     print(f"   ⚠️  No provider information in WhatsApp result")
             else:
                 print(f"   ⚠️  No results in response")
+        else:
+            # Check if it's a 500 error
+            if hasattr(self, 'last_response_status') and self.last_response_status == 500:
+                print(f"   ❌ 500 Internal Server Error - backend has syntax/name errors")
+                return False
                 
         return success
 
