@@ -89,10 +89,10 @@ class TelegramMTPValidator:
         try:
             self.client = Client(
                 name=self.session_name,
-                api_id=int(self.api_id),
+                api_id=self.api_id,  # Already converted to int in _get_api_id
                 api_hash=self.api_hash,
                 phone_number=self.phone_number,
-                workdir=self.sessions_dir
+                workdir=self.session_path
             )
             
             await self.client.start()
