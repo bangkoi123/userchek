@@ -82,6 +82,12 @@ const Sidebar = ({ isOpen, setSidebarOpen, isMinimized, setIsMinimized }) => {
         description: 'Manage WhatsApp accounts for deep validation'
       },
       {
+        name: 'Telegram Accounts',
+        path: '/admin/telegram-accounts',
+        icon: MessageCircle,
+        description: 'Manage Telegram accounts for MTP validation'
+      },
+      {
         name: 'Admin Settings',
         path: '/admin/settings',
         icon: Settings,
