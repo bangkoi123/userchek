@@ -5092,3 +5092,44 @@ def run_phonecheck_review_tests():
 
 if __name__ == "__main__":
     run_phonecheck_review_tests()
+if __name__ == "__main__":
+    print("🚀 STARTING CRITICAL PHONECHECK BACKEND DEBUGGING")
+    print("="*80)
+    
+    # Initialize tester with phonecheck.gen-ai.fun URL
+    tester = WebtoolsAPITester("https://phonecheck.gen-ai.fun")
+    
+    # Run critical debugging for the 500 error issue
+    debug_results = tester.critical_phonecheck_debugging()
+    
+    # Final summary
+    print("\n" + "="*80)
+    print("🎯 FINAL TESTING SUMMARY")
+    print("="*80)
+    
+    total_tests = len(debug_results)
+    passed_tests = sum(debug_results.values())
+    success_rate = (passed_tests / total_tests) * 100
+    
+    print(f"📊 Overall Success Rate: {success_rate:.1f}% ({passed_tests}/{total_tests})")
+    print(f"🔧 Tests Run: {tester.tests_run}")
+    print(f"✅ Tests Passed: {tester.tests_passed}")
+    print(f"❌ Tests Failed: {tester.tests_run - tester.tests_passed}")
+    
+    if tester.critical_errors:
+        print(f"\n🚨 CRITICAL ISSUES FOUND ({len(tester.critical_errors)}):")
+        for i, error in enumerate(tester.critical_errors, 1):
+            print(f"   {i}. {error}")
+    
+    # Determine overall status
+    if success_rate >= 80:
+        print("\n🎉 BACKEND STATUS: HEALTHY")
+        print("💡 Most functionality is working correctly")
+    elif success_rate >= 50:
+        print("\n⚠️  BACKEND STATUS: PARTIAL ISSUES")
+        print("💡 Some critical issues need attention")
+    else:
+        print("\n❌ BACKEND STATUS: CRITICAL ISSUES")
+        print("💡 Major problems require immediate fixing")
+    
+    print("="*80)
