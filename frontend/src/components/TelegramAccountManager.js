@@ -492,90 +492,90 @@ const TelegramAccountManager = () => {
       {/* Add/Edit Account Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold mb-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto border dark:border-gray-700">
+            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
               {editingAccount ? 'Edit Telegram Account' : 'Add New Telegram Account'}
             </h2>
             
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Account Name *
                 </label>
                 <input
                   type="text"
                   value={accountForm.name}
                   onChange={(e) => setAccountForm({...accountForm, name: e.target.value})}
-                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   placeholder="e.g., Main Account"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Phone Number *
                 </label>
                 <input
                   type="text"
                   value={accountForm.phone_number}
                   onChange={(e) => setAccountForm({...accountForm, phone_number: e.target.value})}
-                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   placeholder="+6281234567890"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   API ID *
                 </label>
                 <input
                   type="text"
                   value={accountForm.api_id}
                   onChange={(e) => setAccountForm({...accountForm, api_id: e.target.value})}
-                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   placeholder="Get from https://my.telegram.org/apps"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   API Hash *
                 </label>
                 <input
                   type="text"
                   value={accountForm.api_hash}
                   onChange={(e) => setAccountForm({...accountForm, api_hash: e.target.value})}
-                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   placeholder="Get from https://my.telegram.org/apps"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Daily Request Limit
                 </label>
                 <input
                   type="number"
                   value={accountForm.max_daily_requests}
                   onChange={(e) => setAccountForm({...accountForm, max_daily_requests: e.target.value})}
-                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   min="1"
                   max="1000"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Notes
                 </label>
                 <textarea
                   value={accountForm.notes}
                   onChange={(e) => setAccountForm({...accountForm, notes: e.target.value})}
-                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   rows="2"
                   placeholder="Optional notes..."
                 />
@@ -590,20 +590,20 @@ const TelegramAccountManager = () => {
                     onChange={(e) => setAccountForm({...accountForm, proxy_enabled: e.target.checked})}
                     className="rounded"
                   />
-                  <span className="text-sm font-medium text-gray-700">Enable Proxy</span>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Enable Proxy</span>
                 </label>
               </div>
 
               {accountForm.proxy_enabled && (
-                <div className="space-y-3 pl-4 border-l-2 border-gray-200">
+                <div className="space-y-3 pl-4 border-l-2 border-gray-200 dark:border-gray-600">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Proxy Type
                     </label>
                     <select
                       value={accountForm.proxy_type}
                       onChange={(e) => setAccountForm({...accountForm, proxy_type: e.target.value})}
-                      className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     >
                       <option value="http">HTTP</option>
                       <option value="socks5">SOCKS5</option>
@@ -612,39 +612,39 @@ const TelegramAccountManager = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Proxy URL
                     </label>
                     <input
                       type="text"
                       value={accountForm.proxy_url}
                       onChange={(e) => setAccountForm({...accountForm, proxy_url: e.target.value})}
-                      className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                       placeholder="proxy.example.com:8080"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Username (Optional)
                     </label>
                     <input
                       type="text"
                       value={accountForm.proxy_username}
                       onChange={(e) => setAccountForm({...accountForm, proxy_username: e.target.value})}
-                      className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Password (Optional)
                     </label>
                     <input
                       type="password"
                       value={accountForm.proxy_password}
                       onChange={(e) => setAccountForm({...accountForm, proxy_password: e.target.value})}
-                      className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     />
                   </div>
                 </div>
@@ -660,7 +660,7 @@ const TelegramAccountManager = () => {
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded transition-colors"
+                  className="flex-1 bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-200 py-2 px-4 rounded transition-colors"
                 >
                   Cancel
                 </button>
