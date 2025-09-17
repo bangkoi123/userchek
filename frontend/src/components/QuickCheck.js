@@ -166,6 +166,17 @@ const QuickCheck = () => {
     if (validateWhatsapp) {
       // Standard method: 1 credit, Deep Link Profile: 3 credits
       creditsPerNumber += validationMethod === 'deeplink_profile' ? 3 : 1;
+      
+      // Add Telegram credits
+      if (validateTelegram) {
+        if (telegramValidationMethod === 'mtp_profile') {
+          creditsPerNumber += 3;
+        } else if (telegramValidationMethod === 'mtp') {
+          creditsPerNumber += 2;
+        } else {
+          creditsPerNumber += 1;
+        }
+      }
     }
     if (validateTelegram) {
       creditsPerNumber += 1; // Telegram always 1 credit
