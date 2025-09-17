@@ -241,7 +241,7 @@ const WhatsAppAccountManager = () => {
         setLoginModal(null); // Clear login modal, show QR modal
         
         toast.success('✅ QR Code berhasil di-generate');
-        toast.info('📱 Scan QR code dengan WhatsApp mobile Anda');
+        toast('📱 Scan QR code dengan WhatsApp mobile Anda');
         
         // Auto-close modal after expiry
         setTimeout(async () => {
