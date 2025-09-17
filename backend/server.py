@@ -2437,6 +2437,9 @@ async def stripe_webhook(request: Request):
 @app.post("/api/validation/quick-check")
 async def quick_check(request: QuickCheckRequest, current_user = Depends(get_current_user)):
     print(f"DEBUG: Quick check called with validation_method: {request.validation_method}")
+    print(f"DEBUG: Phone inputs: {request.phone_inputs}")
+    print(f"DEBUG: Current user: {current_user['username']}")
+    
     # Validate input
     if not request.phone_inputs or len(request.phone_inputs) == 0:
         raise HTTPException(status_code=400, detail="At least one phone number is required")
