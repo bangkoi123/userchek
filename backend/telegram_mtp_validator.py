@@ -19,12 +19,17 @@ except ImportError:
     MTP_AVAILABLE = False
 
 class TelegramMTPValidator:
-    def __init__(self):
-        self.api_id = os.environ.get('TELEGRAM_API_ID')
-        self.api_hash = os.environ.get('TELEGRAM_API_HASH')
-        self.session_name = "telegram_validator"
+    def __init__(self, session_name: str = "telegram_validator", api_id: str = None, api_hash: str = None, phone_number: str = None):
+        self.api_id = api_id or os.environ.get('TELEGRAM_API_ID')
+        self.api_hash = api_hash or os.environ.get('TELEGRAM_API_HASH')
+        self.phone_number = phone_number
+        self.session_name = session_name
         self.client: Optional[Client] = None
         self.logger = logging.getLogger(__name__)
+        
+        # Create sessions directory
+        self.sessions_dir = "/app/backend/telegram_sessions"
+        os.makedirs(self.sessions_dir, exist_ok=True)
         
     async def initialize(self) -> bool:
         """Initialize Telegram MTP client"""
