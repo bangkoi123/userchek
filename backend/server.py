@@ -1848,6 +1848,199 @@ async def get_whatsapp_account_stats(current_user: dict = Depends(get_current_us
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get stats: {str(e)}")
 
+# Telegram Account Management Endpoints
+@app.post("/api/admin/telegram-accounts")
+async def create_telegram_account(
+    account_data: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Create new Telegram account for MTP validation"""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    required_fields = ["name", "phone_number", "api_id", "api_hash"]
+    for field in required_fields:
+        if not account_data.get(field):
+            raise HTTPException(status_code=400, detail=f"Field '{field}' is required")
+    
+    try:
+        from telegram_account_manager import TelegramAccountManager
+        manager = TelegramAccountManager(db)
+        account = await manager.create_account(account_data)
+        
+        return {"message": "Telegram account created successfully", "account": account}
+        
+    except ValueError as e:
+        # Handle duplicate phone number or validation errors
+        raise HTTPException(status_code=409, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Account creation failed: {str(e)}")
+
+@app.get("/api/admin/telegram-accounts")
+async def get_telegram_accounts(current_user: dict = Depends(get_current_user)):
+    """Get all Telegram accounts"""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    try:
+        from telegram_account_manager import TelegramAccountManager
+        manager = TelegramAccountManager(db)
+        accounts = await manager.get_accounts()
+        return accounts
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get accounts: {str(e)}")
+
+@app.get("/api/admin/telegram-accounts/stats")
+async def get_telegram_accounts_stats(current_user: dict = Depends(get_current_user)):
+    """Get Telegram accounts statistics"""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    try:
+        from telegram_account_manager import TelegramAccountManager
+        manager = TelegramAccountManager(db)
+        stats = await manager.get_accounts_stats()
+        
+        # Add pool statistics for MTP system
+        try:
+            from telegram_account_pool import get_telegram_pool
+            pool = await get_telegram_pool(db)
+            pool_stats = await pool.get_pool_stats()
+            stats["session_pool"] = pool_stats
+        except:
+            stats["session_pool"] = {"status": "not_initialized"}
+        
+        return stats
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get stats: {str(e)}")
+
+@app.put("/api/admin/telegram-accounts/{account_id}")
+async def update_telegram_account(
+    account_id: str,
+    account_data: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update Telegram account"""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    try:
+        from telegram_account_manager import TelegramAccountManager
+        manager = TelegramAccountManager(db)
+        
+        success = await manager.update_account(account_id, account_data)
+        if success:
+            updated_account = await manager.get_account_by_id(account_id)
+            return {
+                "message": "Telegram account updated successfully",
+                "account": updated_account
+            }
+        else:
+            raise HTTPException(status_code=404, detail="Account not found or update failed")
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Update failed: {str(e)}")
+
+@app.delete("/api/admin/telegram-accounts/{account_id}")
+async def delete_telegram_account(
+    account_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Delete Telegram account"""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    try:
+        from telegram_account_manager import TelegramAccountManager
+        manager = TelegramAccountManager(db)
+        
+        success = await manager.delete_account(account_id)
+        if success:
+            return {"message": "Telegram account deleted successfully"}
+        else:
+            raise HTTPException(status_code=404, detail="Account not found")
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Delete failed: {str(e)}")
+
+@app.post("/api/admin/telegram-accounts/{account_id}/login")
+async def login_telegram_account(
+    account_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Login Telegram account for MTP session"""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    try:
+        from telegram_account_pool import get_telegram_pool
+        pool = await get_telegram_pool(db)
+        session = await pool.get_session_for_account(account_id)
+        
+        if session:
+            # Check session status
+            session_info = await session.get_session_info()
+            
+            if session_info.get("status") == "active":
+                return {
+                    "success": True,
+                    "message": "Account already logged in",
+                    "session_info": session_info
+                }
+            else:
+                return {
+                    "success": False,
+                    "message": "Login required - please scan QR code or enter phone code",
+                    "session_info": session_info,
+                    "instructions": [
+                        "This Telegram account needs to be logged in",
+                        "Please use official Telegram app to complete login process",
+                        "Session will be created automatically after successful auth"
+                    ]
+                }
+        else:
+            return {
+                "success": False,
+                "message": "Failed to create session for account"
+            }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Login error: {str(e)}")
+
+@app.post("/api/admin/telegram-accounts/{account_id}/logout")
+async def logout_telegram_account(
+    account_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Logout Telegram account"""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    try:
+        from telegram_account_pool import get_telegram_pool
+        pool = await get_telegram_pool(db)
+        
+        # Remove from session pool
+        if account_id in pool.session_pool:
+            await pool.session_pool[account_id].close()
+            del pool.session_pool[account_id]
+            
+            if account_id in pool.account_usage:
+                del pool.account_usage[account_id]
+            if account_id in pool.account_last_used:
+                del pool.account_last_used[account_id]
+        
+        # Update account status
+        from telegram_account_manager import TelegramAccountManager, TelegramAccountStatus
+        manager = TelegramAccountManager(db)
+        await manager.update_account_status(account_id, TelegramAccountStatus.LOGGED_OUT)
+        
+        return {"message": "Account logged out successfully"}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Logout error: {str(e)}")
+
 # Container Management Endpoints
 @app.get("/api/admin/containers")
 async def list_containers(current_user: dict = Depends(get_current_user)):
