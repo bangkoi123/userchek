@@ -21,7 +21,8 @@ import {
   BarChart3,
   Activity,
   FileText,
-  TrendingUp
+  TrendingUp,
+  MessageCircle
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen, setSidebarOpen, isMinimized, setIsMinimized }) => {
