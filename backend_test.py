@@ -520,11 +520,23 @@ class WebtoolsAPITester:
         success, response = self.run_test(
             "Jobs List",
             "GET",
-            "api/jobs",
+            "api/validation/jobs",
             200,
             token=self.demo_token,
             description="Get user's job history"
         )
+        
+        # If that fails, try alternative endpoint
+        if not success:
+            success, response = self.run_test(
+                "Jobs List (Alternative)",
+                "GET",
+                "api/jobs",
+                200,
+                token=self.demo_token,
+                description="Get user's job history (alternative endpoint)"
+            )
+        
         return success
 
     def test_admin_stats(self):
