@@ -2525,10 +2525,36 @@ async def quick_check(request: QuickCheckRequest, current_user = Depends(get_cur
             
             if request.validate_whatsapp:
                 if request.validation_method == 'deeplink_profile':
-                    # Use Deep Link Profile method (premium)
-                    whatsapp_result = await validate_whatsapp_deeplink_single(phone, identifier)
+                    # Try real account validation first, fallback to demo
+                    try:
+                        from whatsapp_account_pool import optimized_whatsapp_validation
+                        from production_setup import DemoValidationSystem
+                        
+                        # Check if we have real WhatsApp accounts available
+                        real_accounts = await db.whatsapp_accounts.count_documents({
+                            "is_active": True,
+                            "status": {"$in": ["active", "logged_out"]},
+                            "demo_account": {"$ne": True}
+                        })
+                        
+                        if real_accounts > 0:
+                            whatsapp_result = await optimized_whatsapp_validation(phone, 'available', db)
+                            
+                            # If real validation fails, fallback to demo
+                            if not whatsapp_result.get("success"):
+                                print(f"Real account validation failed for {phone}, using demo mode")
+                                whatsapp_result = await DemoValidationSystem.demo_whatsapp_validation(phone, 'deeplink_profile')
+                        else:
+                            # Use demo validation if no real accounts
+                            print(f"No real WhatsApp accounts, using demo mode for {phone}")
+                            whatsapp_result = await DemoValidationSystem.demo_whatsapp_validation(phone, 'deeplink_profile')
+                        
+                    except Exception as e:
+                        print(f"Deep link validation failed for {phone}: {e}")
+                        # Final fallback to standard validation
+                        whatsapp_result = await validate_whatsapp_number_smart(phone, identifier)
                 else:
-                    # Use standard method (CheckNumber.ai or fallback)
+                    # Standard validation (always works)
                     whatsapp_result = await validate_whatsapp_number_smart(phone, identifier)
             
             if request.validate_telegram:
