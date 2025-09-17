@@ -162,7 +162,7 @@ class WebtoolsAPITester:
         success, response = self.run_test(
             "Quick Check - Deep Link Profile",
             "POST",
-            "api/quick-check",
+            "api/validation/quick-check",
             200,
             data={
                 "phone_inputs": ["+6281234567890"],
@@ -206,6 +206,13 @@ class WebtoolsAPITester:
                     
             else:
                 print(f"   ⚠️  No results in response")
+        else:
+            # Check if it's a 500 error (syntax/name error)
+            if hasattr(self, 'last_response_status') and self.last_response_status == 500:
+                print(f"   ❌ 500 Internal Server Error - likely syntax/name error in backend")
+                return False
+            else:
+                print(f"   ⚠️  Endpoint may not be implemented or has different path")
                 
         return success
 
