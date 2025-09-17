@@ -255,8 +255,8 @@ const WhatsAppAccountManager = () => {
       } else if (result.success && result.method === 'phone_verification') {
         // Phone verification initiated - show instructions
         toast.success('✅ SMS verification berhasil dikirim!');
-        toast.info(`📱 Periksa SMS di nomor: ${result.phone_number}`);
-        toast.info('💡 Masukkan kode 6-digit di WhatsApp Web');
+        toast(`📱 Periksa SMS di nomor: ${result.phone_number}`);
+        toast('💡 Masukkan kode 6-digit di WhatsApp Web');
         
         setLoginModal(null);
         
