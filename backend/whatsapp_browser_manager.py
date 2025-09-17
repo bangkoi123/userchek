@@ -39,12 +39,13 @@ class WhatsAppBrowserManager:
         self.playwright = await async_playwright().start()
         
         # Launch browser with enhanced stealth settings for WhatsApp compatibility
+        # Optimized for single VPS with multiple accounts
         self.browser = await self.playwright.chromium.launch(
             headless=self.headless,
             args=[
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
+                '--disable-dev-shm-usage',  # Critical for memory efficiency
                 '--disable-accelerated-2d-canvas',
                 '--no-first-run',
                 '--no-zygote',
@@ -54,6 +55,11 @@ class WhatsAppBrowserManager:
                 '--disable-web-security',
                 '--disable-features=TranslateUI',
                 '--disable-ipc-flooding-protection',
+                '--memory-pressure-off',  # Optimize memory usage
+                '--max_old_space_size=512',  # Limit memory per context
+                '--disable-background-timer-throttling',
+                '--disable-renderer-backgrounding',
+                '--disable-backgrounding-occluded-windows',
                 '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
             ]
         )
