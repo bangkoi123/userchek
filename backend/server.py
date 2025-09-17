@@ -2538,7 +2538,19 @@ async def quick_check(request: QuickCheckRequest, current_user = Depends(get_cur
                         })
                         
                         if real_accounts > 0:
-                            whatsapp_result = await optimized_whatsapp_validation(phone, 'available', db)
+                            # Get an available real account
+                            available_account = await db.whatsapp_accounts.find_one({
+                                "is_active": True,
+                                "status": {"$in": ["active", "logged_out"]},
+                                "demo_account": {"$ne": True}
+                            })
+                            
+                            if available_account:
+                                whatsapp_result = await optimized_whatsapp_validation(phone, str(available_account["_id"]), db)
+                            else:
+                                # No real accounts available, use demo
+                                print(f"No available real WhatsApp accounts, using demo mode for {phone}")
+                                whatsapp_result = await DemoValidationSystem.demo_whatsapp_validation(phone, 'deeplink_profile')
                             
                             # If real validation fails, fallback to demo
                             if not whatsapp_result.get("success"):
