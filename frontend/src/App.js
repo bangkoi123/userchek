@@ -114,6 +114,7 @@ function AppContent() {
               <Route path="/admin/bulk-operations" element={<BulkUserOperations />} />
               <Route path="/admin/analytics" element={<AdvancedAnalytics />} />
               <Route path="/admin/whatsapp-accounts" element={<WhatsAppAccountManager />} />
+              <Route path="/admin/telegram-accounts" element={<TelegramAccountManager />} />
                 </>
               )}
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
