@@ -143,3 +143,5 @@ pyee==11.0.1
 greenlet==3.0.1
 playwright==1.40.0
 pyee==11.0.1
+pyrogram
+tgcrypto
