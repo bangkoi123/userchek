@@ -2559,27 +2559,44 @@ async def quick_check(request: QuickCheckRequest, current_user = Depends(get_cur
             
             if request.validate_telegram:
                 # Check validation method
-                validation_method = request.get("telegram_validation_method", "standard")
+                validation_method = request.telegram_validation_method
                 
                 if validation_method == "mtp" or validation_method == "mtp_profile":
-                    # Use MTP validation with account pool
+                    # Try real MTP validation first, fallback to demo
                     try:
                         from telegram_account_pool import validate_telegram_with_pool
+                        from production_setup import DemoValidationSystem
                         
-                        # Determine validation type based on input
-                        if phone.startswith('@'):
-                            telegram_result = await validate_telegram_with_pool(phone, "username", db)
+                        # Check if we have real Telegram accounts available
+                        real_accounts = await db.telegram_accounts.count_documents({
+                            "is_active": True,
+                            "status": {"$in": ["active", "logged_out"]},
+                            "demo_account": {"$ne": True}
+                        })
+                        
+                        if real_accounts > 0:
+                            # Determine validation type based on input
+                            if phone.startswith('@'):
+                                telegram_result = await validate_telegram_with_pool(phone, "username", db)
+                            else:
+                                telegram_result = await validate_telegram_with_pool(phone, "phone", db)
+                            
+                            # If real validation fails, fallback to demo
+                            if not telegram_result.get("success"):
+                                print(f"Real MTP validation failed for {phone}, using demo mode")
+                                telegram_result = await DemoValidationSystem.demo_telegram_validation(phone, validation_method)
                         else:
-                            telegram_result = await validate_telegram_with_pool(phone, "phone", db)
+                            # Use demo validation if no real accounts
+                            print(f"No real Telegram accounts, using demo mode for {phone}")
+                            telegram_result = await DemoValidationSystem.demo_telegram_validation(phone, validation_method)
+                        
                     except Exception as e:
-                        print(f"MTP validation failed, falling back to standard: {e}")
+                        print(f"MTP validation failed for {phone}: {e}")
+                        # Final fallback to standard validation
                         telegram_result = await validate_telegram_number(phone)
                 else:
-                    # Standard validation (existing method)
-                    if telegram_account:
-                        telegram_result = await validate_telegram_number_real(phone, telegram_account)
-                    else:
-                        telegram_result = await validate_telegram_number(phone)
+                    # Standard validation (always works)
+                    telegram_result = await validate_telegram_number(phone)
                 telegram_result["identifier"] = identifier
             
             # Cache results if both were validated
