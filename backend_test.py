@@ -2580,6 +2580,218 @@ class WebtoolsAPITester:
                 
         return success
 
+    def test_telegram_account_management_comprehensive(self):
+        """Comprehensive test of Telegram Account Management API as requested in review"""
+        if not self.admin_token:
+            print("❌ Skipping Telegram Account Management test - no admin token")
+            return False
+            
+        print(f"\n🔍 Testing Telegram Account Management API - COMPREHENSIVE...")
+        print(f"   Description: Verify demo data is correct with 29 demo accounts")
+        
+        all_tests_passed = True
+        
+        # Test 1: Admin Login Test
+        print(f"\n   📋 TEST 1: Admin Login Verification")
+        if not self.admin_token:
+            print(f"   ❌ Admin login failed - cannot proceed")
+            return False
+        else:
+            print(f"   ✅ Admin login successful with JWT token")
+        
+        # Test 2: Telegram Accounts List
+        print(f"\n   📋 TEST 2: Telegram Accounts List")
+        success, response = self.run_test(
+            "Telegram Accounts List",
+            "GET",
+            "api/admin/telegram-accounts",
+            200,
+            token=self.admin_token,
+            description="Should return 29 demo accounts with correct structure"
+        )
+        
+        if success and isinstance(response, list):
+            total_accounts = len(response)
+            print(f"   📊 Total accounts found: {total_accounts}")
+            
+            # Check if we have exactly 29 accounts
+            if total_accounts == 29:
+                print(f"   ✅ Correct number of accounts: 29")
+            else:
+                print(f"   ❌ Expected 29 accounts, found {total_accounts}")
+                all_tests_passed = False
+            
+            # Verify demo accounts structure
+            demo_accounts = [acc for acc in response if acc.get('demo_account') == True]
+            active_accounts = [acc for acc in response if acc.get('status') == 'active']
+            
+            print(f"   📊 Demo accounts: {len(demo_accounts)}")
+            print(f"   📊 Active accounts: {len(active_accounts)}")
+            
+            # Check demo account names
+            expected_names = [f"Telegram Demo {i}" for i in range(1, 30)]
+            found_names = [acc.get('name', '') for acc in demo_accounts]
+            
+            correct_names = 0
+            for expected_name in expected_names:
+                if expected_name in found_names:
+                    correct_names += 1
+                else:
+                    print(f"   ❌ Missing expected name: {expected_name}")
+            
+            if correct_names == 29:
+                print(f"   ✅ All 29 demo account names correct: 'Telegram Demo 1' to 'Telegram Demo 29'")
+            else:
+                print(f"   ❌ Only {correct_names}/29 demo account names correct")
+                all_tests_passed = False
+            
+            # Check status field
+            active_demo_accounts = [acc for acc in demo_accounts if acc.get('status') == 'active']
+            if len(active_demo_accounts) == 29:
+                print(f"   ✅ All 29 demo accounts have status 'active'")
+            else:
+                print(f"   ❌ Only {len(active_demo_accounts)}/29 demo accounts have status 'active'")
+                all_tests_passed = False
+            
+            # Check demo_account flag
+            if len(demo_accounts) == 29:
+                print(f"   ✅ All 29 accounts have demo_account: true flag")
+            else:
+                print(f"   ❌ Only {len(demo_accounts)}/29 accounts have demo_account: true flag")
+                all_tests_passed = False
+            
+            # Check phone number format
+            valid_phone_format = 0
+            for acc in demo_accounts:
+                phone = acc.get('phone_number', '')
+                if phone.startswith('+62819997776') and len(phone) == 14:
+                    valid_phone_format += 1
+                else:
+                    print(f"   ⚠️  Invalid phone format: {phone}")
+            
+            if valid_phone_format == 29:
+                print(f"   ✅ All 29 demo accounts have correct phone number format")
+            else:
+                print(f"   ❌ Only {valid_phone_format}/29 demo accounts have correct phone format")
+                all_tests_passed = False
+                
+        else:
+            print(f"   ❌ Failed to get telegram accounts list")
+            all_tests_passed = False
+        
+        # Test 3: Statistics Test
+        print(f"\n   📋 TEST 3: Telegram Accounts Statistics")
+        success, response = self.run_test(
+            "Telegram Accounts Statistics",
+            "GET",
+            "api/admin/telegram-accounts/stats",
+            200,
+            token=self.admin_token,
+            description="Should return total_accounts: 29, active_accounts: 29, available_for_use: 29"
+        )
+        
+        if success and isinstance(response, dict):
+            total_accounts = response.get('total_accounts', 0)
+            active_accounts = response.get('active_accounts', 0)
+            available_for_use = response.get('available_for_use', 0)
+            
+            print(f"   📊 Statistics received:")
+            print(f"      total_accounts: {total_accounts}")
+            print(f"      active_accounts: {active_accounts}")
+            print(f"      available_for_use: {available_for_use}")
+            
+            # Verify expected values
+            if total_accounts == 29:
+                print(f"   ✅ total_accounts correct: 29")
+            else:
+                print(f"   ❌ total_accounts incorrect: expected 29, got {total_accounts}")
+                all_tests_passed = False
+                
+            if active_accounts == 29:
+                print(f"   ✅ active_accounts correct: 29")
+            else:
+                print(f"   ❌ active_accounts incorrect: expected 29, got {active_accounts}")
+                all_tests_passed = False
+                
+            if available_for_use == 29:
+                print(f"   ✅ available_for_use correct: 29")
+            else:
+                print(f"   ❌ available_for_use incorrect: expected 29, got {available_for_use}")
+                all_tests_passed = False
+                
+        else:
+            print(f"   ❌ Failed to get telegram accounts statistics")
+            all_tests_passed = False
+        
+        # Test 4: Individual Account Test
+        print(f"\n   📋 TEST 4: Individual Account Data Structure")
+        success, response = self.run_test(
+            "Individual Telegram Account",
+            "GET",
+            "api/admin/telegram-accounts",
+            200,
+            token=self.admin_token,
+            description="Sample 1-2 accounts and verify complete data structure"
+        )
+        
+        if success and isinstance(response, list) and len(response) > 0:
+            # Sample first 2 accounts
+            sample_accounts = response[:2]
+            
+            for i, account in enumerate(sample_accounts, 1):
+                print(f"   📊 Sample Account #{i}:")
+                
+                # Check required fields
+                required_fields = ['_id', 'name', 'phone_number', 'status', 'demo_account', 'created_at']
+                missing_fields = []
+                
+                for field in required_fields:
+                    if field in account:
+                        value = account[field]
+                        print(f"      {field}: {value}")
+                    else:
+                        missing_fields.append(field)
+                
+                if missing_fields:
+                    print(f"   ❌ Missing fields in account #{i}: {missing_fields}")
+                    all_tests_passed = False
+                else:
+                    print(f"   ✅ Account #{i} has complete data structure")
+                    
+                # Verify specific values for demo accounts
+                if account.get('demo_account') == True:
+                    if account.get('status') == 'active':
+                        print(f"   ✅ Demo account #{i} has correct status: active")
+                    else:
+                        print(f"   ❌ Demo account #{i} has incorrect status: {account.get('status')}")
+                        all_tests_passed = False
+                        
+                    name = account.get('name', '')
+                    if name.startswith('Telegram Demo '):
+                        print(f"   ✅ Demo account #{i} has correct name format")
+                    else:
+                        print(f"   ❌ Demo account #{i} has incorrect name format: {name}")
+                        all_tests_passed = False
+                        
+        else:
+            print(f"   ❌ Failed to get individual account data")
+            all_tests_passed = False
+        
+        # Final Assessment
+        print(f"\n   🎯 TELEGRAM ACCOUNT MANAGEMENT TEST RESULTS:")
+        if all_tests_passed:
+            print(f"   ✅ ALL TESTS PASSED - Demo data is correct!")
+            print(f"   ✅ 29 demo accounts with status 'active'")
+            print(f"   ✅ All accounts have demo_account: true")
+            print(f"   ✅ Statistics show 29 active accounts")
+            print(f"   ✅ Data structure is complete and correct")
+            self.tests_passed += 1
+        else:
+            print(f"   ❌ SOME TESTS FAILED - Demo data needs correction")
+            
+        self.tests_run += 1
+        return all_tests_passed
+
     def test_whatsapp_account_management_comprehensive_scenario(self):
         """Test comprehensive WhatsApp Account Management scenario as requested in review"""
         if not self.admin_token:
