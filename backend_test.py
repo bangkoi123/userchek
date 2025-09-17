@@ -2792,6 +2792,122 @@ class WebtoolsAPITester:
         self.tests_run += 1
         return all_tests_passed
 
+    def test_telegram_account_management_post_cleanup_verification(self):
+        """QUICK VERIFICATION: Test Telegram Account Management API after database cleanup"""
+        if not self.admin_token:
+            print("❌ Skipping Telegram post-cleanup verification - no admin token")
+            return False
+            
+        print(f"\n🎯 QUICK VERIFICATION: Telegram Account Management API Post-Cleanup...")
+        print(f"   Description: Verify exactly 29 accounts with status 'active' after database cleanup")
+        
+        try:
+            # Test 1: GET /api/admin/telegram-accounts - should return exactly 29 accounts with status "active"
+            success1, accounts_response = self.run_test(
+                "GET Telegram Accounts List",
+                "GET",
+                "api/admin/telegram-accounts",
+                200,
+                token=self.admin_token,
+                description="Should return exactly 29 accounts with status 'active'"
+            )
+            
+            if not success1:
+                return False
+                
+            # Verify account count and status
+            if isinstance(accounts_response, list):
+                total_accounts = len(accounts_response)
+                active_accounts = sum(1 for acc in accounts_response if acc.get('status') == 'active')
+                demo_accounts = sum(1 for acc in accounts_response if acc.get('demo_account') == True)
+                
+                print(f"   📊 Found {total_accounts} total accounts")
+                print(f"   📊 Found {active_accounts} accounts with status 'active'")
+                print(f"   📊 Found {demo_accounts} accounts with demo_account: true")
+                
+                # Check if exactly 29 accounts
+                if total_accounts == 29:
+                    print(f"   ✅ CORRECT: Exactly 29 accounts found")
+                else:
+                    print(f"   ❌ INCORRECT: Expected 29 accounts, found {total_accounts}")
+                    return False
+                
+                # Check if all accounts have status "active"
+                if active_accounts == 29:
+                    print(f"   ✅ CORRECT: All 29 accounts have status 'active'")
+                else:
+                    print(f"   ❌ INCORRECT: Expected 29 active accounts, found {active_accounts}")
+                    return False
+                
+                # Check if all accounts have demo_account: true
+                if demo_accounts == 29:
+                    print(f"   ✅ CORRECT: All 29 accounts have demo_account: true")
+                else:
+                    print(f"   ❌ INCORRECT: Expected 29 demo accounts, found {demo_accounts}")
+                    return False
+                    
+            else:
+                print(f"   ❌ Expected list response, got {type(accounts_response)}")
+                return False
+            
+            # Test 2: GET /api/admin/telegram-accounts/stats - should return correct statistics
+            success2, stats_response = self.run_test(
+                "GET Telegram Accounts Stats",
+                "GET",
+                "api/admin/telegram-accounts/stats",
+                200,
+                token=self.admin_token,
+                description="Should return total_accounts: 29, active_accounts: 29, available_for_use: 29"
+            )
+            
+            if not success2:
+                return False
+                
+            # Verify statistics
+            if isinstance(stats_response, dict):
+                total_accounts_stat = stats_response.get('total_accounts', 0)
+                active_accounts_stat = stats_response.get('active_accounts', 0)
+                available_for_use_stat = stats_response.get('available_for_use', 0)
+                
+                print(f"   📊 Stats - Total: {total_accounts_stat}, Active: {active_accounts_stat}, Available: {available_for_use_stat}")
+                
+                # Check total_accounts: 29 (not 58)
+                if total_accounts_stat == 29:
+                    print(f"   ✅ CORRECT: total_accounts = 29 (not 58)")
+                else:
+                    print(f"   ❌ INCORRECT: Expected total_accounts = 29, got {total_accounts_stat}")
+                    return False
+                
+                # Check active_accounts: 29
+                if active_accounts_stat == 29:
+                    print(f"   ✅ CORRECT: active_accounts = 29")
+                else:
+                    print(f"   ❌ INCORRECT: Expected active_accounts = 29, got {active_accounts_stat}")
+                    return False
+                
+                # Check available_for_use: 29
+                if available_for_use_stat == 29:
+                    print(f"   ✅ CORRECT: available_for_use = 29")
+                else:
+                    print(f"   ❌ INCORRECT: Expected available_for_use = 29, got {available_for_use_stat}")
+                    return False
+                    
+            else:
+                print(f"   ❌ Expected dict response, got {type(stats_response)}")
+                return False
+            
+            # If we reach here, all tests passed
+            self.tests_passed += 1
+            self.tests_run += 1
+            print(f"   🎉 ALL VERIFICATION CHECKS PASSED!")
+            print(f"   ✅ Database cleanup successful - exactly 29 active demo accounts")
+            return True
+            
+        except Exception as e:
+            print(f"❌ Failed - Error: {str(e)}")
+            self.tests_run += 1
+            return False
+
     def test_whatsapp_account_management_comprehensive_scenario(self):
         """Test comprehensive WhatsApp Account Management scenario as requested in review"""
         if not self.admin_token:
