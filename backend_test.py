@@ -777,7 +777,282 @@ class WebtoolsAPITester:
                 
         return success
 
-    def test_admin_analytics_access_control(self):
+    def urgent_login_investigation(self):
+        """URGENT: Comprehensive login investigation for reported login failures"""
+        print("\n" + "="*80)
+        print("🚨 URGENT LOGIN ISSUE INVESTIGATION")
+        print("="*80)
+        print("User reports: Cannot login with admin/admin123 or demo/demo123")
+        print("Expected: Both should return JWT tokens successfully")
+        print("Reported: Getting 'Login gagal' generic error messages")
+        print("="*80)
+        
+        investigation_results = {
+            "admin_login": False,
+            "demo_login": False,
+            "database_check": False,
+            "jwt_generation": False,
+            "password_verification": False,
+            "endpoint_accessibility": False
+        }
+        
+        # 1. Test endpoint accessibility
+        print("\n🔍 STEP 1: Testing Authentication Endpoint Accessibility")
+        try:
+            health_success = self.test_health_check()
+            if health_success:
+                print("   ✅ Backend is accessible and responding")
+                investigation_results["endpoint_accessibility"] = True
+            else:
+                print("   ❌ Backend is not accessible - this could be the root cause!")
+                return investigation_results
+        except Exception as e:
+            print(f"   ❌ Backend accessibility error: {str(e)}")
+            return investigation_results
+        
+        # 2. Test Admin Login (admin/admin123)
+        print("\n🔍 STEP 2: Testing Admin Login (admin/admin123)")
+        try:
+            admin_success, admin_response = self.run_test(
+                "URGENT Admin Login Test",
+                "POST",
+                "api/auth/login",
+                200,
+                data={"username": "admin", "password": "admin123"},
+                description="CRITICAL: Admin login must work for system access"
+            )
+            
+            if admin_success and 'token' in admin_response:
+                self.admin_token = admin_response['token']
+                self.admin_user_id = admin_response.get('user', {}).get('id')
+                admin_role = admin_response.get('user', {}).get('role')
+                admin_credits = admin_response.get('user', {}).get('credits', 0)
+                
+                print(f"   ✅ ADMIN LOGIN SUCCESSFUL!")
+                print(f"   📊 Admin User ID: {self.admin_user_id}")
+                print(f"   📊 Admin Role: {admin_role}")
+                print(f"   📊 Admin Credits: {admin_credits}")
+                print(f"   📊 JWT Token Length: {len(self.admin_token)} characters")
+                
+                investigation_results["admin_login"] = True
+                investigation_results["jwt_generation"] = True
+                
+                # Verify JWT token works
+                profile_success, profile_response = self.run_test(
+                    "Admin Token Verification",
+                    "GET",
+                    "api/user/profile",
+                    200,
+                    token=self.admin_token,
+                    description="Verify admin JWT token works for authenticated requests"
+                )
+                
+                if profile_success:
+                    print(f"   ✅ Admin JWT token is valid and working")
+                else:
+                    print(f"   ❌ Admin JWT token is invalid or not working")
+                    
+            else:
+                print(f"   ❌ ADMIN LOGIN FAILED!")
+                print(f"   📊 Response: {admin_response}")
+                if 'detail' in admin_response:
+                    print(f"   📊 Error Detail: {admin_response['detail']}")
+                    
+        except Exception as e:
+            print(f"   ❌ Admin login test error: {str(e)}")
+        
+        # 3. Test Demo User Login (demo/demo123)
+        print("\n🔍 STEP 3: Testing Demo User Login (demo/demo123)")
+        try:
+            demo_success, demo_response = self.run_test(
+                "URGENT Demo Login Test",
+                "POST",
+                "api/auth/login",
+                200,
+                data={"username": "demo", "password": "demo123"},
+                description="CRITICAL: Demo login must work for user access"
+            )
+            
+            if demo_success and 'token' in demo_response:
+                self.demo_token = demo_response['token']
+                self.demo_user_id = demo_response.get('user', {}).get('id')
+                demo_role = demo_response.get('user', {}).get('role')
+                demo_credits = demo_response.get('user', {}).get('credits', 0)
+                
+                print(f"   ✅ DEMO LOGIN SUCCESSFUL!")
+                print(f"   📊 Demo User ID: {self.demo_user_id}")
+                print(f"   📊 Demo Role: {demo_role}")
+                print(f"   📊 Demo Credits: {demo_credits}")
+                print(f"   📊 JWT Token Length: {len(self.demo_token)} characters")
+                
+                investigation_results["demo_login"] = True
+                
+                # Verify JWT token works
+                profile_success, profile_response = self.run_test(
+                    "Demo Token Verification",
+                    "GET",
+                    "api/user/profile",
+                    200,
+                    token=self.demo_token,
+                    description="Verify demo JWT token works for authenticated requests"
+                )
+                
+                if profile_success:
+                    print(f"   ✅ Demo JWT token is valid and working")
+                else:
+                    print(f"   ❌ Demo JWT token is invalid or not working")
+                    
+            else:
+                print(f"   ❌ DEMO LOGIN FAILED!")
+                print(f"   📊 Response: {demo_response}")
+                if 'detail' in demo_response:
+                    print(f"   📊 Error Detail: {demo_response['detail']}")
+                    
+        except Exception as e:
+            print(f"   ❌ Demo login test error: {str(e)}")
+        
+        # 4. Test Invalid Credentials (should fail)
+        print("\n🔍 STEP 4: Testing Invalid Credentials (should return 401)")
+        try:
+            invalid_success, invalid_response = self.run_test(
+                "Invalid Credentials Test",
+                "POST",
+                "api/auth/login",
+                401,
+                data={"username": "invalid", "password": "wrongpassword"},
+                description="Should return 401 for invalid credentials"
+            )
+            
+            if invalid_success:
+                print(f"   ✅ Invalid credentials properly rejected with 401")
+                investigation_results["password_verification"] = True
+            else:
+                print(f"   ❌ Invalid credentials handling is broken")
+                print(f"   📊 Response: {invalid_response}")
+                
+        except Exception as e:
+            print(f"   ❌ Invalid credentials test error: {str(e)}")
+        
+        # 5. Test Database User Existence (if admin login worked)
+        if investigation_results["admin_login"]:
+            print("\n🔍 STEP 5: Testing Database User Existence")
+            try:
+                users_success, users_response = self.run_test(
+                    "Database Users Check",
+                    "GET",
+                    "api/admin/users",
+                    200,
+                    token=self.admin_token,
+                    description="Check if users exist in database"
+                )
+                
+                if users_success and 'users' in users_response:
+                    users = users_response['users']
+                    total_users = users_response.get('pagination', {}).get('total_count', len(users))
+                    
+                    print(f"   ✅ Database accessible with {total_users} total users")
+                    
+                    # Look for admin and demo users
+                    admin_found = any(user.get('username') == 'admin' for user in users)
+                    demo_found = any(user.get('username') == 'demo' for user in users)
+                    
+                    if admin_found:
+                        print(f"   ✅ Admin user found in database")
+                    else:
+                        print(f"   ❌ Admin user NOT found in database!")
+                        
+                    if demo_found:
+                        print(f"   ✅ Demo user found in database")
+                    else:
+                        print(f"   ❌ Demo user NOT found in database!")
+                    
+                    if admin_found and demo_found:
+                        investigation_results["database_check"] = True
+                        
+                    # Show all usernames for debugging
+                    usernames = [user.get('username', 'N/A') for user in users]
+                    print(f"   📊 All usernames in database: {usernames}")
+                    
+                else:
+                    print(f"   ❌ Could not check database users")
+                    print(f"   📊 Response: {users_response}")
+                    
+            except Exception as e:
+                print(f"   ❌ Database check error: {str(e)}")
+        else:
+            print("\n🔍 STEP 5: Skipping Database Check (admin login failed)")
+        
+        # 6. Test Different Login Variations
+        print("\n🔍 STEP 6: Testing Login Variations")
+        login_variations = [
+            {"username": "Admin", "password": "admin123"},  # Case variation
+            {"username": "admin", "password": "Admin123"},  # Password case variation
+            {"username": " admin ", "password": "admin123"},  # Whitespace
+            {"username": "demo", "password": " demo123 "},  # Password whitespace
+        ]
+        
+        for i, variation in enumerate(login_variations):
+            try:
+                var_success, var_response = self.run_test(
+                    f"Login Variation #{i+1}",
+                    "POST",
+                    "api/auth/login",
+                    401,  # Expecting these to fail
+                    data=variation,
+                    description=f"Test variation: {variation['username']}/{variation['password']}"
+                )
+                
+                if var_success:
+                    print(f"   ✅ Variation #{i+1} properly rejected")
+                else:
+                    print(f"   ⚠️  Variation #{i+1} unexpected result: {var_response}")
+                    
+            except Exception as e:
+                print(f"   ❌ Variation #{i+1} test error: {str(e)}")
+        
+        # 7. Summary and Diagnosis
+        print("\n" + "="*80)
+        print("🔍 INVESTIGATION SUMMARY")
+        print("="*80)
+        
+        total_checks = len(investigation_results)
+        passed_checks = sum(investigation_results.values())
+        
+        print(f"📊 Overall Status: {passed_checks}/{total_checks} checks passed")
+        
+        for check, status in investigation_results.items():
+            status_icon = "✅" if status else "❌"
+            print(f"   {status_icon} {check.replace('_', ' ').title()}: {'PASS' if status else 'FAIL'}")
+        
+        # Diagnosis
+        print("\n🔍 DIAGNOSIS:")
+        
+        if investigation_results["admin_login"] and investigation_results["demo_login"]:
+            print("   ✅ LOGIN SYSTEM IS WORKING CORRECTLY!")
+            print("   💡 User's issue may be:")
+            print("      - Browser cache/cookies issue")
+            print("      - Frontend-backend connection problem")
+            print("      - User typing wrong credentials")
+            print("      - Frontend form validation issue")
+        elif not investigation_results["endpoint_accessibility"]:
+            print("   ❌ BACKEND IS NOT ACCESSIBLE!")
+            print("   💡 Root cause: Backend server is down or unreachable")
+        elif not investigation_results["database_check"]:
+            print("   ❌ DATABASE ISSUE DETECTED!")
+            print("   💡 Root cause: Users may not exist in database")
+        elif not investigation_results["jwt_generation"]:
+            print("   ❌ JWT TOKEN GENERATION ISSUE!")
+            print("   💡 Root cause: JWT secret or token creation is broken")
+        elif not investigation_results["password_verification"]:
+            print("   ❌ PASSWORD VERIFICATION ISSUE!")
+            print("   💡 Root cause: Password hashing/verification is broken")
+        else:
+            print("   ⚠️  PARTIAL SYSTEM FAILURE!")
+            print("   💡 Some components working, others failing")
+        
+        print("="*80)
+        
+        return investigation_results
         """Test admin analytics access control (non-admin should get 403)"""
         if not self.demo_token:
             print("❌ Skipping admin analytics access control test - no demo token")
