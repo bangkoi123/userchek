@@ -4764,7 +4764,7 @@ def run_phonecheck_review_tests():
         print("="*80)
         
         total_tests = len(test_results)
-        passed_tests = sum(test_results.values())
+        passed_tests = sum(1 for result in test_results.values() if result)
         success_rate = (passed_tests / total_tests) * 100
         
         print(f"📊 Overall Success Rate: {success_rate:.1f}% ({passed_tests}/{total_tests})")
@@ -4785,22 +4785,23 @@ def run_phonecheck_review_tests():
             print("✅ Quick check endpoint does NOT crash with deeplink_profile method")
             print("✅ Deep Link Profile functionality is working and returns premium data")
         else:
-            print("❌ Quick check endpoint has issues with deeplink_profile method")
+            print("❌ Quick check endpoint CRASHES with deeplink_profile method (500 error)")
+            print("❌ Deep Link Profile has syntax/name errors in backend code")
         
         if test_results["credit_system"]:
             print("✅ Credit calculation and usage tracking is working correctly")
         else:
-            print("❌ Credit system has calculation or tracking issues")
+            print("❌ Credit system has issues - validation endpoint returns 500 error")
         
         if test_results["no_errors"]:
-            print("✅ No syntax errors or NameErrors detected in backend")
+            print("✅ No syntax errors or NameErrors detected in basic endpoints")
         else:
             print("❌ Potential syntax errors or NameErrors found in backend")
         
         if test_results["backend_health"]:
             print("✅ All main API endpoints are functioning properly")
         else:
-            print("❌ Some main API endpoints have issues")
+            print("❌ Some main API endpoints have critical issues (500 errors)")
         
         print()
         
