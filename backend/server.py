@@ -587,7 +587,8 @@ class QuickCheckRequest(BaseModel):
     phone_inputs: List[str]  # Changed to support multiple phone inputs
     validate_whatsapp: bool = True
     validate_telegram: bool = True
-    validation_method: str = 'standard'  # 'standard' or 'deeplink_profile'
+    validation_method: str = 'standard'  # 'standard' or 'deeplink_profile' (for WhatsApp)
+    telegram_validation_method: str = 'standard'  # 'standard', 'mtp', or 'mtp_profile' (for Telegram)
 
 class TelegramAccount(BaseModel):
     name: str
