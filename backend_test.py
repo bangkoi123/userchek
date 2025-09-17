@@ -4641,3 +4641,115 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+def run_phonecheck_review_tests():
+    """Run specific tests requested in the review for phonecheck.gen-ai.fun"""
+    print("🚀 PHONECHECK.GEN-AI.FUN BACKEND TESTING")
+    print("="*80)
+    print("Base URL: https://phonecheck.gen-ai.fun/api")
+    print("Credentials: demo/demo123")
+    print("Focus: Deep Link Profile, Credit System, Backend Health")
+    print("="*80)
+    
+    tester = WebtoolsAPITester()
+    
+    # Track overall results
+    test_results = {
+        "authentication": False,
+        "deep_link_profile": False,
+        "credit_system": False,
+        "backend_health": False,
+        "no_errors": False
+    }
+    
+    try:
+        # 1. Authentication Test
+        print("\n📋 STEP 1: AUTHENTICATION TEST")
+        print("-" * 40)
+        test_results["authentication"] = tester.test_demo_login()
+        
+        if test_results["authentication"]:
+            # 2. Deep Link Profile Test
+            print("\n📋 STEP 2: DEEP LINK PROFILE TEST")
+            print("-" * 40)
+            test_results["deep_link_profile"] = tester.test_quick_check_deeplink_profile()
+            
+            # 3. Credit System Test
+            print("\n📋 STEP 3: CREDIT SYSTEM VERIFICATION")
+            print("-" * 40)
+            test_results["credit_system"] = tester.test_credit_system_verification()
+            
+            # 4. Backend Health Check
+            print("\n📋 STEP 4: BACKEND HEALTH CHECK")
+            print("-" * 40)
+            test_results["backend_health"] = tester.test_backend_health_comprehensive()
+            
+            # 5. Syntax/Error Check
+            print("\n📋 STEP 5: SYNTAX AND ERROR CHECK")
+            print("-" * 40)
+            test_results["no_errors"] = tester.test_syntax_and_name_errors()
+        
+        # Final Summary
+        print("\n" + "="*80)
+        print("🎯 PHONECHECK REVIEW TEST SUMMARY")
+        print("="*80)
+        
+        total_tests = len(test_results)
+        passed_tests = sum(test_results.values())
+        success_rate = (passed_tests / total_tests) * 100
+        
+        print(f"📊 Overall Success Rate: {success_rate:.1f}% ({passed_tests}/{total_tests})")
+        print()
+        
+        # Detailed results
+        for test_name, result in test_results.items():
+            status = "✅ PASS" if result else "❌ FAIL"
+            print(f"   {status} {test_name.replace('_', ' ').title()}")
+        
+        print()
+        
+        # Specific answers to review questions
+        print("🔍 ANSWERS TO REVIEW QUESTIONS:")
+        print("-" * 40)
+        
+        if test_results["deep_link_profile"]:
+            print("✅ Quick check endpoint does NOT crash with deeplink_profile method")
+            print("✅ Deep Link Profile functionality is working and returns premium data")
+        else:
+            print("❌ Quick check endpoint has issues with deeplink_profile method")
+        
+        if test_results["credit_system"]:
+            print("✅ Credit calculation and usage tracking is working correctly")
+        else:
+            print("❌ Credit system has calculation or tracking issues")
+        
+        if test_results["no_errors"]:
+            print("✅ No syntax errors or NameErrors detected in backend")
+        else:
+            print("❌ Potential syntax errors or NameErrors found in backend")
+        
+        if test_results["backend_health"]:
+            print("✅ All main API endpoints are functioning properly")
+        else:
+            print("❌ Some main API endpoints have issues")
+        
+        print()
+        
+        # Overall assessment
+        if success_rate >= 80:
+            print("🎉 PHONECHECK BACKEND IS HEALTHY AND WORKING WELL!")
+            print("💡 System is ready for production use")
+        elif success_rate >= 60:
+            print("⚠️  PHONECHECK BACKEND HAS SOME ISSUES")
+            print("💡 Core functionality works but needs attention")
+        else:
+            print("❌ PHONECHECK BACKEND HAS CRITICAL ISSUES")
+            print("💡 Immediate fixes required before production use")
+        
+        return test_results
+        
+    except Exception as e:
+        print(f"\n❌ CRITICAL ERROR DURING TESTING: {str(e)}")
+        return test_results
+
+if __name__ == "__main__":
+    run_phonecheck_review_tests()
