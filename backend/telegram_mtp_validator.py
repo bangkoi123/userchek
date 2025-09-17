@@ -46,7 +46,8 @@ class TelegramMTPValidator:
                 name=self.session_name,
                 api_id=int(self.api_id),
                 api_hash=self.api_hash,
-                workdir="/app/backend/telegram_sessions"
+                phone_number=self.phone_number,
+                workdir=self.sessions_dir
             )
             
             await self.client.start()
