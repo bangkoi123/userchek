@@ -213,7 +213,8 @@ const QuickCheck = () => {
         phone_inputs: validInputs,
         validate_whatsapp: validateWhatsapp,
         validate_telegram: validateTelegram,
-        validation_method: validationMethod // Pass validation method to backend
+        validation_method: validationMethod, // Pass WhatsApp validation method to backend
+        telegram_validation_method: telegramValidationMethod // Pass Telegram validation method to backend
       });
 
       setResult(data);
