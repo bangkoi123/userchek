@@ -432,7 +432,44 @@ class WebtoolsAPITester:
         else:
             print("❌ Potential syntax errors or implementation issues found")
         
-        return all_passed
+    def test_quick_check_validation(self):
+        """Test quick phone number validation"""
+        if not self.demo_token:
+            print("❌ Skipping quick check test - no demo token")
+            return False
+            
+        success, response = self.run_test(
+            "Quick Check Validation",
+            "POST",
+            "api/quick-check",
+            200,
+            data={"phone_inputs": ["+628123456789"], "validate_whatsapp": True, "validate_telegram": True},
+            token=self.demo_token,
+            description="Validate a single phone number"
+        )
+        
+        if success:
+            # Verify response structure
+            if 'results' in response and response['results']:
+                result = response['results'][0]
+                print(f"   ✅ Response structure is correct")
+                
+                # Check for provider information
+                whatsapp_data = result.get('whatsapp', {})
+                if whatsapp_data and 'details' in whatsapp_data:
+                    provider = whatsapp_data['details'].get('provider', 'unknown')
+                    print(f"   📊 WhatsApp provider: {provider}")
+                    
+                    if provider != 'Mock Provider':
+                        print(f"   ✅ Real provider integration detected")
+                    else:
+                        print(f"   ⚠️  Still using mock providers")
+                else:
+                    print(f"   ⚠️  No provider information in WhatsApp result")
+            else:
+                print(f"   ⚠️  No results in response")
+                
+        return success
 
     def test_quick_check_insufficient_credits(self):
         """Test quick check with insufficient credits (if possible)"""
