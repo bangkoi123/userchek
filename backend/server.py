@@ -1830,9 +1830,23 @@ async def get_whatsapp_account_stats(current_user: dict = Depends(get_current_us
     if current_user.get("role") != "admin":
         raise HTTPException(status_code=403, detail="Admin access required")
     
-    manager = WhatsAppAccountManager(db)
-    stats = await manager.get_account_stats()
-    return stats
+    try:
+        manager = WhatsAppAccountManager(db)
+        stats = await manager.get_account_stats()
+        
+        # Add pool statistics for optimized single VPS mode
+        try:
+            from whatsapp_account_pool import get_whatsapp_pool
+            pool = await get_whatsapp_pool(db)
+            pool_stats = await pool.get_pool_stats()
+            stats["browser_pool"] = pool_stats
+        except:
+            stats["browser_pool"] = {"status": "not_initialized"}
+        
+        return stats
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get stats: {str(e)}")
 
 # Container Management Endpoints
 @app.get("/api/admin/containers")
