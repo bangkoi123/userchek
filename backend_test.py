@@ -39,6 +39,9 @@ class WebtoolsAPITester:
             elif method == 'DELETE':
                 response = requests.delete(url, headers=headers, timeout=10)
 
+            # Store response status for error checking
+            self.last_response_status = response.status_code
+            
             success = response.status_code == expected_status
             if success:
                 self.tests_passed += 1
