@@ -197,7 +197,7 @@ class SimpleTelegramValidator:
         return True, "OK"
     
     async def validate_phone(self, phone_number: str) -> Dict:
-        """Validate phone number using Telegram MTP"""
+        """Validate phone number with unique timing patterns per account"""
         # Rate limiting check
         can_proceed, message = self.check_rate_limit()
         if not can_proceed:
@@ -208,6 +208,9 @@ class SimpleTelegramValidator:
                 "rate_limit_reset": (self.hour_start + timedelta(hours=1)).isoformat()
             }
         
+        # 🎭 UNIQUE TIMING PATTERN per account (anti-detection)
+        await self.apply_unique_timing_pattern()
+        
         try:
             # Start client
             await self.client.start()
@@ -215,8 +218,15 @@ class SimpleTelegramValidator:
             # Clean phone number
             clean_phone = phone_number.replace('+', '').replace(' ', '').replace('-', '')
             
+            # 🎭 Add account-specific delay patterns
+            await self.account_specific_delay()
+            
             # Method 1: Check in contacts
             contacts = await self.client.get_contacts()
+            
+            # 🎭 Simulate different processing speeds per account
+            await self.simulate_processing_variation()
+            
             for contact in contacts:
                 if hasattr(contact, 'phone_number') and contact.phone_number == clean_phone:
                     result = {
@@ -231,6 +241,11 @@ class SimpleTelegramValidator:
                             "has_username": bool(contact.username),
                             "method": "contact_lookup",
                             "account_id": self.account_id,
+                            "fingerprint": {
+                                "device": self.fingerprint['device_model'],
+                                "system": self.fingerprint['system_version'],
+                                "lang": self.fingerprint['lang_code']
+                            },
                             "timestamp": datetime.now().isoformat()
                         }
                     }
@@ -255,6 +270,11 @@ class SimpleTelegramValidator:
                     "method": "privacy_limited_check",
                     "reason": "Number exists but privacy settings prevent detailed info",
                     "account_id": self.account_id,
+                    "fingerprint": {
+                        "device": self.fingerprint['device_model'],
+                        "system": self.fingerprint['system_version'],
+                        "lang": self.fingerprint['lang_code']
+                    },
                     "timestamp": datetime.now().isoformat(),
                     "note": "For detailed info, number must be in contacts"
                 }
@@ -284,8 +304,57 @@ class SimpleTelegramValidator:
                 "error": str(e),
                 "phone_number": phone_number,
                 "account_id": self.account_id,
+                "fingerprint": {
+                    "device": self.fingerprint['device_model']
+                },
                 "timestamp": datetime.now().isoformat()
             }
+    
+    async def apply_unique_timing_pattern(self):
+        """Apply unique timing patterns per account to avoid detection"""
+        account_num = int(self.account_id)
+        
+        # Different base delays per account (in seconds)
+        base_delays = [0.5, 0.8, 1.2, 0.3, 0.9, 1.5]
+        base_delay = base_delays[account_num % len(base_delays)]
+        
+        # Add random variation (±30%)
+        import random
+        variation = random.uniform(-0.3, 0.3)
+        final_delay = base_delay * (1 + variation)
+        
+        await asyncio.sleep(final_delay)
+    
+    async def account_specific_delay(self):
+        """Account-specific delay between operations"""
+        account_num = int(self.account_id)
+        
+        # Different delay patterns per account
+        delay_patterns = [
+            0.2,  # Account 1: Fast
+            0.4,  # Account 2: Medium  
+            0.6,  # Account 3: Slow
+            0.3,  # Account 4: Medium-fast
+            0.5   # Account 5: Medium-slow
+        ]
+        
+        delay = delay_patterns[account_num % len(delay_patterns)]
+        await asyncio.sleep(delay)
+    
+    async def simulate_processing_variation(self):
+        """Simulate different processing speeds to look more human"""
+        account_num = int(self.account_id)
+        
+        # Processing variations based on account
+        if account_num == 1:
+            await asyncio.sleep(0.1)  # Fast processor
+        elif account_num == 2:
+            await asyncio.sleep(0.3)  # Medium processor
+        elif account_num == 3:
+            await asyncio.sleep(0.2)  # Variable processor
+        else:
+            import random
+            await asyncio.sleep(random.uniform(0.1, 0.4))
     
     async def health_check(self) -> Dict:
         """Health check endpoint"""
