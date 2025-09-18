@@ -776,6 +776,109 @@ const QuickCheck = () => {
                 </div>
               )}
             </div>
+
+            {/* Deep Link Profile Results Section */}
+            {validationHistory.some(entry => entry.whatsapp?.details?.method === 'demo_deeplink_profile') && (
+              <div className="mt-8">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    🔍 Deep Link Profile Results
+                  </h3>
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                    PREMIUM
+                  </span>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <div className="max-h-96 overflow-y-auto">
+                    <table className="w-full border-collapse">
+                      <thead className="sticky top-0 bg-white dark:bg-gray-800 z-10">
+                        <tr className="border-b-2 border-gray-200 dark:border-gray-600">
+                          <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Nomor</th>
+                          <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Status</th>
+                          <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Profile Picture</th>
+                          <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Last Seen</th>
+                          <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Business Account</th>
+                          <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">About Info</th>
+                          <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Waktu</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {validationHistory
+                          .filter(entry => entry.whatsapp?.details?.method === 'demo_deeplink_profile')
+                          .map((entry, index) => (
+                          <tr key={entry.id} className={`border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${index === 0 ? 'bg-purple-50/50 dark:bg-purple-900/10' : ''}`}>
+                            <td className="py-3 px-4">
+                              <div className="flex items-center space-x-2">
+                                <span className="font-mono text-sm text-gray-900 dark:text-white">
+                                  {entry.phone_number}
+                                </span>
+                                {index === 0 && (
+                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                                    Latest
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="py-3 px-4">
+                              <div className="flex items-center space-x-2">
+                                {getStatusIcon(entry.whatsapp.status)}
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadgeClass(entry.whatsapp.status)}`}>
+                                  {getStatusText(entry.whatsapp.status)}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="py-3 px-4">
+                              {entry.whatsapp.details?.profile_picture ? (
+                                <div className="flex items-center space-x-2">
+                                  <div className="w-6 h-6 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                                    <span className="text-green-600 dark:text-green-400 text-xs">✓</span>
+                                  </div>
+                                  <span className="text-green-600 dark:text-green-400 text-xs font-medium">Has Picture</span>
+                                </div>
+                              ) : (
+                                <div className="flex items-center space-x-2">
+                                  <div className="w-6 h-6 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                                    <span className="text-gray-400 text-xs">✗</span>
+                                  </div>
+                                  <span className="text-gray-400 text-xs">No Picture</span>
+                                </div>
+                              )}
+                            </td>
+                            <td className="py-3 px-4">
+                              <span className="text-sm text-gray-700 dark:text-gray-300">
+                                {entry.whatsapp.details?.last_seen || 'Unknown'}
+                              </span>
+                            </td>
+                            <td className="py-3 px-4">
+                              {entry.whatsapp.details?.business_account ? (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                  Business
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
+                                  Personal
+                                </span>
+                              )}
+                            </td>
+                            <td className="py-3 px-4">
+                              <span className="text-sm text-gray-700 dark:text-gray-300 max-w-xs truncate">
+                                {entry.whatsapp.details?.about_info || 'No about info'}
+                              </span>
+                            </td>
+                            <td className="py-3 px-4">
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
+                                {format(new Date(entry.validated_at), 'HH:mm:ss', { locale: id })}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
