@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { apiCall } from '../utils/api';
+import TelegramAccountManager from './TelegramAccountManager';
 import { 
   Shield, 
   Settings, 
@@ -17,7 +18,8 @@ import {
   AlertCircle,
   TrendingUp,
   Activity,
-  Database
+  Database,
+  MessageCircle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
