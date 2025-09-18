@@ -1,0 +1,6 @@
+pyrogram==2.0.106
+aiohttp==3.9.1
+python-dotenv==1.0.0
+asyncio-throttle==1.0.2
+python-socks[asyncio]==2.4.3
+ujson==5.8.0
