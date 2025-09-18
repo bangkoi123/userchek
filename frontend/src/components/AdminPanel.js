@@ -310,12 +310,18 @@ const AdminPanel = () => {
           )}
           
           {activeTab === 'telegram' && (
-            <TelegramTab 
-              accounts={telegramAccounts}
-              onRefresh={fetchAdminData}
-              openModal={openTelegramModal}
-              onDelete={deleteTelegramAccount}
-            />
+            <div>
+              <div className="mb-6">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                  🔐 Real Telegram Account Management
+                </h2>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Manage real Telegram accounts with Docker isolation and unique fingerprints for professional validation
+                </p>
+              </div>
+              
+              <TelegramAccountManager />
+            </div>
           )}
           
           {activeTab === 'whatsapp' && (
