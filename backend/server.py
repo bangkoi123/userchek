@@ -2619,27 +2619,93 @@ async def quick_check(request: QuickCheckRequest, current_user = Depends(get_cur
                         "error": str(e)
                     }
             
-            # Telegram validation
+            # Telegram validation - REAL MTP
             if request.validate_telegram:
                 try:
-                    # Simple telegram validation
-                    telegram_result = {
-                        "success": True,
-                        "status": "active",
-                        "identifier": phone,
-                        "details": {
-                            "provider": "demo_telegram",
-                            "method": "demo_standard",
-                            "timestamp": datetime.utcnow().isoformat(),
-                            "demo_mode": True
+                    telegram_method = request.telegram_validation_method or 'standard'
+                    
+                    if telegram_method == 'mtp_profile':
+                        # REAL MTP Profile validation (3 credits)
+                        from telegram_mtp_validator import get_mtp_validator
+                        validator = await get_mtp_validator()
+                        telegram_result = await validator.validate_phone_with_profile(phone)
+                        
+                        # Transform result format
+                        if telegram_result.get("success"):
+                            detail["telegram"] = {
+                                "success": True,
+                                "status": telegram_result.get("status", "unknown"),
+                                "identifier": phone,
+                                "details": {
+                                    "provider": "telegram_mtp_real",
+                                    "method": "mtp_profile_validation",
+                                    "username": telegram_result.get("profile_info", {}).get("username"),
+                                    "first_name": telegram_result.get("profile_info", {}).get("first_name"),
+                                    "last_name": telegram_result.get("profile_info", {}).get("last_name"),
+                                    "has_username": telegram_result.get("profile_info", {}).get("has_username", False),
+                                    "is_contact": telegram_result.get("profile_info", {}).get("is_contact", False),
+                                    "validation_type": "real_mtp_profile",
+                                    "timestamp": datetime.utcnow().isoformat(),
+                                    "credits_used": 3
+                                }
+                            }
+                        else:
+                            detail["telegram"] = {
+                                "success": False,
+                                "status": "error",
+                                "error": telegram_result.get("error", "MTP validation failed")
+                            }
+                            
+                    elif telegram_method == 'mtp':
+                        # REAL MTP standard validation (2 credits)
+                        from telegram_mtp_validator import validate_telegram_phone_mtp
+                        telegram_result = await validate_telegram_phone_mtp(phone)
+                        
+                        if telegram_result.get("success"):
+                            detail["telegram"] = {
+                                "success": True,
+                                "status": telegram_result.get("status", "unknown"),
+                                "identifier": phone, 
+                                "details": {
+                                    "provider": "telegram_mtp_real",
+                                    "method": "mtp_standard_validation",
+                                    "exists": telegram_result.get("details", {}).get("exists"),
+                                    "reason": telegram_result.get("details", {}).get("reason"),
+                                    "validation_type": "real_mtp_standard",
+                                    "timestamp": datetime.utcnow().isoformat(),
+                                    "credits_used": 2
+                                }
+                            }
+                        else:
+                            detail["telegram"] = {
+                                "success": False,
+                                "status": "error", 
+                                "error": telegram_result.get("error", "MTP validation failed")
+                            }
+                    
+                    else:
+                        # Standard validation (1 credit) - Basic check
+                        # Use simple bot-based or API-based validation
+                        telegram_result = await validate_telegram_number(phone)
+                        detail["telegram"] = {
+                            "success": True,
+                            "status": telegram_result.get("status", "unknown"),
+                            "identifier": phone,
+                            "details": {
+                                "provider": "telegram_basic",
+                                "method": "standard_validation", 
+                                "validation_type": "basic_check",
+                                "timestamp": datetime.utcnow().isoformat(),
+                                "credits_used": 1
+                            }
                         }
-                    }
-                    detail["telegram"] = telegram_result
-                    if telegram_result.get("status") == "active":
+                    
+                    # Count active results
+                    if detail["telegram"].get("success") and detail["telegram"].get("status") == "active":
                         telegram_active += 1
                         
                 except Exception as e:
-                    print(f"Telegram validation error for {phone}: {e}")
+                    print(f"Real Telegram validation error for {phone}: {e}")
                     detail["telegram"] = {
                         "success": False,
                         "status": "error",
