@@ -3,17 +3,24 @@
 version: '3.8'
 
 services:
-  # Telegram Account 1
+  # Telegram Account 1 - Android Samsung
   telegram-1:
     build: ./docker/telegram-simple/
     container_name: telegram_account_1
+    hostname: android-samsung-1
     environment:
       - ACCOUNT_ID=1
       - TELEGRAM_API_ID=${TG_API_ID_1}
       - TELEGRAM_API_HASH=${TG_API_HASH_1}
       - TELEGRAM_PHONE=${TG_PHONE_1}
       - MAX_REQUESTS_HOUR=150
-      # Optional Proxy (comment out if not using)
+      # Unique environment fingerprint
+      - TZ=Asia/Jakarta
+      - LANG=id_ID.UTF-8
+      - LC_ALL=id_ID.UTF-8
+      - DEVICE_TYPE=android
+      - DEVICE_BRAND=samsung
+      # Optional Proxy
       - PROXY_HOST=${PROXY_HOST_1:-}
       - PROXY_PORT=${PROXY_PORT_1:-}
       - PROXY_USER=${PROXY_USER_1:-}
@@ -26,17 +33,28 @@ services:
     restart: unless-stopped
     mem_limit: 256m
     cpus: 0.3
+    # Unique network settings
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
 
-  # Telegram Account 2  
+  # Telegram Account 2 - iOS iPhone
   telegram-2:
     build: ./docker/telegram-simple/
     container_name: telegram_account_2
+    hostname: iphone-user-2
     environment:
       - ACCOUNT_ID=2
       - TELEGRAM_API_ID=${TG_API_ID_2}
       - TELEGRAM_API_HASH=${TG_API_HASH_2}  
       - TELEGRAM_PHONE=${TG_PHONE_2}
       - MAX_REQUESTS_HOUR=150
+      # Unique environment fingerprint
+      - TZ=Asia/Singapore
+      - LANG=en_SG.UTF-8
+      - LC_ALL=en_SG.UTF-8
+      - DEVICE_TYPE=ios
+      - DEVICE_BRAND=apple
       # Optional Proxy
       - PROXY_HOST=${PROXY_HOST_2:-}
       - PROXY_PORT=${PROXY_PORT_2:-}
@@ -50,17 +68,28 @@ services:
     restart: unless-stopped
     mem_limit: 256m
     cpus: 0.3
+    # Different DNS
+    dns:
+      - 1.1.1.1
+      - 8.8.4.4
 
-  # Telegram Account 3
+  # Telegram Account 3 - Android OnePlus
   telegram-3:
     build: ./docker/telegram-simple/
     container_name: telegram_account_3
+    hostname: oneplus-mobile-3
     environment:
       - ACCOUNT_ID=3
       - TELEGRAM_API_ID=${TG_API_ID_3}
       - TELEGRAM_API_HASH=${TG_API_HASH_3}
       - TELEGRAM_PHONE=${TG_PHONE_3}
       - MAX_REQUESTS_HOUR=150
+      # Unique environment fingerprint
+      - TZ=Asia/Kuala_Lumpur
+      - LANG=ms_MY.UTF-8
+      - LC_ALL=ms_MY.UTF-8
+      - DEVICE_TYPE=android
+      - DEVICE_BRAND=oneplus
       # Optional Proxy
       - PROXY_HOST=${PROXY_HOST_3:-}
       - PROXY_PORT=${PROXY_PORT_3:-}
@@ -74,6 +103,10 @@ services:
     restart: unless-stopped
     mem_limit: 256m
     cpus: 0.3
+    # Different DNS provider
+    dns:
+      - 9.9.9.9
+      - 8.8.8.8
 
   # Simple Load Balancer
   telegram-lb:
