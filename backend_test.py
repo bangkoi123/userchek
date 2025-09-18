@@ -61,6 +61,15 @@ class WebtoolsAPITester:
                     print(f"   Error: {error_data}")
                 except:
                     print(f"   Raw response: {response.text[:200]}")
+                
+                # Track failed endpoints for summary
+                if response.status_code in [404, 500]:
+                    self.failed_endpoints.append({
+                        'name': name,
+                        'endpoint': endpoint,
+                        'status': response.status_code,
+                        'method': method
+                    })
 
             return success, response.json() if response.content else {}
 
