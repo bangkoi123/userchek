@@ -2971,6 +2971,103 @@ async def get_admin_stats(current_user = Depends(admin_required)):
         "recent_activities": recent_activities
     }
 
+# EMERGENCY FIX: Alternative endpoints to bypass proxy routing issues
+@app.get("/api/auth/admin-users")
+async def get_admin_users_alt(current_user = Depends(admin_required)):
+    """Alternative endpoint for admin users - bypass proxy routing issues"""
+    # Get paginated users
+    page = 1
+    limit = 20
+    skip = (page - 1) * limit
+    
+    # Get total count
+    total_count = await db.users.count_documents({})
+    
+    # Get users with pagination
+    users_cursor = db.users.find({}).skip(skip).limit(limit)
+    users = await users_cursor.to_list(length=limit)
+    
+    # Process users data
+    processed_users = []
+    for user in users:
+        user_dict = dict(user)
+        user_dict["_id"] = str(user_dict["_id"])
+        
+        # Calculate total validations and credits used
+        total_validations = await db.jobs.aggregate([
+            {"$match": {"user_id": user_dict["_id"]}},
+            {"$group": {"_id": None, "total": {"$sum": "$total_numbers"}}}
+        ]).to_list(length=1)
+        
+        total_credits_used = await db.usage_logs.aggregate([
+            {"$match": {"user_id": user_dict["_id"]}},
+            {"$group": {"_id": None, "total": {"$sum": "$credits_used"}}}
+        ]).to_list(length=1)
+        
+        user_dict["total_validations"] = total_validations[0]["total"] if total_validations else 0
+        user_dict["total_credits_used"] = total_credits_used[0]["total"] if total_credits_used else 0
+        
+        processed_users.append(user_dict)
+    
+    return {
+        "users": processed_users,
+        "pagination": {
+            "current_page": page,
+            "total_pages": (total_count + limit - 1) // limit,
+            "total_count": total_count,
+            "limit": limit
+        }
+    }
+
+@app.get("/api/auth/admin-stats")
+async def get_admin_stats_alt(current_user = Depends(admin_required)):
+    """Alternative endpoint for admin dashboard stats - bypass proxy routing issues"""
+    # Get current month start
+    current_month_start = datetime.utcnow().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    
+    # Get user counts
+    total_users = await db.users.count_documents({})
+    active_users = await db.users.count_documents({"is_active": True})
+    
+    # Get job statistics
+    total_validations = await db.jobs.aggregate([
+        {"$group": {"_id": None, "total": {"$sum": "$total_numbers"}}}
+    ]).to_list(length=1)
+    
+    monthly_validations = await db.jobs.aggregate([
+        {"$match": {"created_at": {"$gte": current_month_start}}},
+        {"$group": {"_id": None, "total": {"$sum": "$total_numbers"}}}
+    ]).to_list(length=1)
+    
+    # Get credit statistics
+    total_credits_used = await db.usage_logs.aggregate([
+        {"$group": {"_id": None, "total": {"$sum": "$credits_used"}}}
+    ]).to_list(length=1)
+    
+    monthly_credits_used = await db.usage_logs.aggregate([
+        {"$match": {"timestamp": {"$gte": current_month_start}}},
+        {"$group": {"_id": None, "total": {"$sum": "$credits_used"}}}
+    ]).to_list(length=1)
+    
+    # Calculate revenue (assuming $0.01 per credit)
+    total_revenue = (total_credits_used[0]["total"] if total_credits_used else 0) * 0.01
+    monthly_revenue = (monthly_credits_used[0]["total"] if monthly_credits_used else 0) * 0.01
+    
+    # Get platform settings
+    platform_settings = await db.admin_settings.find_one({"setting_type": "platform_visibility"}) or {}
+    
+    return {
+        "total_users": total_users,
+        "active_users": active_users,
+        "total_validations": total_validations[0]["total"] if total_validations else 0,
+        "monthly_validations": monthly_validations[0]["total"] if monthly_validations else 0,
+        "total_credits_used": total_credits_used[0]["total"] if total_credits_used else 0,
+        "monthly_credits_used": monthly_credits_used[0]["total"] if monthly_credits_used else 0,
+        "total_revenue": total_revenue,
+        "monthly_revenue": monthly_revenue,
+        "platform_settings": platform_settings
+    }
+
 @app.get("/api/admin/users")
 async def get_admin_users(
     page: int = 1,
