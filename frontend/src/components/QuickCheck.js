@@ -416,7 +416,7 @@ const QuickCheck = () => {
                             <strong>Deep Link Profile</strong> 
                             <span className="inline-block bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-2 py-0.5 rounded-full ml-1">PREMIUM</span>
                             <span className="text-gray-500 dark:text-gray-400 block text-xs">
-                              Info profil detail: foto, last seen, akun bisnis
+                              Info profil detail: foto, last seen, akun bisnis, status about
                             </span>
                           </span>
                           <span className="text-purple-600 font-medium text-sm">3 kredit</span>
