@@ -719,6 +719,12 @@ const QuickCheck = () => {
                                       : getStatusText(entry.whatsapp.status)
                                     }
                                   </span>
+                                  {/* Deep Link Profile indicator */}
+                                  {entry.whatsapp.details?.method === 'demo_deeplink_profile' && (
+                                    <span className="inline-flex items-center px-1 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                                      DLP
+                                    </span>
+                                  )}
                                 </div>
                               ) : (
                                 <span className="text-gray-400 text-xs">—</span>
