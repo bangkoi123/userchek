@@ -5248,30 +5248,34 @@ def run_phonecheck_review_tests():
         return test_results
 
 if __name__ == "__main__":
-    run_phonecheck_review_tests()
-if __name__ == "__main__":
-    print("🚀 STARTING CRITICAL PHONECHECK BACKEND DEBUGGING")
+    print("🚀 STARTING PHONECHECK.GEN-AI.FUN REVIEW TESTING")
+    print("="*80)
+    print("Testing backend endpoints updated from 2522 to 4563 lines")
+    print("Focus: Admin Users, Dashboard Stats, Admin Analytics, System Health, Deep Link Profile")
     print("="*80)
     
     # Initialize tester with phonecheck.gen-ai.fun URL
     tester = WebtoolsAPITester("https://phonecheck.gen-ai.fun")
     
-    # Run critical debugging for the 500 error issue
-    debug_results = tester.critical_phonecheck_debugging()
+    # Run the specific review endpoints test
+    review_results = tester.test_phonecheck_review_endpoints()
     
     # Final summary
     print("\n" + "="*80)
     print("🎯 FINAL TESTING SUMMARY")
     print("="*80)
     
-    total_tests = len(debug_results)
-    passed_tests = sum(debug_results.values())
-    success_rate = (passed_tests / total_tests) * 100
-    
-    print(f"📊 Overall Success Rate: {success_rate:.1f}% ({passed_tests}/{total_tests})")
     print(f"🔧 Tests Run: {tester.tests_run}")
     print(f"✅ Tests Passed: {tester.tests_passed}")
     print(f"❌ Tests Failed: {tester.tests_run - tester.tests_passed}")
+    
+    # Check if all review endpoints are working
+    all_review_passed = all(review_results.values())
+    
+    if tester.failed_endpoints:
+        print(f"\n❌ FAILED ENDPOINTS ({len(tester.failed_endpoints)}):")
+        for failed in tester.failed_endpoints:
+            print(f"   - {failed['method']} /{failed['endpoint']} (Status: {failed['status']})")
     
     if tester.critical_errors:
         print(f"\n🚨 CRITICAL ISSUES FOUND ({len(tester.critical_errors)}):")
@@ -5279,14 +5283,14 @@ if __name__ == "__main__":
             print(f"   {i}. {error}")
     
     # Determine overall status
-    if success_rate >= 80:
-        print("\n🎉 BACKEND STATUS: HEALTHY")
-        print("💡 Most functionality is working correctly")
-    elif success_rate >= 50:
-        print("\n⚠️  BACKEND STATUS: PARTIAL ISSUES")
-        print("💡 Some critical issues need attention")
+    if all_review_passed:
+        print("\n🎉 ALL REVIEW ENDPOINTS WORKING!")
+        print("✅ Backend update from 2522 to 4563 lines was successful")
+        print("✅ All missing endpoints have been implemented")
+        exit(0)
     else:
-        print("\n❌ BACKEND STATUS: CRITICAL ISSUES")
-        print("💡 Major problems require immediate fixing")
-    
-    print("="*80)
+        failed_endpoints = [k for k, v in review_results.items() if not v]
+        print(f"\n❌ SOME REVIEW ENDPOINTS FAILED")
+        print(f"🔧 Failed endpoints: {', '.join(failed_endpoints)}")
+        print("💡 Backend needs fixes before production deployment")
+        exit(1)
