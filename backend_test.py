@@ -1446,15 +1446,20 @@ class WebtoolsAPITester:
         else:
             print("   ❌ GET /api/admin/users failed")
         
-        # 3. Test Dashboard Stats
+        # 3. Test Dashboard Stats (need demo login first)
         print("\n🔍 STEP 3: Dashboard Stats")
-        dashboard_success = self.test_dashboard_stats()
-        review_results["dashboard_stats"] = dashboard_success
-        
-        if dashboard_success:
-            print("   ✅ GET /api/dashboard/stats working correctly")
+        demo_success = self.test_demo_login()
+        if demo_success:
+            dashboard_success = self.test_dashboard_stats()
+            review_results["dashboard_stats"] = dashboard_success
+            
+            if dashboard_success:
+                print("   ✅ GET /api/dashboard/stats working correctly")
+            else:
+                print("   ❌ GET /api/dashboard/stats failed")
         else:
-            print("   ❌ GET /api/dashboard/stats failed")
+            print("   ❌ Demo login failed, cannot test dashboard stats")
+            review_results["dashboard_stats"] = False
         
         # 4. Test Admin Analytics
         print("\n🔍 STEP 4: Admin Analytics")
