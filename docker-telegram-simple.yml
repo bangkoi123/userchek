@@ -1,0 +1,94 @@
+# SIMPLE Multi-Account Telegram Setup
+# 1 VPS + Docker + Optional Proxy
+version: '3.8'
+
+services:
+  # Telegram Account 1
+  telegram-1:
+    build: ./docker/telegram-simple/
+    container_name: telegram_account_1
+    environment:
+      - ACCOUNT_ID=1
+      - TELEGRAM_API_ID=${TG_API_ID_1}
+      - TELEGRAM_API_HASH=${TG_API_HASH_1}
+      - TELEGRAM_PHONE=${TG_PHONE_1}
+      - MAX_REQUESTS_HOUR=150
+      # Optional Proxy (comment out if not using)
+      - PROXY_HOST=${PROXY_HOST_1:-}
+      - PROXY_PORT=${PROXY_PORT_1:-}
+      - PROXY_USER=${PROXY_USER_1:-}
+      - PROXY_PASS=${PROXY_PASS_1:-}
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./data/sessions/account_1:/app/sessions
+      - ./data/logs:/app/logs
+    restart: unless-stopped
+    mem_limit: 256m
+    cpus: 0.3
+
+  # Telegram Account 2  
+  telegram-2:
+    build: ./docker/telegram-simple/
+    container_name: telegram_account_2
+    environment:
+      - ACCOUNT_ID=2
+      - TELEGRAM_API_ID=${TG_API_ID_2}
+      - TELEGRAM_API_HASH=${TG_API_HASH_2}  
+      - TELEGRAM_PHONE=${TG_PHONE_2}
+      - MAX_REQUESTS_HOUR=150
+      # Optional Proxy
+      - PROXY_HOST=${PROXY_HOST_2:-}
+      - PROXY_PORT=${PROXY_PORT_2:-}
+      - PROXY_USER=${PROXY_USER_2:-}
+      - PROXY_PASS=${PROXY_PASS_2:-}
+    ports:
+      - "8082:8080"
+    volumes:
+      - ./data/sessions/account_2:/app/sessions
+      - ./data/logs:/app/logs
+    restart: unless-stopped
+    mem_limit: 256m
+    cpus: 0.3
+
+  # Telegram Account 3
+  telegram-3:
+    build: ./docker/telegram-simple/
+    container_name: telegram_account_3
+    environment:
+      - ACCOUNT_ID=3
+      - TELEGRAM_API_ID=${TG_API_ID_3}
+      - TELEGRAM_API_HASH=${TG_API_HASH_3}
+      - TELEGRAM_PHONE=${TG_PHONE_3}
+      - MAX_REQUESTS_HOUR=150
+      # Optional Proxy
+      - PROXY_HOST=${PROXY_HOST_3:-}
+      - PROXY_PORT=${PROXY_PORT_3:-}
+      - PROXY_USER=${PROXY_USER_3:-}
+      - PROXY_PASS=${PROXY_PASS_3:-}
+    ports:
+      - "8083:8080"
+    volumes:
+      - ./data/sessions/account_3:/app/sessions
+      - ./data/logs:/app/logs
+    restart: unless-stopped
+    mem_limit: 256m
+    cpus: 0.3
+
+  # Simple Load Balancer
+  telegram-lb:
+    image: nginx:alpine
+    container_name: telegram_lb
+    ports:
+      - "8090:80"
+    volumes:
+      - ./nginx/telegram.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - telegram-1
+      - telegram-2  
+      - telegram-3
+    restart: unless-stopped
+
+volumes:
+  telegram_sessions:
+  telegram_logs:
