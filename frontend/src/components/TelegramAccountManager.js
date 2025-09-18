@@ -744,6 +744,139 @@ const TelegramAccountManager = () => {
           </div>
         </div>
       )}
+
+      {/* Real Login Modal */}
+      {realLoginModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md border dark:border-gray-700">
+            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
+              🔐 Real Telegram Login
+            </h2>
+            
+            <div className="mb-4">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Account: <span className="font-medium">{realLoginModal.name}</span>
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Phone: <span className="font-medium">{realLoginModal.phone_number}</span>
+              </p>
+            </div>
+
+            {loginStep === 'credentials' && (
+              <div className="space-y-4">
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  Ready to start login process for this real Telegram account.
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => startRealLogin(realLoginModal)}
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded transition-colors"
+                  >
+                    🚀 Start Login
+                  </button>
+                  <button
+                    onClick={closeRealLoginModal}
+                    className="flex-1 bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-200 py-2 px-4 rounded transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {loginStep === 'initiating' && (
+              <div className="text-center py-4">
+                <div className="loading-spinner w-8 h-8 mx-auto mb-4"></div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  🔄 Initiating login process...
+                </p>
+              </div>
+            )}
+
+            {loginStep === 'verification' && (
+              <form onSubmit={verifyRealLogin} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    📱 Verification Code
+                  </label>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                    Check your Telegram app for the verification code
+                  </p>
+                  <input
+                    type="text"
+                    value={verificationCode}
+                    onChange={(e) => setVerificationCode(e.target.value)}
+                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-center text-lg tracking-widest"
+                    placeholder="12345"
+                    maxLength="5"
+                    required
+                    autoFocus
+                  />
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    type="submit"
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded transition-colors"
+                  >
+                    ✅ Verify
+                  </button>
+                  <button
+                    type="button"
+                    onClick={closeRealLoginModal}
+                    className="flex-1 bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-200 py-2 px-4 rounded transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {loginStep === 'completed' && (
+              <div className="text-center py-4">
+                <div className="text-green-500 text-4xl mb-4">✅</div>
+                <p className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                  Login Successful!
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                  Your Telegram account is now active and ready to use.
+                </p>
+                <button
+                  onClick={closeRealLoginModal}
+                  className="bg-green-600 hover:bg-green-700 text-white py-2 px-6 rounded transition-colors"
+                >
+                  🎉 Done
+                </button>
+              </div>
+            )}
+
+            {loginStep === 'error' && (
+              <div className="text-center py-4">
+                <div className="text-red-500 text-4xl mb-4">❌</div>
+                <p className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                  Login Failed
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                  Please check your credentials and try again.
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setLoginStep('credentials')}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded transition-colors"
+                  >
+                    🔄 Retry
+                  </button>
+                  <button
+                    onClick={closeRealLoginModal}
+                    className="flex-1 bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-200 py-2 px-4 rounded transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
