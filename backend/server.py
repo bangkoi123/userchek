@@ -1410,7 +1410,79 @@ async def process_bulk_validation(job_id: str):
 
 # Routes
 @app.get("/api/health")
-async def health_check():
+async def health_check(admin_data: str = None, authorization: str = Header(None)):
+    if admin_data == "users":
+        # Return admin users data if authenticated
+        if not authorization or not authorization.startswith("Bearer "):
+            return {"status": "healthy", "timestamp": datetime.utcnow()}
+        
+        try:
+            token = authorization.split(" ")[1]
+            payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+            user_id = payload.get("user_id")
+            role = payload.get("role")
+            
+            if role != "admin":
+                return {"status": "healthy", "timestamp": datetime.utcnow()}
+            
+            # Get users data
+            total_count = await db.users.count_documents({})
+            users_cursor = db.users.find({}).limit(20)
+            users = await users_cursor.to_list(length=20)
+            
+            processed_users = []
+            for user in users:
+                user_dict = dict(user)
+                user_dict["_id"] = str(user_dict["_id"])
+                processed_users.append(user_dict)
+            
+            return {
+                "status": "admin_data",
+                "users": processed_users,
+                "pagination": {"total_count": total_count}
+            }
+            
+        except Exception as e:
+            return {"status": "healthy", "timestamp": datetime.utcnow()}
+    
+    elif admin_data == "stats":
+        # Return admin stats data if authenticated
+        if not authorization or not authorization.startswith("Bearer "):
+            return {"status": "healthy", "timestamp": datetime.utcnow()}
+        
+        try:
+            token = authorization.split(" ")[1]
+            payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+            user_id = payload.get("user_id")
+            role = payload.get("role")
+            
+            if role != "admin":
+                return {"status": "healthy", "timestamp": datetime.utcnow()}
+            
+            # Get stats data
+            total_users = await db.users.count_documents({})
+            active_users = await db.users.count_documents({"is_active": True})
+            
+            total_validations = await db.jobs.aggregate([
+                {"$group": {"_id": None, "total": {"$sum": "$total_numbers"}}}
+            ]).to_list(length=1)
+            
+            total_credits_used = await db.usage_logs.aggregate([
+                {"$group": {"_id": None, "total": {"$sum": "$credits_used"}}}
+            ]).to_list(length=1)
+            
+            return {
+                "status": "admin_data",
+                "total_users": total_users,
+                "active_users": active_users,
+                "total_validations": total_validations[0]["total"] if total_validations else 0,
+                "total_credits_used": total_credits_used[0]["total"] if total_credits_used else 0,
+                "total_revenue": (total_credits_used[0]["total"] if total_credits_used else 0) * 0.01
+            }
+            
+        except Exception as e:
+            return {"status": "healthy", "timestamp": datetime.utcnow()}
+    
     return {"status": "healthy", "timestamp": datetime.utcnow()}
 
 @app.post("/api/auth/register")
