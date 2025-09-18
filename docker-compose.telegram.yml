@@ -1,0 +1,128 @@
+# Multi-Account Telegram Validation with Docker Isolation
+version: '3.8'
+
+services:
+  # Account 1 - Indonesia Proxy
+  telegram-account-1:
+    build: ./docker/telegram-account/
+    container_name: telegram_validator_1
+    environment:
+      - TELEGRAM_API_ID=${TELEGRAM_API_ID_1}
+      - TELEGRAM_API_HASH=${TELEGRAM_API_HASH_1}
+      - TELEGRAM_PHONE=${TELEGRAM_PHONE_1}
+      - ACCOUNT_ID=account_1
+      - PROXY_HOST=${PROXY_HOST_1}
+      - PROXY_PORT=${PROXY_PORT_1}
+      - PROXY_USERNAME=${PROXY_USERNAME_1}
+      - PROXY_PASSWORD=${PROXY_PASSWORD_1}
+      - MAX_REQUESTS_PER_HOUR=30
+    volumes:
+      - ./data/telegram_sessions/account_1:/app/sessions
+      - ./data/logs/account_1:/app/logs
+    networks:
+      - telegram_net_1
+    restart: unless-stopped
+    mem_limit: 256m
+    cpus: 0.5
+    
+  # Account 2 - Singapore Proxy  
+  telegram-account-2:
+    build: ./docker/telegram-account/
+    container_name: telegram_validator_2
+    environment:
+      - TELEGRAM_API_ID=${TELEGRAM_API_ID_2}
+      - TELEGRAM_API_HASH=${TELEGRAM_API_HASH_2}
+      - TELEGRAM_PHONE=${TELEGRAM_PHONE_2}
+      - ACCOUNT_ID=account_2
+      - PROXY_HOST=${PROXY_HOST_2}
+      - PROXY_PORT=${PROXY_PORT_2}
+      - PROXY_USERNAME=${PROXY_USERNAME_2}
+      - PROXY_PASSWORD=${PROXY_PASSWORD_2}
+      - MAX_REQUESTS_PER_HOUR=30
+    volumes:
+      - ./data/telegram_sessions/account_2:/app/sessions
+      - ./data/logs/account_2:/app/logs
+    networks:
+      - telegram_net_2
+    restart: unless-stopped
+    mem_limit: 256m
+    cpus: 0.5
+
+  # Account 3 - Malaysia Proxy
+  telegram-account-3:
+    build: ./docker/telegram-account/
+    container_name: telegram_validator_3
+    environment:
+      - TELEGRAM_API_ID=${TELEGRAM_API_ID_3}
+      - TELEGRAM_API_HASH=${TELEGRAM_API_HASH_3}
+      - TELEGRAM_PHONE=${TELEGRAM_PHONE_3}
+      - ACCOUNT_ID=account_3
+      - PROXY_HOST=${PROXY_HOST_3}
+      - PROXY_PORT=${PROXY_PORT_3}
+      - PROXY_USERNAME=${PROXY_USERNAME_3}
+      - PROXY_PASSWORD=${PROXY_PASSWORD_3}
+      - MAX_REQUESTS_PER_HOUR=30
+    volumes:
+      - ./data/telegram_sessions/account_3:/app/sessions
+      - ./data/logs/account_3:/app/logs
+    networks:
+      - telegram_net_3
+    restart: unless-stopped
+    mem_limit: 256m
+    cpus: 0.5
+
+  # Load Balancer untuk distribute requests
+  telegram-load-balancer:
+    image: nginx:alpine
+    container_name: telegram_lb
+    ports:
+      - "8090:80"
+    volumes:
+      - ./docker/nginx/telegram_lb.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - telegram-account-1
+      - telegram-account-2
+      - telegram-account-3
+    networks:
+      - telegram_net_1
+      - telegram_net_2
+      - telegram_net_3
+    restart: unless-stopped
+
+  # Account Health Monitor
+  telegram-monitor:
+    build: ./docker/telegram-monitor/
+    container_name: telegram_monitor
+    environment:
+      - MONITOR_ACCOUNTS=account_1,account_2,account_3
+      - CHECK_INTERVAL=300
+      - WEBHOOK_URL=${TELEGRAM_WEBHOOK_URL}
+    volumes:
+      - ./data/monitoring:/app/data
+    networks:
+      - telegram_net_1
+      - telegram_net_2  
+      - telegram_net_3
+    restart: unless-stopped
+
+networks:
+  telegram_net_1:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.1.0/24
+  telegram_net_2:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.2.0/24
+  telegram_net_3:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.3.0/24
+
+volumes:
+  telegram_sessions_1:
+  telegram_sessions_2:
+  telegram_sessions_3:
