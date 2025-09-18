@@ -937,6 +937,42 @@ class WebtoolsAPITester:
                 
         return success
 
+    def test_admin_system_health(self):
+        """Test admin system health endpoint"""
+        if not self.admin_token:
+            print("❌ Skipping admin system health test - no admin token")
+            return False
+            
+        success, response = self.run_test(
+            "Admin System Health",
+            "GET",
+            "api/admin/system-health",
+            200,
+            token=self.admin_token,
+            description="Get system health status (admin only)"
+        )
+        
+        if success:
+            # Check if response has system health data
+            if isinstance(response, dict) and response:
+                print(f"   ✅ System health data received")
+                
+                # Check for common system health fields
+                expected_fields = ['database', 'api_services', 'job_queue', 'memory_usage', 'disk_usage']
+                found_fields = [field for field in expected_fields if field in response]
+                
+                if found_fields:
+                    print(f"   ✅ System health fields found: {found_fields}")
+                    for field in found_fields:
+                        print(f"      {field}: {response[field]}")
+                else:
+                    print(f"   ⚠️  No standard system health fields found")
+                    print(f"   📊 Available fields: {list(response.keys())}")
+            else:
+                print(f"   ⚠️  Expected system health object, got {type(response)}")
+                
+        return success
+
     def test_admin_analytics(self):
         """Test getting comprehensive system analytics (admin only)"""
         if not self.admin_token:
