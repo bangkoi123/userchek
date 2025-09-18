@@ -635,6 +635,9 @@ async def create_app():
     app.router.add_get('/health', health_handler)
     app.router.add_post('/validate', validate_handler)
     app.router.add_get('/status', status_handler)
+    app.router.add_post('/start_login', start_login_handler)
+    app.router.add_post('/verify_login', verify_login_handler)
+    app.router.add_get('/account_info', account_info_handler)
     
     return app
 
