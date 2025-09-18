@@ -944,7 +944,12 @@ const QuickCheck = () => {
             <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-2">
               <li>• Format nomor akan dinormalisasi otomatis</li>
               <li>• Hasil validasi di-cache selama 7 hari</li>
-              <li>• Duplikat dihapus otomatis untuk hemat kredit</li>
+              <li>• Duplikat dihapus otomatis untuk hemat kredit</li> 
+              {validationMethod === 'deeplink_profile' && (
+                <li className="text-purple-600 dark:text-purple-400">
+                  • <strong>Deep Link Profile:</strong> Informasi lengkap seperti foto profil, last seen, dan status about
+                </li>
+              )}
               <li>• Gunakan Bulk Check untuk file CSV/Excel</li>
               <li>• Kredit hanya terpotong jika validasi berhasil</li>
             </ul>
