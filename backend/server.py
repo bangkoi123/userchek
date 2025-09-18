@@ -1945,32 +1945,199 @@ async def get_whatsapp_account_stats(current_user: dict = Depends(get_current_us
         raise HTTPException(status_code=500, detail=f"Failed to get stats: {str(e)}")
 
 # Telegram Account Management Endpoints
-@app.post("/api/admin/telegram-accounts")
-async def create_telegram_account(
+@app.post("/api/admin/telegram-accounts/create-real")
+async def create_real_telegram_account(
     account_data: dict,
     current_user: dict = Depends(get_current_user)
 ):
-    """Create new Telegram account for MTP validation"""
+    """Create and login real Telegram account dengan Docker integration"""
     if current_user.get("role") != "admin":
         raise HTTPException(status_code=403, detail="Admin access required")
     
-    required_fields = ["name", "phone_number", "api_id", "api_hash"]
-    for field in required_fields:
-        if not account_data.get(field):
-            raise HTTPException(status_code=400, detail=f"Field '{field}' is required")
+    try:
+        # Validate required fields
+        required_fields = ["name", "phone_number", "api_id", "api_hash"]
+        for field in required_fields:
+            if not account_data.get(field):
+                raise HTTPException(status_code=400, detail=f"Field {field} is required")
+        
+        # Generate unique account ID
+        account_id = len(await db.telegram_accounts.find({}).to_list(length=None)) + 1
+        
+        # Create Docker container dengan unique fingerprint
+        from telegram_account_orchestrator import get_telegram_orchestrator
+        orchestrator = await get_telegram_orchestrator()
+        
+        # Configure account untuk Docker
+        docker_config = {
+            "account_id": account_id,
+            "api_id": account_data["api_id"],
+            "api_hash": account_data["api_hash"],
+            "phone_number": account_data["phone_number"],
+            "max_requests": account_data.get("max_daily_requests", 500)
+        }
+        
+        # Create isolated Docker container
+        docker_result = await orchestrator.create_isolated_account(docker_config)
+        
+        if not docker_result.get("success"):
+            raise HTTPException(status_code=500, detail=f"Failed to create Docker container: {docker_result.get('error')}")
+        
+        # Save account to database
+        account_record = {
+            "_id": str(uuid.uuid4()),
+            "name": account_data["name"],
+            "phone_number": account_data["phone_number"],
+            "api_id": account_data["api_id"],
+            "api_hash": account_data["api_hash"],
+            "account_id": account_id,
+            "container_id": docker_result["container_id"],
+            "network": docker_result["network"],
+            "proxy_location": docker_result.get("proxy_location"),
+            "status": "created",
+            "login_status": "pending",
+            "account_type": "real",
+            "validation_method": "mtp",
+            "max_daily_requests": account_data.get("max_daily_requests", 500),
+            "daily_usage": 0,
+            "total_usage": 0,
+            "created_at": datetime.utcnow(),
+            "created_by": current_user["user_id"],
+            "notes": account_data.get("notes", "")
+        }
+        
+        await db.telegram_accounts.insert_one(account_record)
+        
+        return {
+            "success": True,
+            "message": "Real Telegram account container created successfully",
+            "account_id": account_id,
+            "container_id": docker_result["container_id"],
+            "next_step": "login_required",
+            "login_url": f"/api/admin/telegram-accounts/{account_id}/login"
+        }
+        
+    except Exception as e:
+        logging.error(f"Error creating real Telegram account: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/admin/telegram-accounts/{account_id}/login")
+async def login_real_telegram_account(
+    account_id: int,
+    current_user: dict = Depends(get_current_user)
+):
+    """Initiate login process untuk real Telegram account"""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
     
     try:
-        from telegram_account_manager import TelegramAccountManager
-        manager = TelegramAccountManager(db)
-        account = await manager.create_account(account_data)
+        # Get account from database
+        account = await db.telegram_accounts.find_one({"account_id": account_id})
+        if not account:
+            raise HTTPException(status_code=404, detail="Account not found")
         
-        return {"message": "Telegram account created successfully", "account": account}
+        # Send login request to Docker container
+        container_port = 8080 + account_id
+        login_url = f"http://localhost:{container_port}/start_login"
         
-    except ValueError as e:
-        # Handle duplicate phone number or validation errors
-        raise HTTPException(status_code=409, detail=str(e))
+        async with aiohttp.ClientSession() as session:
+            async with session.post(login_url, json={
+                "api_id": account["api_id"],
+                "api_hash": account["api_hash"],
+                "phone_number": account["phone_number"]
+            }) as resp:
+                if resp.status == 200:
+                    result = await resp.json()
+                    
+                    # Update database status
+                    await db.telegram_accounts.update_one(
+                        {"_id": account["_id"]},
+                        {"$set": {
+                            "login_status": "verification_needed",
+                            "login_session_id": result.get("session_id"),
+                            "updated_at": datetime.utcnow()
+                        }}
+                    )
+                    
+                    return {
+                        "success": True,
+                        "message": "Login initiated successfully",
+                        "status": "verification_code_sent",
+                        "session_id": result.get("session_id"),
+                        "phone_number": account["phone_number"]
+                    }
+                else:
+                    error_text = await resp.text()
+                    raise HTTPException(status_code=500, detail=f"Container login failed: {error_text}")
+    
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Account creation failed: {str(e)}")
+        logging.error(f"Error logging in Telegram account {account_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/admin/telegram-accounts/{account_id}/verify")
+async def verify_telegram_login(
+    account_id: int,
+    verification_data: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Verify SMS code untuk complete login"""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    try:
+        # Get account from database
+        account = await db.telegram_accounts.find_one({"account_id": account_id})
+        if not account:
+            raise HTTPException(status_code=404, detail="Account not found")
+        
+        verification_code = verification_data.get("verification_code")
+        if not verification_code:
+            raise HTTPException(status_code=400, detail="Verification code is required")
+        
+        # Send verification to Docker container
+        container_port = 8080 + account_id
+        verify_url = f"http://localhost:{container_port}/verify_login"
+        
+        async with aiohttp.ClientSession() as session:
+            async with session.post(verify_url, json={
+                "session_id": account.get("login_session_id"),
+                "verification_code": verification_code
+            }) as resp:
+                if resp.status == 200:
+                    result = await resp.json()
+                    
+                    if result.get("success"):
+                        # Update database dengan login success
+                        await db.telegram_accounts.update_one(
+                            {"_id": account["_id"]},
+                            {"$set": {
+                                "status": "active",
+                                "login_status": "logged_in",
+                                "user_info": result.get("user_info", {}),
+                                "session_created_at": datetime.utcnow(),
+                                "last_login": datetime.utcnow(),
+                                "updated_at": datetime.utcnow()
+                            }}
+                        )
+                        
+                        return {
+                            "success": True,
+                            "message": "Login completed successfully",
+                            "user_info": result.get("user_info", {}),
+                            "account_status": "active"
+                        }
+                    else:
+                        return {
+                            "success": False,
+                            "error": result.get("error", "Verification failed")
+                        }
+                else:
+                    error_text = await resp.text()
+                    raise HTTPException(status_code=500, detail=f"Verification failed: {error_text}")
+    
+    except Exception as e:
+        logging.error(f"Error verifying Telegram account {account_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/admin/telegram-accounts")
 async def get_telegram_accounts(current_user: dict = Depends(get_current_user)):
