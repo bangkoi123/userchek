@@ -5134,8 +5134,6 @@ def main():
         print("⚠️ System needs improvements before production")
         return 1
 
-if __name__ == "__main__":
-    sys.exit(main())
 def run_phonecheck_review_tests():
     """Run specific tests requested in the review for phonecheck.gen-ai.fun"""
     print("🚀 PHONECHECK.GEN-AI.FUN BACKEND TESTING")
