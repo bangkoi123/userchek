@@ -539,6 +539,21 @@ const TelegramAccountManager = () => {
                           </button>
                         ) : null}
                         
+                        {/* Real Login button for non-demo accounts */}
+                        {!account.demo_account && (
+                          <button
+                            onClick={() => startRealLogin({
+                              account_id: account._id,
+                              name: account.name,
+                              phone_number: account.phone_number
+                            })}
+                            className="text-purple-600 hover:text-purple-700 p-1"
+                            title="Real Telegram Login"
+                          >
+                            <Settings className="h-4 w-4" />
+                          </button>
+                        )}
+                        
                         <button
                           onClick={() => handleEdit(account)}
                           className="text-blue-600 hover:text-blue-700 p-1"
