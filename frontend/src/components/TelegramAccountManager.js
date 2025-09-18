@@ -69,12 +69,14 @@ const TelegramAccountManager = () => {
     e.preventDefault();
     
     try {
+      setLoading(true);
+      
       const accountData = {
         name: accountForm.name.trim(),
         phone_number: accountForm.phone_number.trim(),
         api_id: accountForm.api_id.trim(),
         api_hash: accountForm.api_hash.trim(),
-        max_daily_requests: parseInt(accountForm.max_daily_requests) || 100,
+        max_daily_requests: parseInt(accountForm.max_daily_requests) || 500,
         notes: accountForm.notes.trim()
       };
 
@@ -94,9 +96,21 @@ const TelegramAccountManager = () => {
         await apiCall(`/api/admin/telegram-accounts/${editingAccount._id}`, 'PUT', accountData);
         toast.success(`✅ Telegram account "${accountData.name}" berhasil diupdate`);
       } else {
-        // Create new account
-        await apiCall('/api/admin/telegram-accounts', 'POST', accountData);
-        toast.success(`✅ Telegram account "${accountData.name}" berhasil dibuat`);
+        // Create new REAL account with Docker integration
+        const result = await apiCall('/api/admin/telegram-accounts/create-real', 'POST', accountData);
+        toast.success(`✅ Real Telegram account "${accountData.name}" berhasil dibuat!`);
+        
+        // Automatically start login process
+        if (result.success && result.next_step === 'login_required') {
+          const newAccount = {
+            account_id: result.account_id,
+            name: accountData.name,
+            phone_number: accountData.phone_number
+          };
+          
+          setRealLoginModal(newAccount);
+          setLoginStep('credentials');
+        }
       }
 
       closeModal();
@@ -119,7 +133,64 @@ const TelegramAccountManager = () => {
       } else {
         toast.error('❌ Gagal menyimpan account - coba lagi');
       }
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const startRealLogin = async (account) => {
+    try {
+      setRealLoginModal(account);
+      setLoginStep('initiating');
+      
+      const result = await apiCall(`/api/admin/telegram-accounts/${account.account_id}/login`, 'POST');
+      
+      if (result.success) {
+        setSessionId(result.session_id);
+        setLoginStep('verification');
+        toast.success(`📱 Kode verifikasi dikirim ke ${result.phone_number}`);
+      } else {
+        throw new Error(result.error || 'Failed to initiate login');
+      }
+    } catch (error) {
+      console.error('❌ Login initiation error:', error);
+      toast.error(`❌ Gagal memulai login: ${error.message}`);
+      setLoginStep('error');
+    }
+  };
+
+  const verifyRealLogin = async (e) => {
+    e.preventDefault();
+    
+    if (!verificationCode.trim()) {
+      toast.error('❌ Masukkan kode verifikasi');
+      return;
+    }
+
+    try {
+      const result = await apiCall(`/api/admin/telegram-accounts/${realLoginModal.account_id}/verify`, 'POST', {
+        verification_code: verificationCode.trim()
+      });
+
+      if (result.success) {
+        setLoginStep('completed');
+        toast.success(`✅ Login berhasil! Selamat datang ${result.user_info.first_name}`);
+        setVerificationCode('');
+        await fetchData(); // Refresh accounts list
+      } else {
+        toast.error(`❌ Verifikasi gagal: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('❌ Verification error:', error);
+      toast.error(`❌ Verifikasi gagal: ${error.message}`);
+    }
+  };
+
+  const closeRealLoginModal = () => {
+    setRealLoginModal(null);
+    setLoginStep('credentials');
+    setVerificationCode('');
+    setSessionId('');
   };
 
   const handleLogin = async (accountId) => {
