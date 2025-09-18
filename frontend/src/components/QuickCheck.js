@@ -893,7 +893,16 @@ const QuickCheck = () => {
               <div className="flex justify-between items-center">
                 <span className="text-gray-600 dark:text-gray-400">Kredit per nomor</span>
                 <span className="font-medium text-gray-900 dark:text-white">
-                  {(validateWhatsapp ? 1 : 0) + (validateTelegram ? 1 : 0)} kredit
+                  {(() => {
+                    let creditsPerNumber = 0;
+                    if (validateWhatsapp) {
+                      creditsPerNumber += validationMethod === 'deeplink_profile' ? 3 : 1;
+                    }
+                    if (validateTelegram) {
+                      creditsPerNumber += 1;
+                    }
+                    return creditsPerNumber;
+                  })()} kredit
                 </span>
               </div>
               <div className="flex justify-between items-center">
