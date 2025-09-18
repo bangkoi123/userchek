@@ -51,7 +51,7 @@ class SimpleTelegramValidator:
         self.logger.addHandler(file_handler)
     
     def setup_client(self):
-        """Setup Telegram client with optional proxy"""
+        """Setup Telegram client with optional proxy and unique fingerprint"""
         proxy_config = None
         
         # Optional proxy setup
@@ -68,15 +68,113 @@ class SimpleTelegramValidator:
         else:
             self.logger.info("🌐 No proxy configured (direct connection)")
         
-        # Create Telegram client
+        # 🎭 UNIQUE FINGERPRINT PER ACCOUNT
+        fingerprint = self.generate_unique_fingerprint()
+        self.logger.info(f"🎭 Account fingerprint: {fingerprint['device_model']} | {fingerprint['system_lang']}")
+        
+        # Create Telegram client with unique session name
+        session_name = f"{fingerprint['session_prefix']}_{self.account_id}_{fingerprint['device_id']}"
+        
         self.client = Client(
-            name=f"account_{self.account_id}",
+            name=session_name,
             api_id=self.api_id,
             api_hash=self.api_hash,
             phone_number=self.phone,
             workdir="/app/sessions",
-            proxy=proxy_config
+            proxy=proxy_config,
+            # Device info for fingerprinting
+            device_model=fingerprint['device_model'],
+            system_version=fingerprint['system_version'],
+            app_version=fingerprint['app_version'],
+            lang_code=fingerprint['lang_code'],
+            system_lang_code=fingerprint['system_lang']
         )
+        
+        # Store fingerprint for logging
+        self.fingerprint = fingerprint
+    
+    def generate_unique_fingerprint(self):
+        """Generate unique fingerprint based on account ID"""
+        account_num = int(self.account_id)
+        
+        # Device models pool
+        device_models = [
+            "Samsung SM-G991B",     # Galaxy S21
+            "iPhone14,2",           # iPhone 13 Pro  
+            "OnePlus KB2005",       # OnePlus 9
+            "Xiaomi M2102K1G",      # Mi 11
+            "OPPO CPH2371",         # Find X5
+            "Vivo V2134",           # V23 Pro
+            "Google Pixel 6",       # Pixel 6
+            "Huawei ELS-NX9",       # P40 Pro
+            "Sony XQ-CT54",         # Xperia 5 III
+            "Nokia TA-1336"         # Nokia X20
+        ]
+        
+        # System versions pool
+        system_versions = [
+            "Android 13; 33",
+            "Android 12; 32", 
+            "Android 11; 30",
+            "iOS 16.1.1",
+            "iOS 15.7",
+            "iOS 17.0"
+        ]
+        
+        # App versions pool
+        app_versions = [
+            "9.2.2 (2823)",
+            "9.1.7 (2741)", 
+            "9.0.4 (2632)",
+            "8.9.3 (2551)",
+            "8.8.5 (2477)"
+        ]
+        
+        # Language codes pool
+        lang_codes = [
+            "en", "id", "ms", "th", "vi", "tl"
+        ]
+        
+        # System languages pool
+        system_langs = [
+            "en-US", "id-ID", "ms-MY", "th-TH", "vi-VN", "tl-PH"
+        ]
+        
+        # Session prefixes
+        session_prefixes = [
+            "tg_main", "telegram_user", "tg_client", 
+            "user_session", "mobile_tg", "tg_app"
+        ]
+        
+        # Generate deterministic but unique fingerprint per account
+        import hashlib
+        seed = f"telegram_account_{account_num}_{self.phone}".encode()
+        hash_obj = hashlib.md5(seed)
+        hash_bytes = hash_obj.digest()
+        
+        # Use hash bytes to select items deterministically
+        device_idx = hash_bytes[0] % len(device_models)
+        system_idx = hash_bytes[1] % len(system_versions)
+        app_idx = hash_bytes[2] % len(app_versions)
+        lang_idx = hash_bytes[3] % len(lang_codes)
+        sys_lang_idx = hash_bytes[4] % len(system_langs)
+        prefix_idx = hash_bytes[5] % len(session_prefixes)
+        
+        # Generate device-specific ID
+        device_id = f"{hash_bytes[6]:02x}{hash_bytes[7]:02x}{hash_bytes[8]:02x}"
+        
+        fingerprint = {
+            "device_model": device_models[device_idx],
+            "system_version": system_versions[system_idx],
+            "app_version": app_versions[app_idx],
+            "lang_code": lang_codes[lang_idx],
+            "system_lang": system_langs[sys_lang_idx],
+            "session_prefix": session_prefixes[prefix_idx],
+            "device_id": device_id,
+            "account_id": account_num
+        }
+        
+        return fingerprint
     
     def check_rate_limit(self) -> tuple[bool, str]:
         """Check if we're within rate limits"""
