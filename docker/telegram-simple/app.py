@@ -443,6 +443,193 @@ async def create_app():
             "timestamp": datetime.now().isoformat()
         })
     
+    async def start_login_handler(request):
+        """Start login process endpoint"""
+        try:
+            data = await request.json()
+            api_id = data.get('api_id')
+            api_hash = data.get('api_hash')
+            phone_number = data.get('phone_number')
+            
+            if not all([api_id, api_hash, phone_number]):
+                return web.json_response({
+                    "success": False,
+                    "error": "Missing required fields"
+                }, status=400)
+            
+            # Update client configuration
+            validator.api_id = api_id
+            validator.api_hash = api_hash
+            validator.phone = phone_number
+            
+            # Setup new client dengan real credentials
+            validator.setup_client()
+            
+            # Generate unique session ID untuk tracking
+            import uuid
+            session_id = str(uuid.uuid4())
+            
+            # Start login process
+            try:
+                await validator.client.connect()
+                
+                # Send verification code
+                sent_code = await validator.client.send_code(phone_number)
+                
+                # Store session info untuk verification nanti
+                validator.login_sessions = getattr(validator, 'login_sessions', {})
+                validator.login_sessions[session_id] = {
+                    "phone_hash": sent_code.phone_code_hash,
+                    "phone_number": phone_number,
+                    "api_id": api_id,
+                    "api_hash": api_hash,
+                    "created_at": datetime.now().isoformat()
+                }
+                
+                return web.json_response({
+                    "success": True,
+                    "message": f"Verification code sent to {phone_number}",
+                    "session_id": session_id,
+                    "phone_number": phone_number
+                })
+                
+            except Exception as e:
+                await validator.client.disconnect()
+                return web.json_response({
+                    "success": False,
+                    "error": f"Login initiation failed: {str(e)}"
+                }, status=500)
+            
+        except Exception as e:
+            return web.json_response({
+                "success": False,
+                "error": f"Request processing failed: {str(e)}"
+            }, status=500)
+    
+    async def verify_login_handler(request):
+        """Verify SMS code and complete login"""
+        try:
+            data = await request.json()
+            session_id = data.get('session_id')
+            verification_code = data.get('verification_code')
+            
+            if not session_id or not verification_code:
+                return web.json_response({
+                    "success": False,
+                    "error": "Session ID and verification code required"
+                }, status=400)
+            
+            # Get session info
+            if not hasattr(validator, 'login_sessions') or session_id not in validator.login_sessions:
+                return web.json_response({
+                    "success": False,
+                    "error": "Invalid session ID"
+                }, status=400)
+            
+            session_info = validator.login_sessions[session_id]
+            
+            try:
+                # Complete login dengan verification code
+                await validator.client.sign_in(
+                    phone_number=session_info["phone_number"],
+                    phone_code_hash=session_info["phone_hash"],
+                    phone_code=verification_code
+                )
+                
+                # Get user info setelah login
+                me = await validator.client.get_me()
+                
+                # Get additional info
+                contacts = await validator.client.get_contacts()
+                
+                user_info = {
+                    "user_id": me.id,
+                    "first_name": me.first_name,
+                    "last_name": me.last_name,
+                    "username": me.username,
+                    "phone_number": me.phone_number,
+                    "is_premium": me.is_premium,
+                    "contacts_count": len(contacts),
+                    "login_time": datetime.now().isoformat()
+                }
+                
+                # Update validator dengan user info
+                validator.user_info = user_info
+                validator.login_status = "logged_in"
+                
+                # Clean up session
+                del validator.login_sessions[session_id]
+                
+                validator.logger.info(f"✅ Real account login successful: {me.first_name} (@{me.username})")
+                
+                return web.json_response({
+                    "success": True,
+                    "message": "Login completed successfully",
+                    "user_info": user_info
+                })
+                
+            except Exception as e:
+                # Cleanup on error
+                try:
+                    await validator.client.disconnect()
+                except:
+                    pass
+                
+                error_msg = str(e)
+                if "PHONE_CODE_INVALID" in error_msg:
+                    error_msg = "Invalid verification code. Please try again."
+                elif "PHONE_CODE_EXPIRED" in error_msg:
+                    error_msg = "Verification code expired. Please request a new one."
+                
+                return web.json_response({
+                    "success": False,
+                    "error": error_msg
+                }, status=400)
+                
+        except Exception as e:
+            return web.json_response({
+                "success": False,
+                "error": f"Verification failed: {str(e)}"
+            }, status=500)
+    
+    async def account_info_handler(request):
+        """Get current account information"""
+        try:
+            if not hasattr(validator, 'user_info'):
+                return web.json_response({
+                    "logged_in": False,
+                    "message": "No account logged in"
+                })
+            
+            # Get current status dari Telegram
+            try:
+                await validator.client.start()
+                me = await validator.client.get_me()
+                
+                # Update info
+                validator.user_info.update({
+                    "current_status": "connected",
+                    "last_check": datetime.now().isoformat()
+                })
+                
+                await validator.client.stop()
+                
+            except Exception as e:
+                validator.user_info["current_status"] = f"error: {str(e)}"
+            
+            return web.json_response({
+                "logged_in": True,
+                "user_info": validator.user_info,
+                "account_id": validator.account_id,
+                "fingerprint": getattr(validator, 'fingerprint', {})
+            })
+            
+        except Exception as e:
+            return web.json_response({
+                "success": False,
+                "error": str(e)
+            }, status=500)
+    
     # Create app
     app = web.Application()
     app.router.add_get('/health', health_handler)
