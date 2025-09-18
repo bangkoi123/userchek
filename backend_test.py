@@ -1481,15 +1481,19 @@ class WebtoolsAPITester:
         else:
             print("   ❌ GET /api/admin/system-health failed")
         
-        # 6. Test Deep Link Profile Validation
+        # 6. Test Deep Link Profile Validation (use demo token)
         print("\n🔍 STEP 6: Deep Link Profile Validation")
-        deeplink_success = self.test_quick_check_deeplink_profile()
-        review_results["deeplink_profile_validation"] = deeplink_success
-        
-        if deeplink_success:
-            print("   ✅ Deep Link Profile validation working correctly")
+        if self.demo_token:
+            deeplink_success = self.test_quick_check_deeplink_profile()
+            review_results["deeplink_profile_validation"] = deeplink_success
+            
+            if deeplink_success:
+                print("   ✅ Deep Link Profile validation working correctly")
+            else:
+                print("   ❌ Deep Link Profile validation failed")
         else:
-            print("   ❌ Deep Link Profile validation failed")
+            print("   ❌ No demo token available for Deep Link Profile test")
+            review_results["deeplink_profile_validation"] = False
         
         # Summary
         print("\n" + "="*80)
