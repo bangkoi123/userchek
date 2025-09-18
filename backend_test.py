@@ -1409,6 +1409,117 @@ class WebtoolsAPITester:
         
         return investigation_results
 
+    def test_phonecheck_review_endpoints(self):
+        """Test specific endpoints mentioned in the review request"""
+        print("\n" + "="*80)
+        print("🔍 TESTING PHONECHECK.GEN-AI.FUN REVIEW ENDPOINTS")
+        print("="*80)
+        print("Testing backend endpoints that were updated from 2522 to 4563 lines")
+        print("Focus: Admin Users, Dashboard Stats, Admin Analytics, System Health, Deep Link Profile")
+        print("="*80)
+        
+        review_results = {
+            "admin_login": False,
+            "admin_users_management": False,
+            "dashboard_stats": False,
+            "admin_analytics": False,
+            "system_health": False,
+            "deeplink_profile_validation": False
+        }
+        
+        # 1. Admin Login (required for all other tests)
+        print("\n🔍 STEP 1: Admin Authentication")
+        admin_success = self.test_admin_login()
+        review_results["admin_login"] = admin_success
+        
+        if not admin_success:
+            print("❌ Cannot proceed without admin authentication")
+            return review_results
+        
+        # 2. Test Admin Users Management
+        print("\n🔍 STEP 2: Admin Users Management")
+        users_success = self.test_admin_users_list()
+        review_results["admin_users_management"] = users_success
+        
+        if users_success:
+            print("   ✅ GET /api/admin/users working correctly")
+        else:
+            print("   ❌ GET /api/admin/users failed")
+        
+        # 3. Test Dashboard Stats
+        print("\n🔍 STEP 3: Dashboard Stats")
+        dashboard_success = self.test_dashboard_stats()
+        review_results["dashboard_stats"] = dashboard_success
+        
+        if dashboard_success:
+            print("   ✅ GET /api/dashboard/stats working correctly")
+        else:
+            print("   ❌ GET /api/dashboard/stats failed")
+        
+        # 4. Test Admin Analytics
+        print("\n🔍 STEP 4: Admin Analytics")
+        analytics_success = self.test_admin_analytics()
+        review_results["admin_analytics"] = analytics_success
+        
+        if analytics_success:
+            print("   ✅ GET /api/admin/analytics working correctly")
+        else:
+            print("   ❌ GET /api/admin/analytics failed")
+        
+        # 5. Test System Health
+        print("\n🔍 STEP 5: System Health")
+        health_success = self.test_admin_system_health()
+        review_results["system_health"] = health_success
+        
+        if health_success:
+            print("   ✅ GET /api/admin/system-health working correctly")
+        else:
+            print("   ❌ GET /api/admin/system-health failed")
+        
+        # 6. Test Deep Link Profile Validation
+        print("\n🔍 STEP 6: Deep Link Profile Validation")
+        deeplink_success = self.test_quick_check_deeplink_profile()
+        review_results["deeplink_profile_validation"] = deeplink_success
+        
+        if deeplink_success:
+            print("   ✅ Deep Link Profile validation working correctly")
+        else:
+            print("   ❌ Deep Link Profile validation failed")
+        
+        # Summary
+        print("\n" + "="*80)
+        print("📊 PHONECHECK REVIEW ENDPOINTS SUMMARY")
+        print("="*80)
+        
+        total_tests = len(review_results)
+        passed_tests = sum(review_results.values())
+        success_rate = (passed_tests / total_tests) * 100
+        
+        print(f"Overall Success Rate: {success_rate:.1f}% ({passed_tests}/{total_tests})")
+        
+        for test_name, result in review_results.items():
+            status = "✅ WORKING" if result else "❌ FAILED"
+            print(f"   {status} {test_name.replace('_', ' ').title()}")
+        
+        # Show failed endpoints
+        if self.failed_endpoints:
+            print(f"\n❌ FAILED ENDPOINTS ({len(self.failed_endpoints)}):")
+            for failed in self.failed_endpoints:
+                print(f"   - {failed['method']} /{failed['endpoint']} (Status: {failed['status']})")
+        
+        if success_rate == 100:
+            print("\n🎉 ALL REVIEW ENDPOINTS ARE WORKING PERFECTLY!")
+            print("✅ Backend update from 2522 to 4563 lines was successful")
+            print("✅ All missing endpoints have been implemented")
+        elif success_rate >= 80:
+            print("\n✅ MOST REVIEW ENDPOINTS ARE WORKING")
+            print("⚠️  Some minor issues detected but core functionality works")
+        else:
+            print("\n❌ CRITICAL ISSUES DETECTED")
+            print("🔧 Backend needs fixes before production deployment")
+        
+        return review_results
+
     def critical_phonecheck_debugging(self):
         """CRITICAL: Debug phonecheck.gen-ai.fun 500 Internal Server Error on quick-check endpoint"""
         print("\n" + "="*80)
