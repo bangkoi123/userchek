@@ -23,16 +23,20 @@ const TelegramAccountManager = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingAccount, setEditingAccount] = useState(null);
   const [loginModal, setLoginModal] = useState(null);
+  const [realLoginModal, setRealLoginModal] = useState(null);
+  const [loginStep, setLoginStep] = useState('credentials'); // credentials, verification, completed
+  const [verificationCode, setVerificationCode] = useState('');
+  const [sessionId, setSessionId] = useState('');
 
   const [accountForm, setAccountForm] = useState({
     name: '',
     phone_number: '',
     api_id: '',
     api_hash: '',
-    max_daily_requests: 100,
+    max_daily_requests: 500,
     notes: '',
     proxy_enabled: false,
-    proxy_type: 'http',
+    proxy_type: 'socks5',
     proxy_url: '',
     proxy_username: '',
     proxy_password: ''
