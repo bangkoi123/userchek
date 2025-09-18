@@ -2505,9 +2505,22 @@ async def quick_check(request: QuickCheckRequest, current_user = Depends(get_cur
             if request.validate_whatsapp:
                 try:
                     if request.validation_method == 'deeplink_profile':
-                        # Use demo validation for Deep Link Profile
-                        from production_setup import DemoValidationSystem
-                        whatsapp_result = await DemoValidationSystem.demo_whatsapp_validation(phone, 'deeplink_profile')
+                        # Simple demo Deep Link Profile
+                        whatsapp_result = {
+                            "success": True,
+                            "status": "active",
+                            "phone_number": phone,
+                            "details": {
+                                "provider": "demo_deeplink",
+                                "method": "demo_deeplink_profile",
+                                "timestamp": datetime.utcnow().isoformat(),
+                                "demo_mode": True,
+                                "profile_picture": True,
+                                "last_seen": "recently",
+                                "business_account": False,
+                                "about_info": "Available"
+                            }
+                        }
                     else:
                         # Standard validation
                         whatsapp_result = {
