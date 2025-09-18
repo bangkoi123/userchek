@@ -229,7 +229,7 @@ const AdminPanel = () => {
 
   const tabs = [
     { id: 'overview', name: 'Overview', icon: Monitor },
-    { id: 'telegram', name: 'Telegram Accounts', icon: MessageSquare },
+    { id: 'telegram', name: 'Telegram Accounts', icon: MessageCircle },
     { id: 'whatsapp', name: 'WhatsApp Providers', icon: Bot },
     { id: 'jobs', name: 'Job Monitoring', icon: Activity },
     { id: 'settings', name: 'System Settings', icon: Settings }
